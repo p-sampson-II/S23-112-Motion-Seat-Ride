@@ -1,0 +1,2215 @@
+ARM GAS  /tmp/ccKtCrhD.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"distanceInterf.cpp"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Intermediate/src/distanceInterf.cpp"
+  20              		.section	.text._ZN14distanceInterfC2Ev,"ax",%progbits
+  21              		.align	1
+  22              		.global	_ZN14distanceInterfC2Ev
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	_ZN14distanceInterfC2Ev:
+  28              		.fnstart
+  29              	.LVL0:
+  30              	.LFB131:
+   1:Intermediate/src/distanceInterf.cpp **** #include "i2cInterf.h"
+   2:Intermediate/src/distanceInterf.cpp **** #include "distanceInterf.h"
+   3:Intermediate/src/distanceInterf.cpp **** #include "stm32f4xx_hal.h"
+   4:Intermediate/src/distanceInterf.cpp **** 
+   5:Intermediate/src/distanceInterf.cpp **** distanceInterf::distanceInterf() : i2c() {}
+  31              		.loc 1 5 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		.loc 1 5 1 is_stmt 0 view .LVU1
+  36 0000 10B5     		push	{r4, lr}
+  37              		.save {r4, lr}
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 4, -8
+  40              		.cfi_offset 14, -4
+  41 0002 0446     		mov	r4, r0
+  42              	.LBB2:
+  43              		.loc 1 5 36 view .LVU2
+  44 0004 FFF7FEFF 		bl	_ZN9i2cInterfC1Ev
+  45              	.LVL1:
+  46              		.loc 1 5 40 discriminator 1 view .LVU3
+  47 0008 034B     		ldr	r3, .L3
+  48 000a A360     		str	r3, [r4, #8]	@ float
+  49 000c 5E23     		movs	r3, #94
+  50 000e 2373     		strb	r3, [r4, #12]
+  51 0010 0023     		movs	r3, #0
+  52 0012 6373     		strb	r3, [r4, #13]
+  53              	.LBE2:
+ARM GAS  /tmp/ccKtCrhD.s 			page 2
+
+
+  54              		.loc 1 5 43 view .LVU4
+  55 0014 2046     		mov	r0, r4
+  56 0016 10BD     		pop	{r4, pc}
+  57              	.LVL2:
+  58              	.L4:
+  59              		.loc 1 5 43 view .LVU5
+  60              		.align	2
+  61              	.L3:
+  62 0018 00007841 		.word	1098383360
+  63              		.cfi_endproc
+  64              	.LFE131:
+  65              		.fnend
+  67              		.global	_ZN14distanceInterfC1Ev
+  68              		.thumb_set _ZN14distanceInterfC1Ev,_ZN14distanceInterfC2Ev
+  69              		.section	.text._ZN14distanceInterfC2E9i2cInterf,"ax",%progbits
+  70              		.align	1
+  71              		.global	_ZN14distanceInterfC2E9i2cInterf
+  72              		.syntax unified
+  73              		.thumb
+  74              		.thumb_func
+  76              	_ZN14distanceInterfC2E9i2cInterf:
+  77              		.fnstart
+  78              	.LVL3:
+  79              	.LFB134:
+   6:Intermediate/src/distanceInterf.cpp **** 
+   7:Intermediate/src/distanceInterf.cpp **** distanceInterf::distanceInterf(i2cInterf i2c) :
+  80              		.loc 1 7 1 is_stmt 1 view -0
+  81              		.cfi_startproc
+  82              		@ args = 0, pretend = 0, frame = 8
+  83              		@ frame_needed = 0, uses_anonymous_args = 0
+  84              		@ link register save eliminated.
+  85              		.loc 1 7 1 is_stmt 0 view .LVU7
+  86 0000 82B0     		sub	sp, sp, #8
+  87              		.cfi_def_cfa_offset 8
+  88 0002 0346     		mov	r3, r0
+  89 0004 6846     		mov	r0, sp
+  90              	.LVL4:
+  91              		.loc 1 7 1 view .LVU8
+  92 0006 80E80600 		stm	r0, {r1, r2}
+  93              	.LBB3:
+   8:Intermediate/src/distanceInterf.cpp ****         i2c(i2c) {}
+  94              		.loc 1 8 9 view .LVU9
+  95 000a 03C8     		ldm	r0, {r0, r1}
+  96 000c 83E80500 		stm	r3, {r0, r2}
+  97              		.loc 1 8 16 view .LVU10
+  98 0010 044A     		ldr	r2, .L7
+  99 0012 9A60     		str	r2, [r3, #8]	@ float
+ 100 0014 5E22     		movs	r2, #94
+ 101 0016 1A73     		strb	r2, [r3, #12]
+ 102 0018 0022     		movs	r2, #0
+ 103 001a 5A73     		strb	r2, [r3, #13]
+ 104              	.LBE3:
+ 105              		.loc 1 8 19 view .LVU11
+ 106 001c 1846     		mov	r0, r3
+ 107 001e 02B0     		add	sp, sp, #8
+ 108              		.cfi_def_cfa_offset 0
+ 109              		@ sp needed
+ARM GAS  /tmp/ccKtCrhD.s 			page 3
+
+
+ 110 0020 7047     		bx	lr
+ 111              	.L8:
+ 112 0022 00BF     		.align	2
+ 113              	.L7:
+ 114 0024 00007841 		.word	1098383360
+ 115              		.cfi_endproc
+ 116              	.LFE134:
+ 117              		.cantunwind
+ 118              		.fnend
+ 120              		.global	_ZN14distanceInterfC1E9i2cInterf
+ 121              		.thumb_set _ZN14distanceInterfC1E9i2cInterf,_ZN14distanceInterfC2E9i2cInterf
+ 122              		.section	.text._ZN14distanceInterfC2ER17I2C_HandleTypeDef,"ax",%progbits
+ 123              		.align	1
+ 124              		.global	_ZN14distanceInterfC2ER17I2C_HandleTypeDef
+ 125              		.syntax unified
+ 126              		.thumb
+ 127              		.thumb_func
+ 129              	_ZN14distanceInterfC2ER17I2C_HandleTypeDef:
+ 130              		.fnstart
+ 131              	.LVL5:
+ 132              	.LFB137:
+   9:Intermediate/src/distanceInterf.cpp **** 
+  10:Intermediate/src/distanceInterf.cpp **** distanceInterf::distanceInterf(I2C_HandleTypeDef &hi2c) :
+ 133              		.loc 1 10 1 is_stmt 1 view -0
+ 134              		.cfi_startproc
+ 135              		@ args = 0, pretend = 0, frame = 0
+ 136              		@ frame_needed = 0, uses_anonymous_args = 0
+ 137              		.loc 1 10 1 is_stmt 0 view .LVU13
+ 138 0000 10B5     		push	{r4, lr}
+ 139              		.save {r4, lr}
+ 140              		.cfi_def_cfa_offset 8
+ 141              		.cfi_offset 4, -8
+ 142              		.cfi_offset 14, -4
+ 143 0002 0446     		mov	r4, r0
+ 144              	.LBB4:
+  11:Intermediate/src/distanceInterf.cpp ****         i2c(hi2c, 0) {}
+ 145              		.loc 1 11 9 view .LVU14
+ 146 0004 0022     		movs	r2, #0
+ 147 0006 FFF7FEFF 		bl	_ZN9i2cInterfC1ER17I2C_HandleTypeDefh
+ 148              	.LVL6:
+ 149              		.loc 1 11 20 discriminator 1 view .LVU15
+ 150 000a 044B     		ldr	r3, .L11
+ 151 000c A360     		str	r3, [r4, #8]	@ float
+ 152 000e 5E23     		movs	r3, #94
+ 153 0010 2373     		strb	r3, [r4, #12]
+ 154 0012 0023     		movs	r3, #0
+ 155 0014 6373     		strb	r3, [r4, #13]
+ 156              	.LBE4:
+ 157              		.loc 1 11 23 view .LVU16
+ 158 0016 2046     		mov	r0, r4
+ 159 0018 10BD     		pop	{r4, pc}
+ 160              	.LVL7:
+ 161              	.L12:
+ 162              		.loc 1 11 23 view .LVU17
+ 163 001a 00BF     		.align	2
+ 164              	.L11:
+ 165 001c 00007841 		.word	1098383360
+ARM GAS  /tmp/ccKtCrhD.s 			page 4
+
+
+ 166              		.cfi_endproc
+ 167              	.LFE137:
+ 168              		.fnend
+ 170              		.global	_ZN14distanceInterfC1ER17I2C_HandleTypeDef
+ 171              		.thumb_set _ZN14distanceInterfC1ER17I2C_HandleTypeDef,_ZN14distanceInterfC2ER17I2C_HandleTypeDef
+ 172              		.section	.text._ZN14distanceInterfC2ER17I2C_HandleTypeDefh,"ax",%progbits
+ 173              		.align	1
+ 174              		.global	_ZN14distanceInterfC2ER17I2C_HandleTypeDefh
+ 175              		.syntax unified
+ 176              		.thumb
+ 177              		.thumb_func
+ 179              	_ZN14distanceInterfC2ER17I2C_HandleTypeDefh:
+ 180              		.fnstart
+ 181              	.LVL8:
+ 182              	.LFB140:
+  12:Intermediate/src/distanceInterf.cpp **** 
+  13:Intermediate/src/distanceInterf.cpp **** distanceInterf::distanceInterf(I2C_HandleTypeDef &hi2c, uint8_t sensorAddr) :
+ 183              		.loc 1 13 1 is_stmt 1 view -0
+ 184              		.cfi_startproc
+ 185              		@ args = 0, pretend = 0, frame = 0
+ 186              		@ frame_needed = 0, uses_anonymous_args = 0
+ 187              		.loc 1 13 1 is_stmt 0 view .LVU19
+ 188 0000 10B5     		push	{r4, lr}
+ 189              		.save {r4, lr}
+ 190              		.cfi_def_cfa_offset 8
+ 191              		.cfi_offset 4, -8
+ 192              		.cfi_offset 14, -4
+ 193 0002 0446     		mov	r4, r0
+ 194              	.LBB5:
+  14:Intermediate/src/distanceInterf.cpp ****         i2c(hi2c, sensorAddr) {}
+ 195              		.loc 1 14 9 view .LVU20
+ 196 0004 FFF7FEFF 		bl	_ZN9i2cInterfC1ER17I2C_HandleTypeDefh
+ 197              	.LVL9:
+ 198              		.loc 1 14 29 discriminator 1 view .LVU21
+ 199 0008 034B     		ldr	r3, .L15
+ 200 000a A360     		str	r3, [r4, #8]	@ float
+ 201 000c 5E23     		movs	r3, #94
+ 202 000e 2373     		strb	r3, [r4, #12]
+ 203 0010 0023     		movs	r3, #0
+ 204 0012 6373     		strb	r3, [r4, #13]
+ 205              	.LBE5:
+ 206              		.loc 1 14 32 view .LVU22
+ 207 0014 2046     		mov	r0, r4
+ 208 0016 10BD     		pop	{r4, pc}
+ 209              	.LVL10:
+ 210              	.L16:
+ 211              		.loc 1 14 32 view .LVU23
+ 212              		.align	2
+ 213              	.L15:
+ 214 0018 00007841 		.word	1098383360
+ 215              		.cfi_endproc
+ 216              	.LFE140:
+ 217              		.fnend
+ 219              		.global	_ZN14distanceInterfC1ER17I2C_HandleTypeDefh
+ 220              		.thumb_set _ZN14distanceInterfC1ER17I2C_HandleTypeDefh,_ZN14distanceInterfC2ER17I2C_HandleTypeDefh
+ 221              		.global	__aeabi_f2d
+ 222              		.global	__aeabi_ddiv
+ARM GAS  /tmp/ccKtCrhD.s 			page 5
+
+
+ 223              		.global	__aeabi_dadd
+ 224              		.global	__aeabi_d2f
+ 225              		.section	.text._ZN14distanceInterf12readDistanceEv,"ax",%progbits
+ 226              		.align	1
+ 227              		.global	_ZN14distanceInterf12readDistanceEv
+ 228              		.syntax unified
+ 229              		.thumb
+ 230              		.thumb_func
+ 232              	_ZN14distanceInterf12readDistanceEv:
+ 233              		.fnstart
+ 234              	.LVL11:
+ 235              	.LFB142:
+  15:Intermediate/src/distanceInterf.cpp **** 
+  16:Intermediate/src/distanceInterf.cpp **** float distanceInterf::readDistance() {
+ 236              		.loc 1 16 38 is_stmt 1 view -0
+ 237              		.cfi_startproc
+ 238              		@ args = 0, pretend = 0, frame = 8
+ 239              		@ frame_needed = 0, uses_anonymous_args = 0
+ 240              		.loc 1 16 38 is_stmt 0 view .LVU25
+ 241 0000 30B5     		push	{r4, r5, lr}
+ 242              		.save {r4, r5, lr}
+ 243              		.cfi_def_cfa_offset 12
+ 244              		.cfi_offset 4, -12
+ 245              		.cfi_offset 5, -8
+ 246              		.cfi_offset 14, -4
+ 247              		.pad #12
+ 248 0002 83B0     		sub	sp, sp, #12
+ 249              		.cfi_def_cfa_offset 24
+ 250 0004 0446     		mov	r4, r0
+  17:Intermediate/src/distanceInterf.cpp ****         uint8_t data[2];
+ 251              		.loc 1 17 9 is_stmt 1 view .LVU26
+  18:Intermediate/src/distanceInterf.cpp ****         i2c.write((char *) &register_address, 1);
+ 252              		.loc 1 18 9 view .LVU27
+ 253              		.loc 1 18 18 is_stmt 0 view .LVU28
+ 254 0006 0122     		movs	r2, #1
+ 255 0008 00F10C01 		add	r1, r0, #12
+ 256 000c FFF7FEFF 		bl	_ZN9i2cInterf5writeEPch
+ 257              	.LVL12:
+  19:Intermediate/src/distanceInterf.cpp ****         i2c.read((char *) data, 2);
+ 258              		.loc 1 19 9 is_stmt 1 view .LVU29
+ 259              		.loc 1 19 17 is_stmt 0 view .LVU30
+ 260 0010 0222     		movs	r2, #2
+ 261 0012 01A9     		add	r1, sp, #4
+ 262 0014 2046     		mov	r0, r4
+ 263 0016 FFF7FEFF 		bl	_ZN9i2cInterf4readEPch
+ 264              	.LVL13:
+  20:Intermediate/src/distanceInterf.cpp ****         float output = barrel_length_inches + 
+ 265              		.loc 1 20 9 is_stmt 1 view .LVU31
+ 266              		.loc 1 20 24 is_stmt 0 view .LVU32
+ 267 001a A068     		ldr	r0, [r4, #8]	@ float
+ 268 001c FFF7FEFF 		bl	__aeabi_f2d
+ 269              	.LVL14:
+ 270 0020 0446     		mov	r4, r0
+ 271              	.LVL15:
+ 272              		.loc 1 20 24 view .LVU33
+ 273 0022 0D46     		mov	r5, r1
+  21:Intermediate/src/distanceInterf.cpp ****             (float(((uint16_t) data[0] << 4) + (data[1] & 0x0f)) / 16 / 4/ 2.54);
+ARM GAS  /tmp/ccKtCrhD.s 			page 6
+
+
+ 274              		.loc 1 21 38 view .LVU34
+ 275 0024 9DF80420 		ldrb	r2, [sp, #4]	@ zero_extendqisi2
+ 276              		.loc 1 21 55 view .LVU35
+ 277 0028 9DF80530 		ldrb	r3, [sp, #5]	@ zero_extendqisi2
+ 278              		.loc 1 21 57 view .LVU36
+ 279 002c 03F00F03 		and	r3, r3, #15
+ 280              		.loc 1 21 46 view .LVU37
+ 281 0030 03EB0213 		add	r3, r3, r2, lsl #4
+ 282 0034 07EE903A 		vmov	s15, r3	@ int
+ 283              		.loc 1 21 14 view .LVU38
+ 284 0038 F8EEE77A 		vcvt.f32.s32	s15, s15
+ 285              		.loc 1 21 66 view .LVU39
+ 286 003c 9FED147A 		vldr.32	s14, .L21+8
+ 287 0040 67EE877A 		vmul.f32	s15, s15, s14
+ 288              		.loc 1 21 71 view .LVU40
+ 289 0044 B5EE007A 		vmov.f32	s14, #2.5e-1
+ 290 0048 67EE877A 		vmul.f32	s15, s15, s14
+ 291 004c 17EE900A 		vmov	r0, s15
+ 292 0050 FFF7FEFF 		bl	__aeabi_f2d
+ 293              	.LVL16:
+ 294              		.loc 1 21 74 view .LVU41
+ 295 0054 0CA3     		adr	r3, .L21
+ 296 0056 D3E90023 		ldrd	r2, [r3]
+ 297 005a FFF7FEFF 		bl	__aeabi_ddiv
+ 298              	.LVL17:
+ 299 005e 0246     		mov	r2, r0
+ 300 0060 0B46     		mov	r3, r1
+  20:Intermediate/src/distanceInterf.cpp ****         float output = barrel_length_inches + 
+ 301              		.loc 1 20 45 view .LVU42
+ 302 0062 2046     		mov	r0, r4
+ 303 0064 2946     		mov	r1, r5
+ 304 0066 FFF7FEFF 		bl	__aeabi_dadd
+ 305              	.LVL18:
+  20:Intermediate/src/distanceInterf.cpp ****         float output = barrel_length_inches + 
+ 306              		.loc 1 20 15 view .LVU43
+ 307 006a FFF7FEFF 		bl	__aeabi_d2f
+ 308              	.LVL19:
+ 309 006e 00EE100A 		vmov	s0, r0
+ 310              	.LVL20:
+  22:Intermediate/src/distanceInterf.cpp ****         if (output > 35) {
+ 311              		.loc 1 22 9 is_stmt 1 view .LVU44
+ 312 0072 DFED087A 		vldr.32	s15, .L21+12
+ 313 0076 B4EEE70A 		vcmpe.f32	s0, s15
+ 314 007a F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 315 007e 01DD     		ble	.L17
+  23:Intermediate/src/distanceInterf.cpp ****             output = 0;
+ 316              		.loc 1 23 20 is_stmt 0 view .LVU45
+ 317 0080 9FED050A 		vldr.32	s0, .L21+16
+ 318              	.LVL21:
+  24:Intermediate/src/distanceInterf.cpp ****         }
+  25:Intermediate/src/distanceInterf.cpp ****         return output;
+ 319              		.loc 1 25 9 is_stmt 1 view .LVU46
+ 320              	.L17:
+  26:Intermediate/src/distanceInterf.cpp **** }
+ 321              		.loc 1 26 1 is_stmt 0 view .LVU47
+ 322 0084 03B0     		add	sp, sp, #12
+ 323              		.cfi_def_cfa_offset 12
+ARM GAS  /tmp/ccKtCrhD.s 			page 7
+
+
+ 324              		@ sp needed
+ 325 0086 30BD     		pop	{r4, r5, pc}
+ 326              	.L22:
+ 327              		.align	3
+ 328              	.L21:
+ 329 0088 52B81E85 		.word	-2061584302
+ 330 008c EB510440 		.word	1074024939
+ 331 0090 0000803D 		.word	1031798784
+ 332 0094 00000C42 		.word	1108082688
+ 333 0098 00000000 		.word	0
+ 334              		.cfi_endproc
+ 335              	.LFE142:
+ 336              		.fnend
+ 338              		.section	.text._ZN14distanceInterf10_i2c_writeEhh,"ax",%progbits
+ 339              		.align	1
+ 340              		.global	_ZN14distanceInterf10_i2c_writeEhh
+ 341              		.syntax unified
+ 342              		.thumb
+ 343              		.thumb_func
+ 345              	_ZN14distanceInterf10_i2c_writeEhh:
+ 346              		.fnstart
+ 347              	.LVL22:
+ 348              	.LFB143:
+  27:Intermediate/src/distanceInterf.cpp **** 
+  28:Intermediate/src/distanceInterf.cpp **** void distanceInterf::_i2c_write(uint8_t register_address1, uint8_t register_address2) {
+ 349              		.loc 1 28 87 is_stmt 1 view -0
+ 350              		.cfi_startproc
+ 351              		@ args = 0, pretend = 0, frame = 8
+ 352              		@ frame_needed = 0, uses_anonymous_args = 0
+ 353              		.loc 1 28 87 is_stmt 0 view .LVU49
+ 354 0000 00B5     		push	{lr}
+ 355              		.save {lr}
+ 356              		.cfi_def_cfa_offset 4
+ 357              		.cfi_offset 14, -4
+ 358              		.pad #12
+ 359 0002 83B0     		sub	sp, sp, #12
+ 360              		.cfi_def_cfa_offset 16
+  29:Intermediate/src/distanceInterf.cpp ****     uint8_t data[] = { register_address1, register_address2 };
+ 361              		.loc 1 29 5 is_stmt 1 view .LVU50
+ 362              		.loc 1 29 61 is_stmt 0 view .LVU51
+ 363 0004 8DF80410 		strb	r1, [sp, #4]
+ 364 0008 8DF80520 		strb	r2, [sp, #5]
+  30:Intermediate/src/distanceInterf.cpp ****     i2c.write((char *) data, 2);
+ 365              		.loc 1 30 5 is_stmt 1 view .LVU52
+ 366              		.loc 1 30 14 is_stmt 0 view .LVU53
+ 367 000c 0222     		movs	r2, #2
+ 368              	.LVL23:
+ 369              		.loc 1 30 14 view .LVU54
+ 370 000e 01A9     		add	r1, sp, #4
+ 371              	.LVL24:
+ 372              		.loc 1 30 14 view .LVU55
+ 373 0010 FFF7FEFF 		bl	_ZN9i2cInterf5writeEPch
+ 374              	.LVL25:
+  31:Intermediate/src/distanceInterf.cpp **** }
+ 375              		.loc 1 31 1 view .LVU56
+ 376 0014 03B0     		add	sp, sp, #12
+ 377              		.cfi_def_cfa_offset 4
+ARM GAS  /tmp/ccKtCrhD.s 			page 8
+
+
+ 378              		@ sp needed
+ 379 0016 5DF804FB 		ldr	pc, [sp], #4
+ 380              		.cfi_endproc
+ 381              	.LFE143:
+ 382              		.fnend
+ 384              		.section	.text._ZN14distanceInterf9_i2c_readEh,"ax",%progbits
+ 385              		.align	1
+ 386              		.global	_ZN14distanceInterf9_i2c_readEh
+ 387              		.syntax unified
+ 388              		.thumb
+ 389              		.thumb_func
+ 391              	_ZN14distanceInterf9_i2c_readEh:
+ 392              		.fnstart
+ 393              	.LVL26:
+ 394              	.LFB144:
+  32:Intermediate/src/distanceInterf.cpp **** 
+  33:Intermediate/src/distanceInterf.cpp **** /*
+  34:Intermediate/src/distanceInterf.cpp ****  * I2C Data reading
+  35:Intermediate/src/distanceInterf.cpp ****  */
+  36:Intermediate/src/distanceInterf.cpp **** uint8_t distanceInterf::_i2c_read(uint8_t register_address) {
+ 395              		.loc 1 36 61 is_stmt 1 view -0
+ 396              		.cfi_startproc
+ 397              		@ args = 0, pretend = 0, frame = 16
+ 398              		@ frame_needed = 0, uses_anonymous_args = 0
+ 399              		.loc 1 36 61 is_stmt 0 view .LVU58
+ 400 0000 10B5     		push	{r4, lr}
+ 401              		.save {r4, lr}
+ 402              		.cfi_def_cfa_offset 8
+ 403              		.cfi_offset 4, -8
+ 404              		.cfi_offset 14, -4
+ 405              		.pad #16
+ 406 0002 84B0     		sub	sp, sp, #16
+ 407              		.cfi_def_cfa_offset 24
+ 408 0004 0446     		mov	r4, r0
+ 409 0006 8DF80710 		strb	r1, [sp, #7]
+  37:Intermediate/src/distanceInterf.cpp ****     uint8_t data;
+ 410              		.loc 1 37 5 is_stmt 1 view .LVU59
+  38:Intermediate/src/distanceInterf.cpp ****     i2c.write((char *) &register_address, 1);
+ 411              		.loc 1 38 5 view .LVU60
+ 412              		.loc 1 38 14 is_stmt 0 view .LVU61
+ 413 000a 0122     		movs	r2, #1
+ 414 000c 0DF10701 		add	r1, sp, #7
+ 415              	.LVL27:
+ 416              		.loc 1 38 14 view .LVU62
+ 417 0010 FFF7FEFF 		bl	_ZN9i2cInterf5writeEPch
+ 418              	.LVL28:
+  39:Intermediate/src/distanceInterf.cpp ****     i2c.read((char *) &data, 1);
+ 419              		.loc 1 39 5 is_stmt 1 view .LVU63
+ 420              		.loc 1 39 13 is_stmt 0 view .LVU64
+ 421 0014 0122     		movs	r2, #1
+ 422 0016 0DF10F01 		add	r1, sp, #15
+ 423 001a 2046     		mov	r0, r4
+ 424 001c FFF7FEFF 		bl	_ZN9i2cInterf4readEPch
+ 425              	.LVL29:
+  40:Intermediate/src/distanceInterf.cpp ****     return data;
+ 426              		.loc 1 40 5 is_stmt 1 view .LVU65
+  41:Intermediate/src/distanceInterf.cpp **** }
+ARM GAS  /tmp/ccKtCrhD.s 			page 9
+
+
+ 427              		.loc 1 41 1 is_stmt 0 view .LVU66
+ 428 0020 9DF80F00 		ldrb	r0, [sp, #15]	@ zero_extendqisi2
+ 429 0024 04B0     		add	sp, sp, #16
+ 430              		.cfi_def_cfa_offset 8
+ 431              		@ sp needed
+ 432 0026 10BD     		pop	{r4, pc}
+ 433              		.loc 1 41 1 view .LVU67
+ 434              		.cfi_endproc
+ 435              	.LFE144:
+ 436              		.fnend
+ 438              		.section	.text._ZN14distanceInterf7_vpp_onEv,"ax",%progbits
+ 439              		.align	1
+ 440              		.global	_ZN14distanceInterf7_vpp_onEv
+ 441              		.syntax unified
+ 442              		.thumb
+ 443              		.thumb_func
+ 445              	_ZN14distanceInterf7_vpp_onEv:
+ 446              		.fnstart
+ 447              	.LVL30:
+ 448              	.LFB145:
+  42:Intermediate/src/distanceInterf.cpp **** 
+  43:Intermediate/src/distanceInterf.cpp **** 
+  44:Intermediate/src/distanceInterf.cpp **** /*
+  45:Intermediate/src/distanceInterf.cpp ****  * Vpp 3.3V Power Supply
+  46:Intermediate/src/distanceInterf.cpp ****  */
+  47:Intermediate/src/distanceInterf.cpp **** void distanceInterf::_vpp_on(void) {
+ 449              		.loc 1 47 36 is_stmt 1 view -0
+ 450              		.cfi_startproc
+ 451              		@ args = 0, pretend = 0, frame = 0
+ 452              		@ frame_needed = 0, uses_anonymous_args = 0
+ 453              		@ link register save eliminated.
+  48:Intermediate/src/distanceInterf.cpp ****     vpp = 1;
+ 454              		.loc 1 48 5 view .LVU69
+ 455              		.loc 1 48 9 is_stmt 0 view .LVU70
+ 456 0000 0123     		movs	r3, #1
+ 457 0002 4373     		strb	r3, [r0, #13]
+  49:Intermediate/src/distanceInterf.cpp **** }
+ 458              		.loc 1 49 1 view .LVU71
+ 459 0004 7047     		bx	lr
+ 460              		.cfi_endproc
+ 461              	.LFE145:
+ 462              		.cantunwind
+ 463              		.fnend
+ 465              		.section	.text._ZN14distanceInterf8_vpp_offEv,"ax",%progbits
+ 466              		.align	1
+ 467              		.global	_ZN14distanceInterf8_vpp_offEv
+ 468              		.syntax unified
+ 469              		.thumb
+ 470              		.thumb_func
+ 472              	_ZN14distanceInterf8_vpp_offEv:
+ 473              		.fnstart
+ 474              	.LVL31:
+ 475              	.LFB146:
+  50:Intermediate/src/distanceInterf.cpp **** 
+  51:Intermediate/src/distanceInterf.cpp **** /*
+  52:Intermediate/src/distanceInterf.cpp ****  * Vpp Ground
+  53:Intermediate/src/distanceInterf.cpp ****  */
+ARM GAS  /tmp/ccKtCrhD.s 			page 10
+
+
+  54:Intermediate/src/distanceInterf.cpp **** void distanceInterf::_vpp_off(void) {
+ 476              		.loc 1 54 37 is_stmt 1 view -0
+ 477              		.cfi_startproc
+ 478              		@ args = 0, pretend = 0, frame = 0
+ 479              		@ frame_needed = 0, uses_anonymous_args = 0
+ 480              		@ link register save eliminated.
+  55:Intermediate/src/distanceInterf.cpp ****     vpp = 0;
+ 481              		.loc 1 55 5 view .LVU73
+ 482              		.loc 1 55 9 is_stmt 0 view .LVU74
+ 483 0000 0023     		movs	r3, #0
+ 484 0002 4373     		strb	r3, [r0, #13]
+  56:Intermediate/src/distanceInterf.cpp **** }
+ 485              		.loc 1 56 1 view .LVU75
+ 486 0004 7047     		bx	lr
+ 487              		.cfi_endproc
+ 488              	.LFE146:
+ 489              		.cantunwind
+ 490              		.fnend
+ 492              		.section	.text._ZN14distanceInterf13e_fuse_stage1Ev,"ax",%progbits
+ 493              		.align	1
+ 494              		.global	_ZN14distanceInterf13e_fuse_stage1Ev
+ 495              		.syntax unified
+ 496              		.thumb
+ 497              		.thumb_func
+ 499              	_ZN14distanceInterf13e_fuse_stage1Ev:
+ 500              		.fnstart
+ 501              	.LVL32:
+ 502              	.LFB147:
+  57:Intermediate/src/distanceInterf.cpp **** 
+  58:Intermediate/src/distanceInterf.cpp **** /*
+  59:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+  60:Intermediate/src/distanceInterf.cpp ****  * Stage 1
+  61:Intermediate/src/distanceInterf.cpp ****  * Data=0xFF is set in Address=0xEC.
+  62:Intermediate/src/distanceInterf.cpp ****  * 3.3V is applied in the Vpp terminal.
+  63:Intermediate/src/distanceInterf.cpp ****  */
+  64:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage1() {
+ 503              		.loc 1 64 38 is_stmt 1 view -0
+ 504              		.cfi_startproc
+ 505              		@ args = 0, pretend = 0, frame = 0
+ 506              		@ frame_needed = 0, uses_anonymous_args = 0
+ 507              		.loc 1 64 38 is_stmt 0 view .LVU77
+ 508 0000 10B5     		push	{r4, lr}
+ 509              		.save {r4, lr}
+ 510              		.cfi_def_cfa_offset 8
+ 511              		.cfi_offset 4, -8
+ 512              		.cfi_offset 14, -4
+ 513 0002 0446     		mov	r4, r0
+  65:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEC, 0xFF);
+ 514              		.loc 1 65 5 is_stmt 1 view .LVU78
+ 515              		.loc 1 65 15 is_stmt 0 view .LVU79
+ 516 0004 FF22     		movs	r2, #255
+ 517 0006 EC21     		movs	r1, #236
+ 518 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 519              	.LVL33:
+  66:Intermediate/src/distanceInterf.cpp ****     _vpp_on();
+ 520              		.loc 1 66 5 is_stmt 1 view .LVU80
+ 521              		.loc 1 66 12 is_stmt 0 view .LVU81
+ARM GAS  /tmp/ccKtCrhD.s 			page 11
+
+
+ 522 000c 2046     		mov	r0, r4
+ 523 000e FFF7FEFF 		bl	_ZN14distanceInterf7_vpp_onEv
+ 524              	.LVL34:
+  67:Intermediate/src/distanceInterf.cpp **** }
+ 525              		.loc 1 67 1 view .LVU82
+ 526 0012 10BD     		pop	{r4, pc}
+ 527              		.loc 1 67 1 view .LVU83
+ 528              		.cfi_endproc
+ 529              	.LFE147:
+ 530              		.fnend
+ 532              		.section	.text._ZN14distanceInterf13e_fuse_stage2Ev,"ax",%progbits
+ 533              		.align	1
+ 534              		.global	_ZN14distanceInterf13e_fuse_stage2Ev
+ 535              		.syntax unified
+ 536              		.thumb
+ 537              		.thumb_func
+ 539              	_ZN14distanceInterf13e_fuse_stage2Ev:
+ 540              		.fnstart
+ 541              	.LVL35:
+ 542              	.LFB148:
+  68:Intermediate/src/distanceInterf.cpp **** 
+  69:Intermediate/src/distanceInterf.cpp **** /*
+  70:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+  71:Intermediate/src/distanceInterf.cpp ****  * Stage 2
+  72:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xC8.
+  73:Intermediate/src/distanceInterf.cpp ****  */
+  74:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage2() {
+ 543              		.loc 1 74 38 is_stmt 1 view -0
+ 544              		.cfi_startproc
+ 545              		@ args = 0, pretend = 0, frame = 0
+ 546              		@ frame_needed = 0, uses_anonymous_args = 0
+ 547              		.loc 1 74 38 is_stmt 0 view .LVU85
+ 548 0000 08B5     		push	{r3, lr}
+ 549              		.save {r3, lr}
+ 550              		.cfi_def_cfa_offset 8
+ 551              		.cfi_offset 3, -8
+ 552              		.cfi_offset 14, -4
+  75:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x00);
+ 553              		.loc 1 75 5 is_stmt 1 view .LVU86
+ 554              		.loc 1 75 15 is_stmt 0 view .LVU87
+ 555 0002 0022     		movs	r2, #0
+ 556 0004 C821     		movs	r1, #200
+ 557 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 558              	.LVL36:
+  76:Intermediate/src/distanceInterf.cpp **** }
+ 559              		.loc 1 76 1 view .LVU88
+ 560 000a 08BD     		pop	{r3, pc}
+ 561              		.cfi_endproc
+ 562              	.LFE148:
+ 563              		.fnend
+ 565              		.section	.text._ZN14distanceInterf13e_fuse_stage3Ev,"ax",%progbits
+ 566              		.align	1
+ 567              		.global	_ZN14distanceInterf13e_fuse_stage3Ev
+ 568              		.syntax unified
+ 569              		.thumb
+ 570              		.thumb_func
+ 572              	_ZN14distanceInterf13e_fuse_stage3Ev:
+ARM GAS  /tmp/ccKtCrhD.s 			page 12
+
+
+ 573              		.fnstart
+ 574              	.LVL37:
+ 575              	.LFB149:
+  77:Intermediate/src/distanceInterf.cpp **** 
+  78:Intermediate/src/distanceInterf.cpp **** /*
+  79:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+  80:Intermediate/src/distanceInterf.cpp ****  * Stage 3
+  81:Intermediate/src/distanceInterf.cpp ****  * Data=0x45 is set in Address=0xC9.
+  82:Intermediate/src/distanceInterf.cpp ****  * + programming bit #: 5 => 5 - 1 = 4
+  83:Intermediate/src/distanceInterf.cpp ****  * + bank value: 5 => Bank E
+  84:Intermediate/src/distanceInterf.cpp ****  */
+  85:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage3() {
+ 576              		.loc 1 85 38 is_stmt 1 view -0
+ 577              		.cfi_startproc
+ 578              		@ args = 0, pretend = 0, frame = 0
+ 579              		@ frame_needed = 0, uses_anonymous_args = 0
+ 580              		.loc 1 85 38 is_stmt 0 view .LVU90
+ 581 0000 08B5     		push	{r3, lr}
+ 582              		.save {r3, lr}
+ 583              		.cfi_def_cfa_offset 8
+ 584              		.cfi_offset 3, -8
+ 585              		.cfi_offset 14, -4
+  86:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC9, 0x45);
+ 586              		.loc 1 86 5 is_stmt 1 view .LVU91
+ 587              		.loc 1 86 15 is_stmt 0 view .LVU92
+ 588 0002 4522     		movs	r2, #69
+ 589 0004 C921     		movs	r1, #201
+ 590 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 591              	.LVL38:
+  87:Intermediate/src/distanceInterf.cpp **** }
+ 592              		.loc 1 87 1 view .LVU93
+ 593 000a 08BD     		pop	{r3, pc}
+ 594              		.cfi_endproc
+ 595              	.LFE149:
+ 596              		.fnend
+ 598              		.section	.text._ZN14distanceInterf13e_fuse_stage4Eh,"ax",%progbits
+ 599              		.align	1
+ 600              		.global	_ZN14distanceInterf13e_fuse_stage4Eh
+ 601              		.syntax unified
+ 602              		.thumb
+ 603              		.thumb_func
+ 605              	_ZN14distanceInterf13e_fuse_stage4Eh:
+ 606              		.fnstart
+ 607              	.LVL39:
+ 608              	.LFB150:
+  88:Intermediate/src/distanceInterf.cpp **** 
+  89:Intermediate/src/distanceInterf.cpp **** /*
+  90:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+  91:Intermediate/src/distanceInterf.cpp ****  * Stage 4
+  92:Intermediate/src/distanceInterf.cpp ****  * Data=0x01 is set in Address=0xCD.
+  93:Intermediate/src/distanceInterf.cpp ****  * (Data=0x01 for slave address being changed to 0x10(write) and 0x11(read))
+  94:Intermediate/src/distanceInterf.cpp ****  * @param new_address 0-15 (Default address is 8, 0x80 for writing and 0x81 for reading)
+  95:Intermediate/src/distanceInterf.cpp ****  */
+  96:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage4(uint8_t new_address) {
+ 609              		.loc 1 96 57 is_stmt 1 view -0
+ 610              		.cfi_startproc
+ 611              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/ccKtCrhD.s 			page 13
+
+
+ 612              		@ frame_needed = 0, uses_anonymous_args = 0
+ 613              		.loc 1 96 57 is_stmt 0 view .LVU95
+ 614 0000 08B5     		push	{r3, lr}
+ 615              		.save {r3, lr}
+ 616              		.cfi_def_cfa_offset 8
+ 617              		.cfi_offset 3, -8
+ 618              		.cfi_offset 14, -4
+ 619 0002 0A46     		mov	r2, r1
+  97:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCD, new_address);
+ 620              		.loc 1 97 5 is_stmt 1 view .LVU96
+ 621              		.loc 1 97 15 is_stmt 0 view .LVU97
+ 622 0004 CD21     		movs	r1, #205
+ 623              	.LVL40:
+ 624              		.loc 1 97 15 view .LVU98
+ 625 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 626              	.LVL41:
+  98:Intermediate/src/distanceInterf.cpp **** }
+ 627              		.loc 1 98 1 view .LVU99
+ 628 000a 08BD     		pop	{r3, pc}
+ 629              		.cfi_endproc
+ 630              	.LFE150:
+ 631              		.fnend
+ 633              		.section	.text._ZN14distanceInterf13e_fuse_stage5Ev,"ax",%progbits
+ 634              		.align	1
+ 635              		.global	_ZN14distanceInterf13e_fuse_stage5Ev
+ 636              		.syntax unified
+ 637              		.thumb
+ 638              		.thumb_func
+ 640              	_ZN14distanceInterf13e_fuse_stage5Ev:
+ 641              		.fnstart
+ 642              	.LVL42:
+ 643              	.LFB151:
+  99:Intermediate/src/distanceInterf.cpp **** 
+ 100:Intermediate/src/distanceInterf.cpp **** /*
+ 101:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 102:Intermediate/src/distanceInterf.cpp ****  * Stage 5
+ 103:Intermediate/src/distanceInterf.cpp ****  * Data=0x01 is set in Address=0xCA.
+ 104:Intermediate/src/distanceInterf.cpp ****  * Wait for 500us.
+ 105:Intermediate/src/distanceInterf.cpp ****  */
+ 106:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage5() {
+ 644              		.loc 1 106 38 is_stmt 1 view -0
+ 645              		.cfi_startproc
+ 646              		@ args = 0, pretend = 0, frame = 0
+ 647              		@ frame_needed = 0, uses_anonymous_args = 0
+ 648              		.loc 1 106 38 is_stmt 0 view .LVU101
+ 649 0000 08B5     		push	{r3, lr}
+ 650              		.save {r3, lr}
+ 651              		.cfi_def_cfa_offset 8
+ 652              		.cfi_offset 3, -8
+ 653              		.cfi_offset 14, -4
+ 107:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCA, 0x01);
+ 654              		.loc 1 107 5 is_stmt 1 view .LVU102
+ 655              		.loc 1 107 15 is_stmt 0 view .LVU103
+ 656 0002 0122     		movs	r2, #1
+ 657 0004 CA21     		movs	r1, #202
+ 658 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 659              	.LVL43:
+ARM GAS  /tmp/ccKtCrhD.s 			page 14
+
+
+ 108:Intermediate/src/distanceInterf.cpp ****     HAL_Delay(1);
+ 660              		.loc 1 108 5 is_stmt 1 view .LVU104
+ 661              		.loc 1 108 14 is_stmt 0 view .LVU105
+ 662 000a 0120     		movs	r0, #1
+ 663 000c FFF7FEFF 		bl	HAL_Delay
+ 664              	.LVL44:
+ 109:Intermediate/src/distanceInterf.cpp **** }
+ 665              		.loc 1 109 1 view .LVU106
+ 666 0010 08BD     		pop	{r3, pc}
+ 667              		.cfi_endproc
+ 668              	.LFE151:
+ 669              		.fnend
+ 671              		.section	.text._ZN14distanceInterf13e_fuse_stage6Ev,"ax",%progbits
+ 672              		.align	1
+ 673              		.global	_ZN14distanceInterf13e_fuse_stage6Ev
+ 674              		.syntax unified
+ 675              		.thumb
+ 676              		.thumb_func
+ 678              	_ZN14distanceInterf13e_fuse_stage6Ev:
+ 679              		.fnstart
+ 680              	.LVL45:
+ 681              	.LFB152:
+ 110:Intermediate/src/distanceInterf.cpp **** 
+ 111:Intermediate/src/distanceInterf.cpp **** /*
+ 112:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 113:Intermediate/src/distanceInterf.cpp ****  * Stage 6
+ 114:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xCA.
+ 115:Intermediate/src/distanceInterf.cpp ****  * Vpp terminal is grounded.
+ 116:Intermediate/src/distanceInterf.cpp ****  */
+ 117:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage6() {
+ 682              		.loc 1 117 38 is_stmt 1 view -0
+ 683              		.cfi_startproc
+ 684              		@ args = 0, pretend = 0, frame = 0
+ 685              		@ frame_needed = 0, uses_anonymous_args = 0
+ 686              		.loc 1 117 38 is_stmt 0 view .LVU108
+ 687 0000 10B5     		push	{r4, lr}
+ 688              		.save {r4, lr}
+ 689              		.cfi_def_cfa_offset 8
+ 690              		.cfi_offset 4, -8
+ 691              		.cfi_offset 14, -4
+ 692 0002 0446     		mov	r4, r0
+ 118:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCA, 0x00);
+ 693              		.loc 1 118 5 is_stmt 1 view .LVU109
+ 694              		.loc 1 118 15 is_stmt 0 view .LVU110
+ 695 0004 0022     		movs	r2, #0
+ 696 0006 CA21     		movs	r1, #202
+ 697 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 698              	.LVL46:
+ 119:Intermediate/src/distanceInterf.cpp ****     _vpp_off();
+ 699              		.loc 1 119 5 is_stmt 1 view .LVU111
+ 700              		.loc 1 119 13 is_stmt 0 view .LVU112
+ 701 000c 2046     		mov	r0, r4
+ 702 000e FFF7FEFF 		bl	_ZN14distanceInterf8_vpp_offEv
+ 703              	.LVL47:
+ 120:Intermediate/src/distanceInterf.cpp **** }
+ 704              		.loc 1 120 1 view .LVU113
+ 705 0012 10BD     		pop	{r4, pc}
+ARM GAS  /tmp/ccKtCrhD.s 			page 15
+
+
+ 706              		.loc 1 120 1 view .LVU114
+ 707              		.cfi_endproc
+ 708              	.LFE152:
+ 709              		.fnend
+ 711              		.section	.text._ZN14distanceInterf13e_fuse_stage7Ev,"ax",%progbits
+ 712              		.align	1
+ 713              		.global	_ZN14distanceInterf13e_fuse_stage7Ev
+ 714              		.syntax unified
+ 715              		.thumb
+ 716              		.thumb_func
+ 718              	_ZN14distanceInterf13e_fuse_stage7Ev:
+ 719              		.fnstart
+ 720              	.LVL48:
+ 721              	.LFB153:
+ 121:Intermediate/src/distanceInterf.cpp **** 
+ 122:Intermediate/src/distanceInterf.cpp **** /*
+ 123:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 124:Intermediate/src/distanceInterf.cpp ****  * Stage 7
+ 125:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xEF.
+ 126:Intermediate/src/distanceInterf.cpp ****  * Data=0x40 is set in Address=0xC8.
+ 127:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xC8.
+ 128:Intermediate/src/distanceInterf.cpp ****  */
+ 129:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage7() {
+ 722              		.loc 1 129 38 is_stmt 1 view -0
+ 723              		.cfi_startproc
+ 724              		@ args = 0, pretend = 0, frame = 0
+ 725              		@ frame_needed = 0, uses_anonymous_args = 0
+ 726              		.loc 1 129 38 is_stmt 0 view .LVU116
+ 727 0000 10B5     		push	{r4, lr}
+ 728              		.save {r4, lr}
+ 729              		.cfi_def_cfa_offset 8
+ 730              		.cfi_offset 4, -8
+ 731              		.cfi_offset 14, -4
+ 732 0002 0446     		mov	r4, r0
+ 130:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEF, 0x00);
+ 733              		.loc 1 130 5 is_stmt 1 view .LVU117
+ 734              		.loc 1 130 15 is_stmt 0 view .LVU118
+ 735 0004 0022     		movs	r2, #0
+ 736 0006 EF21     		movs	r1, #239
+ 737 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 738              	.LVL49:
+ 131:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x40);
+ 739              		.loc 1 131 5 is_stmt 1 view .LVU119
+ 740              		.loc 1 131 15 is_stmt 0 view .LVU120
+ 741 000c 4022     		movs	r2, #64
+ 742 000e C821     		movs	r1, #200
+ 743 0010 2046     		mov	r0, r4
+ 744 0012 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 745              	.LVL50:
+ 132:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x00);
+ 746              		.loc 1 132 5 is_stmt 1 view .LVU121
+ 747              		.loc 1 132 15 is_stmt 0 view .LVU122
+ 748 0016 0022     		movs	r2, #0
+ 749 0018 C821     		movs	r1, #200
+ 750 001a 2046     		mov	r0, r4
+ 751 001c FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 752              	.LVL51:
+ARM GAS  /tmp/ccKtCrhD.s 			page 16
+
+
+ 133:Intermediate/src/distanceInterf.cpp **** }
+ 753              		.loc 1 133 1 view .LVU123
+ 754 0020 10BD     		pop	{r4, pc}
+ 755              		.loc 1 133 1 view .LVU124
+ 756              		.cfi_endproc
+ 757              	.LFE153:
+ 758              		.fnend
+ 760              		.section	.text._ZN14distanceInterf13e_fuse_stage8Ev,"ax",%progbits
+ 761              		.align	1
+ 762              		.global	_ZN14distanceInterf13e_fuse_stage8Ev
+ 763              		.syntax unified
+ 764              		.thumb
+ 765              		.thumb_func
+ 767              	_ZN14distanceInterf13e_fuse_stage8Ev:
+ 768              		.fnstart
+ 769              	.LVL52:
+ 770              	.LFB154:
+ 134:Intermediate/src/distanceInterf.cpp **** 
+ 135:Intermediate/src/distanceInterf.cpp **** /*
+ 136:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 137:Intermediate/src/distanceInterf.cpp ****  * Stage 8
+ 138:Intermediate/src/distanceInterf.cpp ****  * Data=0x06 is set in Address=0xEE.
+ 139:Intermediate/src/distanceInterf.cpp ****  */
+ 140:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage8() {
+ 771              		.loc 1 140 38 is_stmt 1 view -0
+ 772              		.cfi_startproc
+ 773              		@ args = 0, pretend = 0, frame = 0
+ 774              		@ frame_needed = 0, uses_anonymous_args = 0
+ 775              		.loc 1 140 38 is_stmt 0 view .LVU126
+ 776 0000 08B5     		push	{r3, lr}
+ 777              		.save {r3, lr}
+ 778              		.cfi_def_cfa_offset 8
+ 779              		.cfi_offset 3, -8
+ 780              		.cfi_offset 14, -4
+ 141:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEE, 0x06);
+ 781              		.loc 1 141 5 is_stmt 1 view .LVU127
+ 782              		.loc 1 141 15 is_stmt 0 view .LVU128
+ 783 0002 0622     		movs	r2, #6
+ 784 0004 EE21     		movs	r1, #238
+ 785 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 786              	.LVL53:
+ 142:Intermediate/src/distanceInterf.cpp **** }
+ 787              		.loc 1 142 1 view .LVU129
+ 788 000a 08BD     		pop	{r3, pc}
+ 789              		.cfi_endproc
+ 790              	.LFE154:
+ 791              		.fnend
+ 793              		.section	.text._ZN14distanceInterf13e_fuse_stage9Ev,"ax",%progbits
+ 794              		.align	1
+ 795              		.global	_ZN14distanceInterf13e_fuse_stage9Ev
+ 796              		.syntax unified
+ 797              		.thumb
+ 798              		.thumb_func
+ 800              	_ZN14distanceInterf13e_fuse_stage9Ev:
+ 801              		.fnstart
+ 802              	.LVL54:
+ 803              	.LFB155:
+ARM GAS  /tmp/ccKtCrhD.s 			page 17
+
+
+ 143:Intermediate/src/distanceInterf.cpp **** 
+ 144:Intermediate/src/distanceInterf.cpp **** /*
+ 145:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 146:Intermediate/src/distanceInterf.cpp ****  * Stage 9
+ 147:Intermediate/src/distanceInterf.cpp ****  * Data=0xFF is set in Address=0xEC.
+ 148:Intermediate/src/distanceInterf.cpp ****  * Data=0x03 is set in Address=0xEF.
+ 149:Intermediate/src/distanceInterf.cpp ****  * Read out the data in Address=0x27.
+ 150:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xEF.
+ 151:Intermediate/src/distanceInterf.cpp ****  * Data=0x7F is set in Address=0xEC.
+ 152:Intermediate/src/distanceInterf.cpp ****  *
+ 153:Intermediate/src/distanceInterf.cpp ****  * @return 0 for success, 1 for failure : 0x27[4:0] & 0b10000(0x10)
+ 154:Intermediate/src/distanceInterf.cpp ****  */
+ 155:Intermediate/src/distanceInterf.cpp **** uint8_t distanceInterf::e_fuse_stage9() {
+ 804              		.loc 1 155 41 is_stmt 1 view -0
+ 805              		.cfi_startproc
+ 806              		@ args = 0, pretend = 0, frame = 0
+ 807              		@ frame_needed = 0, uses_anonymous_args = 0
+ 808              		.loc 1 155 41 is_stmt 0 view .LVU131
+ 809 0000 38B5     		push	{r3, r4, r5, lr}
+ 810              		.save {r3, r4, r5, lr}
+ 811              		.cfi_def_cfa_offset 16
+ 812              		.cfi_offset 3, -16
+ 813              		.cfi_offset 4, -12
+ 814              		.cfi_offset 5, -8
+ 815              		.cfi_offset 14, -4
+ 816 0002 0446     		mov	r4, r0
+ 156:Intermediate/src/distanceInterf.cpp ****     // Table.20 List of E-Fuse program flow and setting value
+ 157:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEF, 0x00); // add this though it's missing in 12-6 Example of E-Fuse Programming
+ 817              		.loc 1 157 5 is_stmt 1 view .LVU132
+ 818              		.loc 1 157 15 is_stmt 0 view .LVU133
+ 819 0004 0022     		movs	r2, #0
+ 820 0006 EF21     		movs	r1, #239
+ 821 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 822              	.LVL55:
+ 158:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEC, 0xFF);
+ 823              		.loc 1 158 5 is_stmt 1 view .LVU134
+ 824              		.loc 1 158 15 is_stmt 0 view .LVU135
+ 825 000c FF22     		movs	r2, #255
+ 826 000e EC21     		movs	r1, #236
+ 827 0010 2046     		mov	r0, r4
+ 828 0012 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 829              	.LVL56:
+ 159:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEF, 0x03);
+ 830              		.loc 1 159 5 is_stmt 1 view .LVU136
+ 831              		.loc 1 159 15 is_stmt 0 view .LVU137
+ 832 0016 0322     		movs	r2, #3
+ 833 0018 EF21     		movs	r1, #239
+ 834 001a 2046     		mov	r0, r4
+ 835 001c FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 836              	.LVL57:
+ 160:Intermediate/src/distanceInterf.cpp ****     const uint8_t check_value = _i2c_read(0x27);
+ 837              		.loc 1 160 5 is_stmt 1 view .LVU138
+ 838              		.loc 1 160 42 is_stmt 0 view .LVU139
+ 839 0020 2721     		movs	r1, #39
+ 840 0022 2046     		mov	r0, r4
+ 841 0024 FFF7FEFF 		bl	_ZN14distanceInterf9_i2c_readEh
+ 842              	.LVL58:
+ARM GAS  /tmp/ccKtCrhD.s 			page 18
+
+
+ 161:Intermediate/src/distanceInterf.cpp ****     const uint8_t check = check_value & 0x1f;
+ 843              		.loc 1 161 5 is_stmt 1 view .LVU140
+ 162:Intermediate/src/distanceInterf.cpp ****     const uint8_t success = check & 0x10;
+ 844              		.loc 1 162 5 view .LVU141
+ 845              		.loc 1 162 19 is_stmt 0 view .LVU142
+ 846 0028 00F01005 		and	r5, r0, #16
+ 847              	.LVL59:
+ 163:Intermediate/src/distanceInterf.cpp ****     // When lower 5bits data[4:0] is 00001, E-Fuse program is finished.
+ 164:Intermediate/src/distanceInterf.cpp ****     // When lower 5bits data[4:0] is not 00001, go to stage10(bit replacement).
+ 165:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEF, 0x00);
+ 848              		.loc 1 165 5 is_stmt 1 view .LVU143
+ 849              		.loc 1 165 15 is_stmt 0 view .LVU144
+ 850 002c 0022     		movs	r2, #0
+ 851 002e EF21     		movs	r1, #239
+ 852 0030 2046     		mov	r0, r4
+ 853              	.LVL60:
+ 854              		.loc 1 165 15 view .LVU145
+ 855 0032 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 856              	.LVL61:
+ 166:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEC, 0x7F);
+ 857              		.loc 1 166 5 is_stmt 1 view .LVU146
+ 858              		.loc 1 166 15 is_stmt 0 view .LVU147
+ 859 0036 7F22     		movs	r2, #127
+ 860 0038 EC21     		movs	r1, #236
+ 861 003a 2046     		mov	r0, r4
+ 862 003c FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 863              	.LVL62:
+ 167:Intermediate/src/distanceInterf.cpp ****     // Check Result
+ 168:Intermediate/src/distanceInterf.cpp ****     return success;
+ 864              		.loc 1 168 5 is_stmt 1 view .LVU148
+ 169:Intermediate/src/distanceInterf.cpp **** }
+ 865              		.loc 1 169 1 is_stmt 0 view .LVU149
+ 866 0040 2846     		mov	r0, r5
+ 867 0042 38BD     		pop	{r3, r4, r5, pc}
+ 868              		.loc 1 169 1 view .LVU150
+ 869              		.cfi_endproc
+ 870              	.LFE155:
+ 871              		.fnend
+ 873              		.section	.text._ZN14distanceInterf18e_fuse_stage10_1_1Ev,"ax",%progbits
+ 874              		.align	1
+ 875              		.global	_ZN14distanceInterf18e_fuse_stage10_1_1Ev
+ 876              		.syntax unified
+ 877              		.thumb
+ 878              		.thumb_func
+ 880              	_ZN14distanceInterf18e_fuse_stage10_1_1Ev:
+ 881              		.fnstart
+ 882              	.LVL63:
+ 883              	.LFB156:
+ 170:Intermediate/src/distanceInterf.cpp **** 
+ 171:Intermediate/src/distanceInterf.cpp **** /*
+ 172:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 173:Intermediate/src/distanceInterf.cpp ****  * Stage 10-1
+ 174:Intermediate/src/distanceInterf.cpp ****  * Data=0xFF is set in Address=0xEC.
+ 175:Intermediate/src/distanceInterf.cpp ****  * 3.3V is applied in Vpp terminal.
+ 176:Intermediate/src/distanceInterf.cpp ****  */
+ 177:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_1_1() {
+ 884              		.loc 1 177 43 is_stmt 1 view -0
+ARM GAS  /tmp/ccKtCrhD.s 			page 19
+
+
+ 885              		.cfi_startproc
+ 886              		@ args = 0, pretend = 0, frame = 0
+ 887              		@ frame_needed = 0, uses_anonymous_args = 0
+ 888              		.loc 1 177 43 is_stmt 0 view .LVU152
+ 889 0000 10B5     		push	{r4, lr}
+ 890              		.save {r4, lr}
+ 891              		.cfi_def_cfa_offset 8
+ 892              		.cfi_offset 4, -8
+ 893              		.cfi_offset 14, -4
+ 894 0002 0446     		mov	r4, r0
+ 178:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEC, 0xFF);
+ 895              		.loc 1 178 5 is_stmt 1 view .LVU153
+ 896              		.loc 1 178 15 is_stmt 0 view .LVU154
+ 897 0004 FF22     		movs	r2, #255
+ 898 0006 EC21     		movs	r1, #236
+ 899 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 900              	.LVL64:
+ 179:Intermediate/src/distanceInterf.cpp ****     _vpp_on();
+ 901              		.loc 1 179 5 is_stmt 1 view .LVU155
+ 902              		.loc 1 179 12 is_stmt 0 view .LVU156
+ 903 000c 2046     		mov	r0, r4
+ 904 000e FFF7FEFF 		bl	_ZN14distanceInterf7_vpp_onEv
+ 905              	.LVL65:
+ 180:Intermediate/src/distanceInterf.cpp **** }
+ 906              		.loc 1 180 1 view .LVU157
+ 907 0012 10BD     		pop	{r4, pc}
+ 908              		.loc 1 180 1 view .LVU158
+ 909              		.cfi_endproc
+ 910              	.LFE156:
+ 911              		.fnend
+ 913              		.section	.text._ZN14distanceInterf18e_fuse_stage10_2_1Ev,"ax",%progbits
+ 914              		.align	1
+ 915              		.global	_ZN14distanceInterf18e_fuse_stage10_2_1Ev
+ 916              		.syntax unified
+ 917              		.thumb
+ 918              		.thumb_func
+ 920              	_ZN14distanceInterf18e_fuse_stage10_2_1Ev:
+ 921              		.fnstart
+ 922              	.LVL66:
+ 923              	.LFB157:
+ 181:Intermediate/src/distanceInterf.cpp **** 
+ 182:Intermediate/src/distanceInterf.cpp **** /*
+ 183:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 184:Intermediate/src/distanceInterf.cpp ****  * Stage 10-2
+ 185:Intermediate/src/distanceInterf.cpp ****  * Data=0x37 is set in Address=0xC8.
+ 186:Intermediate/src/distanceInterf.cpp ****  */
+ 187:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_2_1() {
+ 924              		.loc 1 187 43 is_stmt 1 view -0
+ 925              		.cfi_startproc
+ 926              		@ args = 0, pretend = 0, frame = 0
+ 927              		@ frame_needed = 0, uses_anonymous_args = 0
+ 928              		.loc 1 187 43 is_stmt 0 view .LVU160
+ 929 0000 08B5     		push	{r3, lr}
+ 930              		.save {r3, lr}
+ 931              		.cfi_def_cfa_offset 8
+ 932              		.cfi_offset 3, -8
+ 933              		.cfi_offset 14, -4
+ARM GAS  /tmp/ccKtCrhD.s 			page 20
+
+
+ 188:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x37);
+ 934              		.loc 1 188 5 is_stmt 1 view .LVU161
+ 935              		.loc 1 188 15 is_stmt 0 view .LVU162
+ 936 0002 3722     		movs	r2, #55
+ 937 0004 C821     		movs	r1, #200
+ 938 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 939              	.LVL67:
+ 189:Intermediate/src/distanceInterf.cpp **** }
+ 940              		.loc 1 189 1 view .LVU163
+ 941 000a 08BD     		pop	{r3, pc}
+ 942              		.cfi_endproc
+ 943              	.LFE157:
+ 944              		.fnend
+ 946              		.section	.text._ZN14distanceInterf18e_fuse_stage10_3_1Ev,"ax",%progbits
+ 947              		.align	1
+ 948              		.global	_ZN14distanceInterf18e_fuse_stage10_3_1Ev
+ 949              		.syntax unified
+ 950              		.thumb
+ 951              		.thumb_func
+ 953              	_ZN14distanceInterf18e_fuse_stage10_3_1Ev:
+ 954              		.fnstart
+ 955              	.LVL68:
+ 956              	.LFB158:
+ 190:Intermediate/src/distanceInterf.cpp **** 
+ 191:Intermediate/src/distanceInterf.cpp **** /*
+ 192:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 193:Intermediate/src/distanceInterf.cpp ****  * Stage 10-3
+ 194:Intermediate/src/distanceInterf.cpp ****  * Data=0x74 is set in Address=0xC9.
+ 195:Intermediate/src/distanceInterf.cpp ****  */
+ 196:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_3_1() {
+ 957              		.loc 1 196 43 is_stmt 1 view -0
+ 958              		.cfi_startproc
+ 959              		@ args = 0, pretend = 0, frame = 0
+ 960              		@ frame_needed = 0, uses_anonymous_args = 0
+ 961              		.loc 1 196 43 is_stmt 0 view .LVU165
+ 962 0000 08B5     		push	{r3, lr}
+ 963              		.save {r3, lr}
+ 964              		.cfi_def_cfa_offset 8
+ 965              		.cfi_offset 3, -8
+ 966              		.cfi_offset 14, -4
+ 197:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC9, 0x74);
+ 967              		.loc 1 197 5 is_stmt 1 view .LVU166
+ 968              		.loc 1 197 15 is_stmt 0 view .LVU167
+ 969 0002 7422     		movs	r2, #116
+ 970 0004 C921     		movs	r1, #201
+ 971 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 972              	.LVL69:
+ 198:Intermediate/src/distanceInterf.cpp **** }
+ 973              		.loc 1 198 1 view .LVU168
+ 974 000a 08BD     		pop	{r3, pc}
+ 975              		.cfi_endproc
+ 976              	.LFE158:
+ 977              		.fnend
+ 979              		.section	.text._ZN14distanceInterf18e_fuse_stage10_4_1Ev,"ax",%progbits
+ 980              		.align	1
+ 981              		.global	_ZN14distanceInterf18e_fuse_stage10_4_1Ev
+ 982              		.syntax unified
+ARM GAS  /tmp/ccKtCrhD.s 			page 21
+
+
+ 983              		.thumb
+ 984              		.thumb_func
+ 986              	_ZN14distanceInterf18e_fuse_stage10_4_1Ev:
+ 987              		.fnstart
+ 988              	.LVL70:
+ 989              	.LFB159:
+ 199:Intermediate/src/distanceInterf.cpp **** 
+ 200:Intermediate/src/distanceInterf.cpp **** /*
+ 201:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 202:Intermediate/src/distanceInterf.cpp ****  * Stage 10-4
+ 203:Intermediate/src/distanceInterf.cpp ****  * Data=0x04 is set in Address=0xCD.
+ 204:Intermediate/src/distanceInterf.cpp ****  */
+ 205:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_4_1() {
+ 990              		.loc 1 205 43 is_stmt 1 view -0
+ 991              		.cfi_startproc
+ 992              		@ args = 0, pretend = 0, frame = 0
+ 993              		@ frame_needed = 0, uses_anonymous_args = 0
+ 994              		.loc 1 205 43 is_stmt 0 view .LVU170
+ 995 0000 08B5     		push	{r3, lr}
+ 996              		.save {r3, lr}
+ 997              		.cfi_def_cfa_offset 8
+ 998              		.cfi_offset 3, -8
+ 999              		.cfi_offset 14, -4
+ 206:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCD, 0x04);
+ 1000              		.loc 1 206 5 is_stmt 1 view .LVU171
+ 1001              		.loc 1 206 15 is_stmt 0 view .LVU172
+ 1002 0002 0422     		movs	r2, #4
+ 1003 0004 CD21     		movs	r1, #205
+ 1004 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1005              	.LVL71:
+ 207:Intermediate/src/distanceInterf.cpp **** }
+ 1006              		.loc 1 207 1 view .LVU173
+ 1007 000a 08BD     		pop	{r3, pc}
+ 1008              		.cfi_endproc
+ 1009              	.LFE159:
+ 1010              		.fnend
+ 1012              		.section	.text._ZN14distanceInterf18e_fuse_stage10_5_1Ev,"ax",%progbits
+ 1013              		.align	1
+ 1014              		.global	_ZN14distanceInterf18e_fuse_stage10_5_1Ev
+ 1015              		.syntax unified
+ 1016              		.thumb
+ 1017              		.thumb_func
+ 1019              	_ZN14distanceInterf18e_fuse_stage10_5_1Ev:
+ 1020              		.fnstart
+ 1021              	.LVL72:
+ 1022              	.LFB160:
+ 208:Intermediate/src/distanceInterf.cpp **** 
+ 209:Intermediate/src/distanceInterf.cpp **** /*
+ 210:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 211:Intermediate/src/distanceInterf.cpp ****  * Stage 10-5
+ 212:Intermediate/src/distanceInterf.cpp ****  * Data=0x01 is set in Address=0xCA.
+ 213:Intermediate/src/distanceInterf.cpp ****  * Wait for 500us.
+ 214:Intermediate/src/distanceInterf.cpp ****  */
+ 215:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_5_1() {
+ 1023              		.loc 1 215 43 is_stmt 1 view -0
+ 1024              		.cfi_startproc
+ 1025              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/ccKtCrhD.s 			page 22
+
+
+ 1026              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1027              		.loc 1 215 43 is_stmt 0 view .LVU175
+ 1028 0000 08B5     		push	{r3, lr}
+ 1029              		.save {r3, lr}
+ 1030              		.cfi_def_cfa_offset 8
+ 1031              		.cfi_offset 3, -8
+ 1032              		.cfi_offset 14, -4
+ 216:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCA, 0x01);
+ 1033              		.loc 1 216 5 is_stmt 1 view .LVU176
+ 1034              		.loc 1 216 15 is_stmt 0 view .LVU177
+ 1035 0002 0122     		movs	r2, #1
+ 1036 0004 CA21     		movs	r1, #202
+ 1037 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1038              	.LVL73:
+ 217:Intermediate/src/distanceInterf.cpp ****     HAL_Delay(1);
+ 1039              		.loc 1 217 5 is_stmt 1 view .LVU178
+ 1040              		.loc 1 217 14 is_stmt 0 view .LVU179
+ 1041 000a 0120     		movs	r0, #1
+ 1042 000c FFF7FEFF 		bl	HAL_Delay
+ 1043              	.LVL74:
+ 218:Intermediate/src/distanceInterf.cpp **** }
+ 1044              		.loc 1 218 1 view .LVU180
+ 1045 0010 08BD     		pop	{r3, pc}
+ 1046              		.cfi_endproc
+ 1047              	.LFE160:
+ 1048              		.fnend
+ 1050              		.section	.text._ZN14distanceInterf18e_fuse_stage10_6_1Ev,"ax",%progbits
+ 1051              		.align	1
+ 1052              		.global	_ZN14distanceInterf18e_fuse_stage10_6_1Ev
+ 1053              		.syntax unified
+ 1054              		.thumb
+ 1055              		.thumb_func
+ 1057              	_ZN14distanceInterf18e_fuse_stage10_6_1Ev:
+ 1058              		.fnstart
+ 1059              	.LVL75:
+ 1060              	.LFB161:
+ 219:Intermediate/src/distanceInterf.cpp **** 
+ 220:Intermediate/src/distanceInterf.cpp **** /*
+ 221:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 222:Intermediate/src/distanceInterf.cpp ****  * Stage 10-6
+ 223:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xCA.
+ 224:Intermediate/src/distanceInterf.cpp ****  * Vpp terminal is grounded.
+ 225:Intermediate/src/distanceInterf.cpp ****  */
+ 226:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_6_1() {
+ 1061              		.loc 1 226 43 is_stmt 1 view -0
+ 1062              		.cfi_startproc
+ 1063              		@ args = 0, pretend = 0, frame = 0
+ 1064              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1065              		.loc 1 226 43 is_stmt 0 view .LVU182
+ 1066 0000 10B5     		push	{r4, lr}
+ 1067              		.save {r4, lr}
+ 1068              		.cfi_def_cfa_offset 8
+ 1069              		.cfi_offset 4, -8
+ 1070              		.cfi_offset 14, -4
+ 1071 0002 0446     		mov	r4, r0
+ 227:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCA, 0x00);
+ 1072              		.loc 1 227 5 is_stmt 1 view .LVU183
+ARM GAS  /tmp/ccKtCrhD.s 			page 23
+
+
+ 1073              		.loc 1 227 15 is_stmt 0 view .LVU184
+ 1074 0004 0022     		movs	r2, #0
+ 1075 0006 CA21     		movs	r1, #202
+ 1076 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1077              	.LVL76:
+ 228:Intermediate/src/distanceInterf.cpp ****     _vpp_off();
+ 1078              		.loc 1 228 5 is_stmt 1 view .LVU185
+ 1079              		.loc 1 228 13 is_stmt 0 view .LVU186
+ 1080 000c 2046     		mov	r0, r4
+ 1081 000e FFF7FEFF 		bl	_ZN14distanceInterf8_vpp_offEv
+ 1082              	.LVL77:
+ 229:Intermediate/src/distanceInterf.cpp **** }
+ 1083              		.loc 1 229 1 view .LVU187
+ 1084 0012 10BD     		pop	{r4, pc}
+ 1085              		.loc 1 229 1 view .LVU188
+ 1086              		.cfi_endproc
+ 1087              	.LFE161:
+ 1088              		.fnend
+ 1090              		.section	.text._ZN14distanceInterf18e_fuse_stage10_1_2Ev,"ax",%progbits
+ 1091              		.align	1
+ 1092              		.global	_ZN14distanceInterf18e_fuse_stage10_1_2Ev
+ 1093              		.syntax unified
+ 1094              		.thumb
+ 1095              		.thumb_func
+ 1097              	_ZN14distanceInterf18e_fuse_stage10_1_2Ev:
+ 1098              		.fnstart
+ 1099              	.LVL78:
+ 1100              	.LFB162:
+ 230:Intermediate/src/distanceInterf.cpp **** 
+ 231:Intermediate/src/distanceInterf.cpp **** /*
+ 232:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 233:Intermediate/src/distanceInterf.cpp ****  * Stage 10-1'
+ 234:Intermediate/src/distanceInterf.cpp ****  * Data=0xFF is set in Address=0xEC.
+ 235:Intermediate/src/distanceInterf.cpp ****  * 3.3V is applied in Vpp terminal.
+ 236:Intermediate/src/distanceInterf.cpp ****  */
+ 237:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_1_2() {
+ 1101              		.loc 1 237 43 is_stmt 1 view -0
+ 1102              		.cfi_startproc
+ 1103              		@ args = 0, pretend = 0, frame = 0
+ 1104              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1105              		.loc 1 237 43 is_stmt 0 view .LVU190
+ 1106 0000 10B5     		push	{r4, lr}
+ 1107              		.save {r4, lr}
+ 1108              		.cfi_def_cfa_offset 8
+ 1109              		.cfi_offset 4, -8
+ 1110              		.cfi_offset 14, -4
+ 1111 0002 0446     		mov	r4, r0
+ 238:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEC, 0xFF);
+ 1112              		.loc 1 238 5 is_stmt 1 view .LVU191
+ 1113              		.loc 1 238 15 is_stmt 0 view .LVU192
+ 1114 0004 FF22     		movs	r2, #255
+ 1115 0006 EC21     		movs	r1, #236
+ 1116 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1117              	.LVL79:
+ 239:Intermediate/src/distanceInterf.cpp ****     _vpp_on();
+ 1118              		.loc 1 239 5 is_stmt 1 view .LVU193
+ 1119              		.loc 1 239 12 is_stmt 0 view .LVU194
+ARM GAS  /tmp/ccKtCrhD.s 			page 24
+
+
+ 1120 000c 2046     		mov	r0, r4
+ 1121 000e FFF7FEFF 		bl	_ZN14distanceInterf7_vpp_onEv
+ 1122              	.LVL80:
+ 240:Intermediate/src/distanceInterf.cpp **** }
+ 1123              		.loc 1 240 1 view .LVU195
+ 1124 0012 10BD     		pop	{r4, pc}
+ 1125              		.loc 1 240 1 view .LVU196
+ 1126              		.cfi_endproc
+ 1127              	.LFE162:
+ 1128              		.fnend
+ 1130              		.section	.text._ZN14distanceInterf18e_fuse_stage10_2_2Ev,"ax",%progbits
+ 1131              		.align	1
+ 1132              		.global	_ZN14distanceInterf18e_fuse_stage10_2_2Ev
+ 1133              		.syntax unified
+ 1134              		.thumb
+ 1135              		.thumb_func
+ 1137              	_ZN14distanceInterf18e_fuse_stage10_2_2Ev:
+ 1138              		.fnstart
+ 1139              	.LVL81:
+ 1140              	.LFB163:
+ 241:Intermediate/src/distanceInterf.cpp **** 
+ 242:Intermediate/src/distanceInterf.cpp **** /*
+ 243:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 244:Intermediate/src/distanceInterf.cpp ****  * Stage 10-2'
+ 245:Intermediate/src/distanceInterf.cpp ****  * Data=0x3F is set in Address=0xC8.
+ 246:Intermediate/src/distanceInterf.cpp ****  */
+ 247:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_2_2() {
+ 1141              		.loc 1 247 43 is_stmt 1 view -0
+ 1142              		.cfi_startproc
+ 1143              		@ args = 0, pretend = 0, frame = 0
+ 1144              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1145              		.loc 1 247 43 is_stmt 0 view .LVU198
+ 1146 0000 08B5     		push	{r3, lr}
+ 1147              		.save {r3, lr}
+ 1148              		.cfi_def_cfa_offset 8
+ 1149              		.cfi_offset 3, -8
+ 1150              		.cfi_offset 14, -4
+ 248:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x3F);
+ 1151              		.loc 1 248 5 is_stmt 1 view .LVU199
+ 1152              		.loc 1 248 15 is_stmt 0 view .LVU200
+ 1153 0002 3F22     		movs	r2, #63
+ 1154 0004 C821     		movs	r1, #200
+ 1155 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1156              	.LVL82:
+ 249:Intermediate/src/distanceInterf.cpp **** }
+ 1157              		.loc 1 249 1 view .LVU201
+ 1158 000a 08BD     		pop	{r3, pc}
+ 1159              		.cfi_endproc
+ 1160              	.LFE163:
+ 1161              		.fnend
+ 1163              		.section	.text._ZN14distanceInterf18e_fuse_stage10_3_2Ev,"ax",%progbits
+ 1164              		.align	1
+ 1165              		.global	_ZN14distanceInterf18e_fuse_stage10_3_2Ev
+ 1166              		.syntax unified
+ 1167              		.thumb
+ 1168              		.thumb_func
+ 1170              	_ZN14distanceInterf18e_fuse_stage10_3_2Ev:
+ARM GAS  /tmp/ccKtCrhD.s 			page 25
+
+
+ 1171              		.fnstart
+ 1172              	.LVL83:
+ 1173              	.LFB164:
+ 250:Intermediate/src/distanceInterf.cpp **** 
+ 251:Intermediate/src/distanceInterf.cpp **** /*
+ 252:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 253:Intermediate/src/distanceInterf.cpp ****  * Stage 10-3'
+ 254:Intermediate/src/distanceInterf.cpp ****  * Data=0x04 is set in Address=0xC9.
+ 255:Intermediate/src/distanceInterf.cpp ****  */
+ 256:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_3_2() {
+ 1174              		.loc 1 256 43 is_stmt 1 view -0
+ 1175              		.cfi_startproc
+ 1176              		@ args = 0, pretend = 0, frame = 0
+ 1177              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1178              		.loc 1 256 43 is_stmt 0 view .LVU203
+ 1179 0000 08B5     		push	{r3, lr}
+ 1180              		.save {r3, lr}
+ 1181              		.cfi_def_cfa_offset 8
+ 1182              		.cfi_offset 3, -8
+ 1183              		.cfi_offset 14, -4
+ 257:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC9, 0x04);
+ 1184              		.loc 1 257 5 is_stmt 1 view .LVU204
+ 1185              		.loc 1 257 15 is_stmt 0 view .LVU205
+ 1186 0002 0422     		movs	r2, #4
+ 1187 0004 C921     		movs	r1, #201
+ 1188 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1189              	.LVL84:
+ 258:Intermediate/src/distanceInterf.cpp **** }
+ 1190              		.loc 1 258 1 view .LVU206
+ 1191 000a 08BD     		pop	{r3, pc}
+ 1192              		.cfi_endproc
+ 1193              	.LFE164:
+ 1194              		.fnend
+ 1196              		.section	.text._ZN14distanceInterf18e_fuse_stage10_4_2Ev,"ax",%progbits
+ 1197              		.align	1
+ 1198              		.global	_ZN14distanceInterf18e_fuse_stage10_4_2Ev
+ 1199              		.syntax unified
+ 1200              		.thumb
+ 1201              		.thumb_func
+ 1203              	_ZN14distanceInterf18e_fuse_stage10_4_2Ev:
+ 1204              		.fnstart
+ 1205              	.LVL85:
+ 1206              	.LFB165:
+ 259:Intermediate/src/distanceInterf.cpp **** 
+ 260:Intermediate/src/distanceInterf.cpp **** /*
+ 261:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 262:Intermediate/src/distanceInterf.cpp ****  * Stage 10-4'
+ 263:Intermediate/src/distanceInterf.cpp ****  * Data=0x01 is set in Address=0xCD.
+ 264:Intermediate/src/distanceInterf.cpp ****  */
+ 265:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_4_2() {
+ 1207              		.loc 1 265 43 is_stmt 1 view -0
+ 1208              		.cfi_startproc
+ 1209              		@ args = 0, pretend = 0, frame = 0
+ 1210              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1211              		.loc 1 265 43 is_stmt 0 view .LVU208
+ 1212 0000 08B5     		push	{r3, lr}
+ 1213              		.save {r3, lr}
+ARM GAS  /tmp/ccKtCrhD.s 			page 26
+
+
+ 1214              		.cfi_def_cfa_offset 8
+ 1215              		.cfi_offset 3, -8
+ 1216              		.cfi_offset 14, -4
+ 266:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCD, 0x01);
+ 1217              		.loc 1 266 5 is_stmt 1 view .LVU209
+ 1218              		.loc 1 266 15 is_stmt 0 view .LVU210
+ 1219 0002 0122     		movs	r2, #1
+ 1220 0004 CD21     		movs	r1, #205
+ 1221 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1222              	.LVL86:
+ 267:Intermediate/src/distanceInterf.cpp **** }
+ 1223              		.loc 1 267 1 view .LVU211
+ 1224 000a 08BD     		pop	{r3, pc}
+ 1225              		.cfi_endproc
+ 1226              	.LFE165:
+ 1227              		.fnend
+ 1229              		.section	.text._ZN14distanceInterf18e_fuse_stage10_5_2Ev,"ax",%progbits
+ 1230              		.align	1
+ 1231              		.global	_ZN14distanceInterf18e_fuse_stage10_5_2Ev
+ 1232              		.syntax unified
+ 1233              		.thumb
+ 1234              		.thumb_func
+ 1236              	_ZN14distanceInterf18e_fuse_stage10_5_2Ev:
+ 1237              		.fnstart
+ 1238              	.LVL87:
+ 1239              	.LFB166:
+ 268:Intermediate/src/distanceInterf.cpp **** 
+ 269:Intermediate/src/distanceInterf.cpp **** /*
+ 270:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 271:Intermediate/src/distanceInterf.cpp ****  * Stage 10-5'
+ 272:Intermediate/src/distanceInterf.cpp ****  * Data=0x01 is set in Address=0xCA.
+ 273:Intermediate/src/distanceInterf.cpp ****  * Wait for 500us.
+ 274:Intermediate/src/distanceInterf.cpp ****  */
+ 275:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_5_2() {
+ 1240              		.loc 1 275 43 is_stmt 1 view -0
+ 1241              		.cfi_startproc
+ 1242              		@ args = 0, pretend = 0, frame = 0
+ 1243              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1244              		.loc 1 275 43 is_stmt 0 view .LVU213
+ 1245 0000 08B5     		push	{r3, lr}
+ 1246              		.save {r3, lr}
+ 1247              		.cfi_def_cfa_offset 8
+ 1248              		.cfi_offset 3, -8
+ 1249              		.cfi_offset 14, -4
+ 276:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCA, 0x01);
+ 1250              		.loc 1 276 5 is_stmt 1 view .LVU214
+ 1251              		.loc 1 276 15 is_stmt 0 view .LVU215
+ 1252 0002 0122     		movs	r2, #1
+ 1253 0004 CA21     		movs	r1, #202
+ 1254 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1255              	.LVL88:
+ 277:Intermediate/src/distanceInterf.cpp ****     HAL_Delay(1);
+ 1256              		.loc 1 277 5 is_stmt 1 view .LVU216
+ 1257              		.loc 1 277 14 is_stmt 0 view .LVU217
+ 1258 000a 0120     		movs	r0, #1
+ 1259 000c FFF7FEFF 		bl	HAL_Delay
+ 1260              	.LVL89:
+ARM GAS  /tmp/ccKtCrhD.s 			page 27
+
+
+ 278:Intermediate/src/distanceInterf.cpp **** }
+ 1261              		.loc 1 278 1 view .LVU218
+ 1262 0010 08BD     		pop	{r3, pc}
+ 1263              		.cfi_endproc
+ 1264              	.LFE166:
+ 1265              		.fnend
+ 1267              		.section	.text._ZN14distanceInterf18e_fuse_stage10_6_2Ev,"ax",%progbits
+ 1268              		.align	1
+ 1269              		.global	_ZN14distanceInterf18e_fuse_stage10_6_2Ev
+ 1270              		.syntax unified
+ 1271              		.thumb
+ 1272              		.thumb_func
+ 1274              	_ZN14distanceInterf18e_fuse_stage10_6_2Ev:
+ 1275              		.fnstart
+ 1276              	.LVL90:
+ 1277              	.LFB167:
+ 279:Intermediate/src/distanceInterf.cpp **** 
+ 280:Intermediate/src/distanceInterf.cpp **** /*
+ 281:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 282:Intermediate/src/distanceInterf.cpp ****  * Stage 10-6'
+ 283:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xCA.
+ 284:Intermediate/src/distanceInterf.cpp ****  * Vpp terminal is grounded.
+ 285:Intermediate/src/distanceInterf.cpp ****  */
+ 286:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_6_2() {
+ 1278              		.loc 1 286 43 is_stmt 1 view -0
+ 1279              		.cfi_startproc
+ 1280              		@ args = 0, pretend = 0, frame = 0
+ 1281              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1282              		.loc 1 286 43 is_stmt 0 view .LVU220
+ 1283 0000 10B5     		push	{r4, lr}
+ 1284              		.save {r4, lr}
+ 1285              		.cfi_def_cfa_offset 8
+ 1286              		.cfi_offset 4, -8
+ 1287              		.cfi_offset 14, -4
+ 1288 0002 0446     		mov	r4, r0
+ 287:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xCA, 0x00);
+ 1289              		.loc 1 287 5 is_stmt 1 view .LVU221
+ 1290              		.loc 1 287 15 is_stmt 0 view .LVU222
+ 1291 0004 0022     		movs	r2, #0
+ 1292 0006 CA21     		movs	r1, #202
+ 1293 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1294              	.LVL91:
+ 288:Intermediate/src/distanceInterf.cpp ****     _vpp_off();
+ 1295              		.loc 1 288 5 is_stmt 1 view .LVU223
+ 1296              		.loc 1 288 13 is_stmt 0 view .LVU224
+ 1297 000c 2046     		mov	r0, r4
+ 1298 000e FFF7FEFF 		bl	_ZN14distanceInterf8_vpp_offEv
+ 1299              	.LVL92:
+ 289:Intermediate/src/distanceInterf.cpp **** }
+ 1300              		.loc 1 289 1 view .LVU225
+ 1301 0012 10BD     		pop	{r4, pc}
+ 1302              		.loc 1 289 1 view .LVU226
+ 1303              		.cfi_endproc
+ 1304              	.LFE167:
+ 1305              		.fnend
+ 1307              		.section	.text._ZN14distanceInterf16e_fuse_stage10_7Ev,"ax",%progbits
+ 1308              		.align	1
+ARM GAS  /tmp/ccKtCrhD.s 			page 28
+
+
+ 1309              		.global	_ZN14distanceInterf16e_fuse_stage10_7Ev
+ 1310              		.syntax unified
+ 1311              		.thumb
+ 1312              		.thumb_func
+ 1314              	_ZN14distanceInterf16e_fuse_stage10_7Ev:
+ 1315              		.fnstart
+ 1316              	.LVL93:
+ 1317              	.LFB168:
+ 290:Intermediate/src/distanceInterf.cpp **** 
+ 291:Intermediate/src/distanceInterf.cpp **** /*
+ 292:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 293:Intermediate/src/distanceInterf.cpp ****  * Stage 10-7
+ 294:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xEF.
+ 295:Intermediate/src/distanceInterf.cpp ****  * Data=0x40 is set in Address=0xC8.
+ 296:Intermediate/src/distanceInterf.cpp ****  * Data=0x00 is set in Address=0xC8.
+ 297:Intermediate/src/distanceInterf.cpp ****  */
+ 298:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_7() {
+ 1318              		.loc 1 298 41 is_stmt 1 view -0
+ 1319              		.cfi_startproc
+ 1320              		@ args = 0, pretend = 0, frame = 0
+ 1321              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1322              		.loc 1 298 41 is_stmt 0 view .LVU228
+ 1323 0000 10B5     		push	{r4, lr}
+ 1324              		.save {r4, lr}
+ 1325              		.cfi_def_cfa_offset 8
+ 1326              		.cfi_offset 4, -8
+ 1327              		.cfi_offset 14, -4
+ 1328 0002 0446     		mov	r4, r0
+ 299:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEF, 0x00);
+ 1329              		.loc 1 299 5 is_stmt 1 view .LVU229
+ 1330              		.loc 1 299 15 is_stmt 0 view .LVU230
+ 1331 0004 0022     		movs	r2, #0
+ 1332 0006 EF21     		movs	r1, #239
+ 1333 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1334              	.LVL94:
+ 300:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x40);
+ 1335              		.loc 1 300 5 is_stmt 1 view .LVU231
+ 1336              		.loc 1 300 15 is_stmt 0 view .LVU232
+ 1337 000c 4022     		movs	r2, #64
+ 1338 000e C821     		movs	r1, #200
+ 1339 0010 2046     		mov	r0, r4
+ 1340 0012 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1341              	.LVL95:
+ 301:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xC8, 0x00);
+ 1342              		.loc 1 301 5 is_stmt 1 view .LVU233
+ 1343              		.loc 1 301 15 is_stmt 0 view .LVU234
+ 1344 0016 0022     		movs	r2, #0
+ 1345 0018 C821     		movs	r1, #200
+ 1346 001a 2046     		mov	r0, r4
+ 1347 001c FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1348              	.LVL96:
+ 302:Intermediate/src/distanceInterf.cpp **** }
+ 1349              		.loc 1 302 1 view .LVU235
+ 1350 0020 10BD     		pop	{r4, pc}
+ 1351              		.loc 1 302 1 view .LVU236
+ 1352              		.cfi_endproc
+ 1353              	.LFE168:
+ARM GAS  /tmp/ccKtCrhD.s 			page 29
+
+
+ 1354              		.fnend
+ 1356              		.section	.text._ZN14distanceInterf16e_fuse_stage10_8Ev,"ax",%progbits
+ 1357              		.align	1
+ 1358              		.global	_ZN14distanceInterf16e_fuse_stage10_8Ev
+ 1359              		.syntax unified
+ 1360              		.thumb
+ 1361              		.thumb_func
+ 1363              	_ZN14distanceInterf16e_fuse_stage10_8Ev:
+ 1364              		.fnstart
+ 1365              	.LVL97:
+ 1366              	.LFB169:
+ 303:Intermediate/src/distanceInterf.cpp **** 
+ 304:Intermediate/src/distanceInterf.cpp **** /*
+ 305:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 306:Intermediate/src/distanceInterf.cpp ****  * Stage 10-8
+ 307:Intermediate/src/distanceInterf.cpp ****  * Data=0x06 is set in Address=0xEE.
+ 308:Intermediate/src/distanceInterf.cpp ****  */
+ 309:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_8() {
+ 1367              		.loc 1 309 41 is_stmt 1 view -0
+ 1368              		.cfi_startproc
+ 1369              		@ args = 0, pretend = 0, frame = 0
+ 1370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1371              		.loc 1 309 41 is_stmt 0 view .LVU238
+ 1372 0000 08B5     		push	{r3, lr}
+ 1373              		.save {r3, lr}
+ 1374              		.cfi_def_cfa_offset 8
+ 1375              		.cfi_offset 3, -8
+ 1376              		.cfi_offset 14, -4
+ 310:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEE, 0x06);
+ 1377              		.loc 1 310 5 is_stmt 1 view .LVU239
+ 1378              		.loc 1 310 15 is_stmt 0 view .LVU240
+ 1379 0002 0622     		movs	r2, #6
+ 1380 0004 EE21     		movs	r1, #238
+ 1381 0006 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1382              	.LVL98:
+ 311:Intermediate/src/distanceInterf.cpp **** }
+ 1383              		.loc 1 311 1 view .LVU241
+ 1384 000a 08BD     		pop	{r3, pc}
+ 1385              		.cfi_endproc
+ 1386              	.LFE169:
+ 1387              		.fnend
+ 1389              		.section	.text._ZN14distanceInterf16e_fuse_stage10_9Ev,"ax",%progbits
+ 1390              		.align	1
+ 1391              		.global	_ZN14distanceInterf16e_fuse_stage10_9Ev
+ 1392              		.syntax unified
+ 1393              		.thumb
+ 1394              		.thumb_func
+ 1396              	_ZN14distanceInterf16e_fuse_stage10_9Ev:
+ 1397              		.fnstart
+ 1398              	.LVL99:
+ 1399              	.LFB170:
+ 312:Intermediate/src/distanceInterf.cpp **** 
+ 313:Intermediate/src/distanceInterf.cpp **** /*
+ 314:Intermediate/src/distanceInterf.cpp ****  * (Fig.40 E-Fuse Program Flow)
+ 315:Intermediate/src/distanceInterf.cpp ****  * Stage 10-9
+ 316:Intermediate/src/distanceInterf.cpp ****  * Data=0xFF is set in Address=0xEC.
+ 317:Intermediate/src/distanceInterf.cpp ****  * Data=0x03 is set in Address=0xEF.
+ARM GAS  /tmp/ccKtCrhD.s 			page 30
+
+
+ 318:Intermediate/src/distanceInterf.cpp ****  * Read out the data in Address=0x18 and Address=0x19.
+ 319:Intermediate/src/distanceInterf.cpp ****  */
+ 320:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_stage10_9() {
+ 1400              		.loc 1 320 41 is_stmt 1 view -0
+ 1401              		.cfi_startproc
+ 1402              		@ args = 0, pretend = 0, frame = 0
+ 1403              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1404              		.loc 1 320 41 is_stmt 0 view .LVU243
+ 1405 0000 10B5     		push	{r4, lr}
+ 1406              		.save {r4, lr}
+ 1407              		.cfi_def_cfa_offset 8
+ 1408              		.cfi_offset 4, -8
+ 1409              		.cfi_offset 14, -4
+ 1410 0002 0446     		mov	r4, r0
+ 321:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEC, 0xFF);
+ 1411              		.loc 1 321 5 is_stmt 1 view .LVU244
+ 1412              		.loc 1 321 15 is_stmt 0 view .LVU245
+ 1413 0004 FF22     		movs	r2, #255
+ 1414 0006 EC21     		movs	r1, #236
+ 1415 0008 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1416              	.LVL100:
+ 322:Intermediate/src/distanceInterf.cpp ****     _i2c_write(0xEF, 0x03);
+ 1417              		.loc 1 322 5 is_stmt 1 view .LVU246
+ 1418              		.loc 1 322 15 is_stmt 0 view .LVU247
+ 1419 000c 0322     		movs	r2, #3
+ 1420 000e EF21     		movs	r1, #239
+ 1421 0010 2046     		mov	r0, r4
+ 1422 0012 FFF7FEFF 		bl	_ZN14distanceInterf10_i2c_writeEhh
+ 1423              	.LVL101:
+ 323:Intermediate/src/distanceInterf.cpp **** }
+ 1424              		.loc 1 323 1 view .LVU248
+ 1425 0016 10BD     		pop	{r4, pc}
+ 1426              		.loc 1 323 1 view .LVU249
+ 1427              		.cfi_endproc
+ 1428              	.LFE170:
+ 1429              		.fnend
+ 1431              		.section	.text._ZN14distanceInterf10e_fuse_runEh,"ax",%progbits
+ 1432              		.align	1
+ 1433              		.global	_ZN14distanceInterf10e_fuse_runEh
+ 1434              		.syntax unified
+ 1435              		.thumb
+ 1436              		.thumb_func
+ 1438              	_ZN14distanceInterf10e_fuse_runEh:
+ 1439              		.fnstart
+ 1440              	.LVL102:
+ 1441              	.LFB171:
+ 324:Intermediate/src/distanceInterf.cpp **** 
+ 325:Intermediate/src/distanceInterf.cpp **** /*
+ 326:Intermediate/src/distanceInterf.cpp ****  * 12-6 Example of E-Fuse Programming
+ 327:Intermediate/src/distanceInterf.cpp ****  */
+ 328:Intermediate/src/distanceInterf.cpp **** void distanceInterf::e_fuse_run(uint8_t new_address) {
+ 1442              		.loc 1 328 54 is_stmt 1 view -0
+ 1443              		.cfi_startproc
+ 1444              		@ args = 0, pretend = 0, frame = 0
+ 1445              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1446              		.loc 1 328 54 is_stmt 0 view .LVU251
+ 1447 0000 38B5     		push	{r3, r4, r5, lr}
+ARM GAS  /tmp/ccKtCrhD.s 			page 31
+
+
+ 1448              		.save {r3, r4, r5, lr}
+ 1449              		.cfi_def_cfa_offset 16
+ 1450              		.cfi_offset 3, -16
+ 1451              		.cfi_offset 4, -12
+ 1452              		.cfi_offset 5, -8
+ 1453              		.cfi_offset 14, -4
+ 1454 0002 0446     		mov	r4, r0
+ 1455 0004 0D46     		mov	r5, r1
+ 329:Intermediate/src/distanceInterf.cpp **** 
+ 330:Intermediate/src/distanceInterf.cpp ****     if (new_address == i2c.getDevAddr()) {
+ 1456              		.loc 1 330 5 is_stmt 1 view .LVU252
+ 1457              		.loc 1 330 38 is_stmt 0 view .LVU253
+ 1458 0006 FFF7FEFF 		bl	_ZN9i2cInterf10getDevAddrEv
+ 1459              	.LVL103:
+ 1460              		.loc 1 330 5 discriminator 1 view .LVU254
+ 1461 000a A842     		cmp	r0, r5
+ 1462 000c 25D0     		beq	.L77
+ 331:Intermediate/src/distanceInterf.cpp ****         return;
+ 332:Intermediate/src/distanceInterf.cpp ****     }
+ 333:Intermediate/src/distanceInterf.cpp ****     if (new_address > 0x0f) {
+ 1463              		.loc 1 333 5 is_stmt 1 view .LVU255
+ 1464 000e 0F2D     		cmp	r5, #15
+ 1465 0010 00D9     		bls	.L79
+ 334:Intermediate/src/distanceInterf.cpp ****         new_address = new_address>>4;
+ 1466              		.loc 1 334 9 view .LVU256
+ 1467              		.loc 1 334 21 is_stmt 0 view .LVU257
+ 1468 0012 2D09     		lsrs	r5, r5, #4
+ 1469              	.LVL104:
+ 1470              	.L79:
+ 335:Intermediate/src/distanceInterf.cpp ****     }
+ 336:Intermediate/src/distanceInterf.cpp **** 
+ 337:Intermediate/src/distanceInterf.cpp ****     _vpp_off();
+ 1471              		.loc 1 337 5 is_stmt 1 view .LVU258
+ 1472              		.loc 1 337 13 is_stmt 0 view .LVU259
+ 1473 0014 2046     		mov	r0, r4
+ 1474 0016 FFF7FEFF 		bl	_ZN14distanceInterf8_vpp_offEv
+ 1475              	.LVL105:
+ 338:Intermediate/src/distanceInterf.cpp ****     HAL_Delay(1);
+ 1476              		.loc 1 338 5 is_stmt 1 view .LVU260
+ 1477              		.loc 1 338 14 is_stmt 0 view .LVU261
+ 1478 001a 0120     		movs	r0, #1
+ 1479 001c FFF7FEFF 		bl	HAL_Delay
+ 1480              	.LVL106:
+ 339:Intermediate/src/distanceInterf.cpp **** 
+ 340:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage1();
+ 1481              		.loc 1 340 5 is_stmt 1 view .LVU262
+ 1482              		.loc 1 340 18 is_stmt 0 view .LVU263
+ 1483 0020 2046     		mov	r0, r4
+ 1484 0022 FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage1Ev
+ 1485              	.LVL107:
+ 341:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage2();
+ 1486              		.loc 1 341 5 is_stmt 1 view .LVU264
+ 1487              		.loc 1 341 18 is_stmt 0 view .LVU265
+ 1488 0026 2046     		mov	r0, r4
+ 1489 0028 FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage2Ev
+ 1490              	.LVL108:
+ 342:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage3();
+ARM GAS  /tmp/ccKtCrhD.s 			page 32
+
+
+ 1491              		.loc 1 342 5 is_stmt 1 view .LVU266
+ 1492              		.loc 1 342 18 is_stmt 0 view .LVU267
+ 1493 002c 2046     		mov	r0, r4
+ 1494 002e FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage3Ev
+ 1495              	.LVL109:
+ 343:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage4(new_address);
+ 1496              		.loc 1 343 5 is_stmt 1 view .LVU268
+ 1497              		.loc 1 343 18 is_stmt 0 view .LVU269
+ 1498 0032 2946     		mov	r1, r5
+ 1499 0034 2046     		mov	r0, r4
+ 1500 0036 FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage4Eh
+ 1501              	.LVL110:
+ 344:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage5();
+ 1502              		.loc 1 344 5 is_stmt 1 view .LVU270
+ 1503              		.loc 1 344 18 is_stmt 0 view .LVU271
+ 1504 003a 2046     		mov	r0, r4
+ 1505 003c FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage5Ev
+ 1506              	.LVL111:
+ 345:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage6();
+ 1507              		.loc 1 345 5 is_stmt 1 view .LVU272
+ 1508              		.loc 1 345 18 is_stmt 0 view .LVU273
+ 1509 0040 2046     		mov	r0, r4
+ 1510 0042 FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage6Ev
+ 1511              	.LVL112:
+ 346:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage7();
+ 1512              		.loc 1 346 5 is_stmt 1 view .LVU274
+ 1513              		.loc 1 346 18 is_stmt 0 view .LVU275
+ 1514 0046 2046     		mov	r0, r4
+ 1515 0048 FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage7Ev
+ 1516              	.LVL113:
+ 347:Intermediate/src/distanceInterf.cpp ****     e_fuse_stage8();
+ 1517              		.loc 1 347 5 is_stmt 1 view .LVU276
+ 1518              		.loc 1 347 18 is_stmt 0 view .LVU277
+ 1519 004c 2046     		mov	r0, r4
+ 1520 004e FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage8Ev
+ 1521              	.LVL114:
+ 348:Intermediate/src/distanceInterf.cpp ****     const uint8_t result = e_fuse_stage9();
+ 1522              		.loc 1 348 5 is_stmt 1 view .LVU278
+ 1523              		.loc 1 348 41 is_stmt 0 view .LVU279
+ 1524 0052 2046     		mov	r0, r4
+ 1525 0054 FFF7FEFF 		bl	_ZN14distanceInterf13e_fuse_stage9Ev
+ 1526              	.LVL115:
+ 349:Intermediate/src/distanceInterf.cpp ****     if (result) {
+ 1527              		.loc 1 349 5 is_stmt 1 view .LVU280
+ 1528 0058 00B9     		cbnz	r0, .L81
+ 1529              	.LVL116:
+ 1530              	.L77:
+ 350:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_1();
+ 351:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_2_1();
+ 352:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_3_1();
+ 353:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_4_1();
+ 354:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_5_1();
+ 355:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_6_1();
+ 356:Intermediate/src/distanceInterf.cpp **** 
+ 357:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_2();
+ 358:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_2_2();
+ 359:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_3_2();
+ARM GAS  /tmp/ccKtCrhD.s 			page 33
+
+
+ 360:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_4_2();
+ 361:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_5_2();
+ 362:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_6_2();
+ 363:Intermediate/src/distanceInterf.cpp **** 
+ 364:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_7();
+ 365:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_8();
+ 366:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_9();
+ 367:Intermediate/src/distanceInterf.cpp ****     }
+ 368:Intermediate/src/distanceInterf.cpp **** }...
+ 1531              		.loc 1 368 1 is_stmt 0 view .LVU281
+ 1532 005a 38BD     		pop	{r3, r4, r5, pc}
+ 1533              	.LVL117:
+ 1534              	.L81:
+ 350:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_1();
+ 1535              		.loc 1 350 9 is_stmt 1 view .LVU282
+ 350:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_1();
+ 1536              		.loc 1 350 27 is_stmt 0 view .LVU283
+ 1537 005c 2046     		mov	r0, r4
+ 1538              	.LVL118:
+ 350:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_1();
+ 1539              		.loc 1 350 27 view .LVU284
+ 1540 005e FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_1_1Ev
+ 1541              	.LVL119:
+ 351:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_2_1();
+ 1542              		.loc 1 351 9 is_stmt 1 view .LVU285
+ 351:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_2_1();
+ 1543              		.loc 1 351 27 is_stmt 0 view .LVU286
+ 1544 0062 2046     		mov	r0, r4
+ 1545 0064 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_2_1Ev
+ 1546              	.LVL120:
+ 352:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_3_1();
+ 1547              		.loc 1 352 9 is_stmt 1 view .LVU287
+ 352:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_3_1();
+ 1548              		.loc 1 352 27 is_stmt 0 view .LVU288
+ 1549 0068 2046     		mov	r0, r4
+ 1550 006a FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_3_1Ev
+ 1551              	.LVL121:
+ 353:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_4_1();
+ 1552              		.loc 1 353 9 is_stmt 1 view .LVU289
+ 353:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_4_1();
+ 1553              		.loc 1 353 27 is_stmt 0 view .LVU290
+ 1554 006e 2046     		mov	r0, r4
+ 1555 0070 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_4_1Ev
+ 1556              	.LVL122:
+ 354:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_5_1();
+ 1557              		.loc 1 354 9 is_stmt 1 view .LVU291
+ 354:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_5_1();
+ 1558              		.loc 1 354 27 is_stmt 0 view .LVU292
+ 1559 0074 2046     		mov	r0, r4
+ 1560 0076 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_5_1Ev
+ 1561              	.LVL123:
+ 355:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_6_1();
+ 1562              		.loc 1 355 9 is_stmt 1 view .LVU293
+ 355:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_6_1();
+ 1563              		.loc 1 355 27 is_stmt 0 view .LVU294
+ 1564 007a 2046     		mov	r0, r4
+ 1565 007c FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_6_1Ev
+ARM GAS  /tmp/ccKtCrhD.s 			page 34
+
+
+ 1566              	.LVL124:
+ 357:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_2();
+ 1567              		.loc 1 357 9 is_stmt 1 view .LVU295
+ 357:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_1_2();
+ 1568              		.loc 1 357 27 is_stmt 0 view .LVU296
+ 1569 0080 2046     		mov	r0, r4
+ 1570 0082 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_1_2Ev
+ 1571              	.LVL125:
+ 358:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_2_2();
+ 1572              		.loc 1 358 9 is_stmt 1 view .LVU297
+ 358:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_2_2();
+ 1573              		.loc 1 358 27 is_stmt 0 view .LVU298
+ 1574 0086 2046     		mov	r0, r4
+ 1575 0088 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_2_2Ev
+ 1576              	.LVL126:
+ 359:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_3_2();
+ 1577              		.loc 1 359 9 is_stmt 1 view .LVU299
+ 359:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_3_2();
+ 1578              		.loc 1 359 27 is_stmt 0 view .LVU300
+ 1579 008c 2046     		mov	r0, r4
+ 1580 008e FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_3_2Ev
+ 1581              	.LVL127:
+ 360:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_4_2();
+ 1582              		.loc 1 360 9 is_stmt 1 view .LVU301
+ 360:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_4_2();
+ 1583              		.loc 1 360 27 is_stmt 0 view .LVU302
+ 1584 0092 2046     		mov	r0, r4
+ 1585 0094 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_4_2Ev
+ 1586              	.LVL128:
+ 361:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_5_2();
+ 1587              		.loc 1 361 9 is_stmt 1 view .LVU303
+ 361:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_5_2();
+ 1588              		.loc 1 361 27 is_stmt 0 view .LVU304
+ 1589 0098 2046     		mov	r0, r4
+ 1590 009a FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_5_2Ev
+ 1591              	.LVL129:
+ 362:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_6_2();
+ 1592              		.loc 1 362 9 is_stmt 1 view .LVU305
+ 362:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_6_2();
+ 1593              		.loc 1 362 27 is_stmt 0 view .LVU306
+ 1594 009e 2046     		mov	r0, r4
+ 1595 00a0 FFF7FEFF 		bl	_ZN14distanceInterf18e_fuse_stage10_6_2Ev
+ 1596              	.LVL130:
+ 364:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_7();
+ 1597              		.loc 1 364 9 is_stmt 1 view .LVU307
+ 364:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_7();
+ 1598              		.loc 1 364 25 is_stmt 0 view .LVU308
+ 1599 00a4 2046     		mov	r0, r4
+ 1600 00a6 FFF7FEFF 		bl	_ZN14distanceInterf16e_fuse_stage10_7Ev
+ 1601              	.LVL131:
+ 365:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_8();
+ 1602              		.loc 1 365 9 is_stmt 1 view .LVU309
+ 365:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_8();
+ 1603              		.loc 1 365 25 is_stmt 0 view .LVU310
+ 1604 00aa 2046     		mov	r0, r4
+ 1605 00ac FFF7FEFF 		bl	_ZN14distanceInterf16e_fuse_stage10_8Ev
+ 1606              	.LVL132:
+ARM GAS  /tmp/ccKtCrhD.s 			page 35
+
+
+ 366:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_9();
+ 1607              		.loc 1 366 9 is_stmt 1 view .LVU311
+ 366:Intermediate/src/distanceInterf.cpp ****         e_fuse_stage10_9();
+ 1608              		.loc 1 366 25 is_stmt 0 view .LVU312
+ 1609 00b0 2046     		mov	r0, r4
+ 1610 00b2 FFF7FEFF 		bl	_ZN14distanceInterf16e_fuse_stage10_9Ev
+ 1611              	.LVL133:
+ 1612 00b6 D0E7     		b	.L77
+ 1613              		.cfi_endproc
+ 1614              	.LFE171:
+ 1615              		.fnend
+ 1617              		.text
+ 1618              	.Letext0:
+ 1619              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1620              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1621              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h"
+ 1622              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 1623              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 1624              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h"
+ 1625              		.file 8 "Intermediate/include/i2cInterf.h"
+ 1626              		.file 9 "Intermediate/include/distanceInterf.h"
+ 1627              		.file 10 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ARM GAS  /tmp/ccKtCrhD.s 			page 36
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 distanceInterf.cpp
+     /tmp/ccKtCrhD.s:21     .text._ZN14distanceInterfC2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:27     .text._ZN14distanceInterfC2Ev:00000000 _ZN14distanceInterfC2Ev
+     /tmp/ccKtCrhD.s:62     .text._ZN14distanceInterfC2Ev:00000018 $d
+.ARM.exidx.text._ZN14distanceInterfC2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:27     .text._ZN14distanceInterfC2Ev:00000000 _ZN14distanceInterfC1Ev
+     /tmp/ccKtCrhD.s:70     .text._ZN14distanceInterfC2E9i2cInterf:00000000 $t
+     /tmp/ccKtCrhD.s:76     .text._ZN14distanceInterfC2E9i2cInterf:00000000 _ZN14distanceInterfC2E9i2cInterf
+     /tmp/ccKtCrhD.s:114    .text._ZN14distanceInterfC2E9i2cInterf:00000024 $d
+.ARM.exidx.text._ZN14distanceInterfC2E9i2cInterf:00000000 $d
+     /tmp/ccKtCrhD.s:76     .text._ZN14distanceInterfC2E9i2cInterf:00000000 _ZN14distanceInterfC1E9i2cInterf
+     /tmp/ccKtCrhD.s:123    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDef:00000000 $t
+     /tmp/ccKtCrhD.s:129    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDef:00000000 _ZN14distanceInterfC2ER17I2C_HandleTypeDef
+     /tmp/ccKtCrhD.s:165    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDef:0000001c $d
+.ARM.exidx.text._ZN14distanceInterfC2ER17I2C_HandleTypeDef:00000000 $d
+     /tmp/ccKtCrhD.s:129    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDef:00000000 _ZN14distanceInterfC1ER17I2C_HandleTypeDef
+     /tmp/ccKtCrhD.s:173    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDefh:00000000 $t
+     /tmp/ccKtCrhD.s:179    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDefh:00000000 _ZN14distanceInterfC2ER17I2C_HandleTypeDefh
+     /tmp/ccKtCrhD.s:214    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDefh:00000018 $d
+.ARM.exidx.text._ZN14distanceInterfC2ER17I2C_HandleTypeDefh:00000000 $d
+     /tmp/ccKtCrhD.s:179    .text._ZN14distanceInterfC2ER17I2C_HandleTypeDefh:00000000 _ZN14distanceInterfC1ER17I2C_HandleTypeDefh
+     /tmp/ccKtCrhD.s:226    .text._ZN14distanceInterf12readDistanceEv:00000000 $t
+     /tmp/ccKtCrhD.s:232    .text._ZN14distanceInterf12readDistanceEv:00000000 _ZN14distanceInterf12readDistanceEv
+     /tmp/ccKtCrhD.s:329    .text._ZN14distanceInterf12readDistanceEv:00000088 $d
+.ARM.exidx.text._ZN14distanceInterf12readDistanceEv:00000000 $d
+     /tmp/ccKtCrhD.s:339    .text._ZN14distanceInterf10_i2c_writeEhh:00000000 $t
+     /tmp/ccKtCrhD.s:345    .text._ZN14distanceInterf10_i2c_writeEhh:00000000 _ZN14distanceInterf10_i2c_writeEhh
+.ARM.exidx.text._ZN14distanceInterf10_i2c_writeEhh:00000000 $d
+     /tmp/ccKtCrhD.s:385    .text._ZN14distanceInterf9_i2c_readEh:00000000 $t
+     /tmp/ccKtCrhD.s:391    .text._ZN14distanceInterf9_i2c_readEh:00000000 _ZN14distanceInterf9_i2c_readEh
+.ARM.exidx.text._ZN14distanceInterf9_i2c_readEh:00000000 $d
+     /tmp/ccKtCrhD.s:439    .text._ZN14distanceInterf7_vpp_onEv:00000000 $t
+     /tmp/ccKtCrhD.s:445    .text._ZN14distanceInterf7_vpp_onEv:00000000 _ZN14distanceInterf7_vpp_onEv
+.ARM.exidx.text._ZN14distanceInterf7_vpp_onEv:00000000 $d
+     /tmp/ccKtCrhD.s:466    .text._ZN14distanceInterf8_vpp_offEv:00000000 $t
+     /tmp/ccKtCrhD.s:472    .text._ZN14distanceInterf8_vpp_offEv:00000000 _ZN14distanceInterf8_vpp_offEv
+.ARM.exidx.text._ZN14distanceInterf8_vpp_offEv:00000000 $d
+     /tmp/ccKtCrhD.s:493    .text._ZN14distanceInterf13e_fuse_stage1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:499    .text._ZN14distanceInterf13e_fuse_stage1Ev:00000000 _ZN14distanceInterf13e_fuse_stage1Ev
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:533    .text._ZN14distanceInterf13e_fuse_stage2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:539    .text._ZN14distanceInterf13e_fuse_stage2Ev:00000000 _ZN14distanceInterf13e_fuse_stage2Ev
+.ARM.extab.text._ZN14distanceInterf13e_fuse_stage2Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:566    .text._ZN14distanceInterf13e_fuse_stage3Ev:00000000 $t
+     /tmp/ccKtCrhD.s:572    .text._ZN14distanceInterf13e_fuse_stage3Ev:00000000 _ZN14distanceInterf13e_fuse_stage3Ev
+.ARM.extab.text._ZN14distanceInterf13e_fuse_stage3Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage3Ev:00000000 $d
+     /tmp/ccKtCrhD.s:599    .text._ZN14distanceInterf13e_fuse_stage4Eh:00000000 $t
+     /tmp/ccKtCrhD.s:605    .text._ZN14distanceInterf13e_fuse_stage4Eh:00000000 _ZN14distanceInterf13e_fuse_stage4Eh
+.ARM.extab.text._ZN14distanceInterf13e_fuse_stage4Eh:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage4Eh:00000000 $d
+     /tmp/ccKtCrhD.s:634    .text._ZN14distanceInterf13e_fuse_stage5Ev:00000000 $t
+     /tmp/ccKtCrhD.s:640    .text._ZN14distanceInterf13e_fuse_stage5Ev:00000000 _ZN14distanceInterf13e_fuse_stage5Ev
+.ARM.extab.text._ZN14distanceInterf13e_fuse_stage5Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage5Ev:00000000 $d
+ARM GAS  /tmp/ccKtCrhD.s 			page 37
+
+
+     /tmp/ccKtCrhD.s:672    .text._ZN14distanceInterf13e_fuse_stage6Ev:00000000 $t
+     /tmp/ccKtCrhD.s:678    .text._ZN14distanceInterf13e_fuse_stage6Ev:00000000 _ZN14distanceInterf13e_fuse_stage6Ev
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage6Ev:00000000 $d
+     /tmp/ccKtCrhD.s:712    .text._ZN14distanceInterf13e_fuse_stage7Ev:00000000 $t
+     /tmp/ccKtCrhD.s:718    .text._ZN14distanceInterf13e_fuse_stage7Ev:00000000 _ZN14distanceInterf13e_fuse_stage7Ev
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage7Ev:00000000 $d
+     /tmp/ccKtCrhD.s:761    .text._ZN14distanceInterf13e_fuse_stage8Ev:00000000 $t
+     /tmp/ccKtCrhD.s:767    .text._ZN14distanceInterf13e_fuse_stage8Ev:00000000 _ZN14distanceInterf13e_fuse_stage8Ev
+.ARM.extab.text._ZN14distanceInterf13e_fuse_stage8Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage8Ev:00000000 $d
+     /tmp/ccKtCrhD.s:794    .text._ZN14distanceInterf13e_fuse_stage9Ev:00000000 $t
+     /tmp/ccKtCrhD.s:800    .text._ZN14distanceInterf13e_fuse_stage9Ev:00000000 _ZN14distanceInterf13e_fuse_stage9Ev
+.ARM.exidx.text._ZN14distanceInterf13e_fuse_stage9Ev:00000000 $d
+     /tmp/ccKtCrhD.s:874    .text._ZN14distanceInterf18e_fuse_stage10_1_1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:880    .text._ZN14distanceInterf18e_fuse_stage10_1_1Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_1_1Ev
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_1_1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:914    .text._ZN14distanceInterf18e_fuse_stage10_2_1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:920    .text._ZN14distanceInterf18e_fuse_stage10_2_1Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_2_1Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_2_1Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_2_1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:947    .text._ZN14distanceInterf18e_fuse_stage10_3_1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:953    .text._ZN14distanceInterf18e_fuse_stage10_3_1Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_3_1Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_3_1Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_3_1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:980    .text._ZN14distanceInterf18e_fuse_stage10_4_1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:986    .text._ZN14distanceInterf18e_fuse_stage10_4_1Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_4_1Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_4_1Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_4_1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1013   .text._ZN14distanceInterf18e_fuse_stage10_5_1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1019   .text._ZN14distanceInterf18e_fuse_stage10_5_1Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_5_1Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_5_1Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_5_1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1051   .text._ZN14distanceInterf18e_fuse_stage10_6_1Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1057   .text._ZN14distanceInterf18e_fuse_stage10_6_1Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_6_1Ev
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_6_1Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1091   .text._ZN14distanceInterf18e_fuse_stage10_1_2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1097   .text._ZN14distanceInterf18e_fuse_stage10_1_2Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_1_2Ev
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_1_2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1131   .text._ZN14distanceInterf18e_fuse_stage10_2_2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1137   .text._ZN14distanceInterf18e_fuse_stage10_2_2Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_2_2Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_2_2Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_2_2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1164   .text._ZN14distanceInterf18e_fuse_stage10_3_2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1170   .text._ZN14distanceInterf18e_fuse_stage10_3_2Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_3_2Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_3_2Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_3_2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1197   .text._ZN14distanceInterf18e_fuse_stage10_4_2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1203   .text._ZN14distanceInterf18e_fuse_stage10_4_2Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_4_2Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_4_2Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_4_2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1230   .text._ZN14distanceInterf18e_fuse_stage10_5_2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1236   .text._ZN14distanceInterf18e_fuse_stage10_5_2Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_5_2Ev
+.ARM.extab.text._ZN14distanceInterf18e_fuse_stage10_5_2Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_5_2Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1268   .text._ZN14distanceInterf18e_fuse_stage10_6_2Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1274   .text._ZN14distanceInterf18e_fuse_stage10_6_2Ev:00000000 _ZN14distanceInterf18e_fuse_stage10_6_2Ev
+.ARM.exidx.text._ZN14distanceInterf18e_fuse_stage10_6_2Ev:00000000 $d
+ARM GAS  /tmp/ccKtCrhD.s 			page 38
+
+
+     /tmp/ccKtCrhD.s:1308   .text._ZN14distanceInterf16e_fuse_stage10_7Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1314   .text._ZN14distanceInterf16e_fuse_stage10_7Ev:00000000 _ZN14distanceInterf16e_fuse_stage10_7Ev
+.ARM.exidx.text._ZN14distanceInterf16e_fuse_stage10_7Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1357   .text._ZN14distanceInterf16e_fuse_stage10_8Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1363   .text._ZN14distanceInterf16e_fuse_stage10_8Ev:00000000 _ZN14distanceInterf16e_fuse_stage10_8Ev
+.ARM.extab.text._ZN14distanceInterf16e_fuse_stage10_8Ev:00000000 $d
+.ARM.exidx.text._ZN14distanceInterf16e_fuse_stage10_8Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1390   .text._ZN14distanceInterf16e_fuse_stage10_9Ev:00000000 $t
+     /tmp/ccKtCrhD.s:1396   .text._ZN14distanceInterf16e_fuse_stage10_9Ev:00000000 _ZN14distanceInterf16e_fuse_stage10_9Ev
+.ARM.exidx.text._ZN14distanceInterf16e_fuse_stage10_9Ev:00000000 $d
+     /tmp/ccKtCrhD.s:1432   .text._ZN14distanceInterf10e_fuse_runEh:00000000 $t
+     /tmp/ccKtCrhD.s:1438   .text._ZN14distanceInterf10e_fuse_runEh:00000000 _ZN14distanceInterf10e_fuse_runEh
+.ARM.exidx.text._ZN14distanceInterf10e_fuse_runEh:00000000 $d
+
+UNDEFINED SYMBOLS
+_ZN9i2cInterfC1Ev
+__aeabi_unwind_cpp_pr0
+_ZN9i2cInterfC1ER17I2C_HandleTypeDefh
+__aeabi_f2d
+__aeabi_ddiv
+__aeabi_dadd
+__aeabi_d2f
+_ZN9i2cInterf5writeEPch
+_ZN9i2cInterf4readEPch
+__aeabi_unwind_cpp_pr1
+HAL_Delay
+_ZN9i2cInterf10getDevAddrEv

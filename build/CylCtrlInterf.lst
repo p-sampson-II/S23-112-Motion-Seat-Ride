@@ -1,0 +1,521 @@
+ARM GAS  /tmp/ccwmXkzn.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"CylCtrlInterf.cpp"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Intermediate/src/CylCtrlInterf.cpp"
+  20              		.section	.text._ZN13CylCtrlInterfC2Ev,"ax",%progbits
+  21              		.align	1
+  22              		.global	_ZN13CylCtrlInterfC2Ev
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	_ZN13CylCtrlInterfC2Ev:
+  28              		.fnstart
+  29              	.LVL0:
+  30              	.LFB1075:
+   1:Intermediate/src/CylCtrlInterf.cpp **** #include "CylCtrlInterf.h"
+   2:Intermediate/src/CylCtrlInterf.cpp **** #include <math.h>
+   3:Intermediate/src/CylCtrlInterf.cpp **** 
+   4:Intermediate/src/CylCtrlInterf.cpp **** CylCtrlInterf::CylCtrlInterf() : dutyCycle(0), pccr(NULL), direction(GPIO_PIN_RESET) {}
+  31              		.loc 1 4 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  36              	.LBB4:
+  37              		.loc 1 4 84 is_stmt 0 view .LVU1
+  38 0000 4EF66022 		movw	r2, #60000
+  39 0004 0280     		strh	r2, [r0]	@ movhi
+  40              		.loc 1 4 34 view .LVU2
+  41 0006 0022     		movs	r2, #0
+  42 0008 C260     		str	r2, [r0, #12]	@ float
+  43              		.loc 1 4 60 view .LVU3
+  44 000a 0022     		movs	r2, #0
+  45 000c 0274     		strb	r2, [r0, #16]
+  46              		.loc 1 4 48 view .LVU4
+  47 000e 4261     		str	r2, [r0, #20]
+  48              	.LBE4:
+  49              		.loc 1 4 87 view .LVU5
+  50 0010 7047     		bx	lr
+  51              		.cfi_endproc
+  52              	.LFE1075:
+  53              		.cantunwind
+  54              		.fnend
+ARM GAS  /tmp/ccwmXkzn.s 			page 2
+
+
+  56              		.global	_ZN13CylCtrlInterfC1Ev
+  57              		.thumb_set _ZN13CylCtrlInterfC1Ev,_ZN13CylCtrlInterfC2Ev
+  58              		.section	.text._ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft,"ax",%progbits
+  59              		.align	1
+  60              		.global	_ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft
+  61              		.syntax unified
+  62              		.thumb
+  63              		.thumb_func
+  65              	_ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft:
+  66              		.fnstart
+  67              	.LVL1:
+  68              	.LFB1078:
+   5:Intermediate/src/CylCtrlInterf.cpp **** 
+   6:Intermediate/src/CylCtrlInterf.cpp **** CylCtrlInterf::CylCtrlInterf(volatile uint32_t &pccr, GPIO_TypeDef *dirPort, uint16_t dirPin) :
+  69              		.loc 1 6 1 is_stmt 1 view -0
+  70              		.cfi_startproc
+  71              		@ args = 0, pretend = 0, frame = 0
+  72              		@ frame_needed = 0, uses_anonymous_args = 0
+  73              		.loc 1 6 1 is_stmt 0 view .LVU7
+  74 0000 00B5     		push	{lr}
+  75              		.cfi_def_cfa_offset 4
+  76              		.cfi_offset 14, -4
+  77              	.LBB5:
+   7:Intermediate/src/CylCtrlInterf.cpp ****  dutyCycle(0), pccr(&pccr), dirPort(dirPort), dirPin(dirPin), direction(GPIO_PIN_RESET) {}
+  78              		.loc 1 7 87 view .LVU8
+  79 0002 4EF6602E 		movw	lr, #60000
+  80 0006 A0F800E0 		strh	lr, [r0]	@ movhi
+  81              		.loc 1 7 29 view .LVU9
+  82 000a 4260     		str	r2, [r0, #4]
+  83              		.loc 1 7 47 view .LVU10
+  84 000c 0381     		strh	r3, [r0, #8]	@ movhi
+  85              		.loc 1 7 2 view .LVU11
+  86 000e 0023     		movs	r3, #0
+  87              	.LVL2:
+  88              		.loc 1 7 2 view .LVU12
+  89 0010 C360     		str	r3, [r0, #12]	@ float
+  90              		.loc 1 7 63 view .LVU13
+  91 0012 0023     		movs	r3, #0
+  92 0014 0374     		strb	r3, [r0, #16]
+  93              		.loc 1 7 16 view .LVU14
+  94 0016 4161     		str	r1, [r0, #20]
+  95              	.LBE5:
+  96              		.loc 1 7 90 view .LVU15
+  97 0018 5DF804FB 		ldr	pc, [sp], #4
+  98              		.cfi_endproc
+  99              	.LFE1078:
+ 100              		.cantunwind
+ 101              		.fnend
+ 103              		.global	_ZN13CylCtrlInterfC1ERVmP12GPIO_TypeDeft
+ 104              		.thumb_set _ZN13CylCtrlInterfC1ERVmP12GPIO_TypeDeft,_ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft
+ 105              		.section	.text._ZN13CylCtrlInterf6setPWMEv,"ax",%progbits
+ 106              		.align	1
+ 107              		.global	_ZN13CylCtrlInterf6setPWMEv
+ 108              		.syntax unified
+ 109              		.thumb
+ 110              		.thumb_func
+ 112              	_ZN13CylCtrlInterf6setPWMEv:
+ARM GAS  /tmp/ccwmXkzn.s 			page 3
+
+
+ 113              		.fnstart
+ 114              	.LVL3:
+ 115              	.LFB1080:
+   8:Intermediate/src/CylCtrlInterf.cpp **** 
+   9:Intermediate/src/CylCtrlInterf.cpp **** void CylCtrlInterf::setPWM() {
+ 116              		.loc 1 9 30 is_stmt 1 view -0
+ 117              		.cfi_startproc
+ 118              		@ args = 0, pretend = 0, frame = 0
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+ 120              		@ link register save eliminated.
+  10:Intermediate/src/CylCtrlInterf.cpp ****     *pccr = (uint16_t)(this->dutyCycle*this->arr_val);
+ 121              		.loc 1 10 5 view .LVU17
+ 122              		.loc 1 10 30 is_stmt 0 view .LVU18
+ 123 0000 90ED037A 		vldr.32	s14, [r0, #12]
+ 124              		.loc 1 10 46 view .LVU19
+ 125 0004 0388     		ldrh	r3, [r0]
+ 126 0006 07EE903A 		vmov	s15, r3	@ int
+ 127              		.loc 1 10 39 view .LVU20
+ 128 000a F8EEE77A 		vcvt.f32.s32	s15, s15
+ 129 000e 67EE877A 		vmul.f32	s15, s15, s14
+ 130              		.loc 1 10 6 view .LVU21
+ 131 0012 4269     		ldr	r2, [r0, #20]
+ 132              		.loc 1 10 13 view .LVU22
+ 133 0014 FCEEE77A 		vcvt.u32.f32	s15, s15
+ 134 0018 17EE903A 		vmov	r3, s15	@ int
+ 135 001c 9BB2     		uxth	r3, r3
+ 136              		.loc 1 10 11 view .LVU23
+ 137 001e 1360     		str	r3, [r2]
+  11:Intermediate/src/CylCtrlInterf.cpp **** }
+ 138              		.loc 1 11 1 view .LVU24
+ 139 0020 7047     		bx	lr
+ 140              		.cfi_endproc
+ 141              	.LFE1080:
+ 142              		.cantunwind
+ 143              		.fnend
+ 145              		.section	.text._ZN13CylCtrlInterf6setDirEv,"ax",%progbits
+ 146              		.align	1
+ 147              		.global	_ZN13CylCtrlInterf6setDirEv
+ 148              		.syntax unified
+ 149              		.thumb
+ 150              		.thumb_func
+ 152              	_ZN13CylCtrlInterf6setDirEv:
+ 153              		.fnstart
+ 154              	.LVL4:
+ 155              	.LFB1081:
+  12:Intermediate/src/CylCtrlInterf.cpp **** 
+  13:Intermediate/src/CylCtrlInterf.cpp **** void CylCtrlInterf::setDir() {
+ 156              		.loc 1 13 30 is_stmt 1 view -0
+ 157              		.cfi_startproc
+ 158              		@ args = 0, pretend = 0, frame = 0
+ 159              		@ frame_needed = 0, uses_anonymous_args = 0
+ 160              		.loc 1 13 30 is_stmt 0 view .LVU26
+ 161 0000 08B5     		push	{r3, lr}
+ 162              		.save {r3, lr}
+ 163              		.cfi_def_cfa_offset 8
+ 164              		.cfi_offset 3, -8
+ 165              		.cfi_offset 14, -4
+ARM GAS  /tmp/ccwmXkzn.s 			page 4
+
+
+  14:Intermediate/src/CylCtrlInterf.cpp ****     HAL_GPIO_WritePin(dirPort,dirPin,direction);
+ 166              		.loc 1 14 5 is_stmt 1 view .LVU27
+ 167              		.loc 1 14 22 is_stmt 0 view .LVU28
+ 168 0002 027C     		ldrb	r2, [r0, #16]	@ zero_extendqisi2
+ 169 0004 0189     		ldrh	r1, [r0, #8]
+ 170 0006 4068     		ldr	r0, [r0, #4]
+ 171              	.LVL5:
+ 172              		.loc 1 14 22 view .LVU29
+ 173 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 174              	.LVL6:
+  15:Intermediate/src/CylCtrlInterf.cpp **** }
+ 175              		.loc 1 15 1 view .LVU30
+ 176 000c 08BD     		pop	{r3, pc}
+ 177              		.cfi_endproc
+ 178              	.LFE1081:
+ 179              		.fnend
+ 181              		.section	.text._ZN13CylCtrlInterf12getDutyCycleEv,"ax",%progbits
+ 182              		.align	1
+ 183              		.global	_ZN13CylCtrlInterf12getDutyCycleEv
+ 184              		.syntax unified
+ 185              		.thumb
+ 186              		.thumb_func
+ 188              	_ZN13CylCtrlInterf12getDutyCycleEv:
+ 189              		.fnstart
+ 190              	.LVL7:
+ 191              	.LFB1082:
+  16:Intermediate/src/CylCtrlInterf.cpp **** 
+  17:Intermediate/src/CylCtrlInterf.cpp **** float CylCtrlInterf::getDutyCycle() {
+ 192              		.loc 1 17 37 is_stmt 1 view -0
+ 193              		.cfi_startproc
+ 194              		@ args = 0, pretend = 0, frame = 0
+ 195              		@ frame_needed = 0, uses_anonymous_args = 0
+ 196              		@ link register save eliminated.
+  18:Intermediate/src/CylCtrlInterf.cpp ****     return this->dutyCycle;
+ 197              		.loc 1 18 5 view .LVU32
+  19:Intermediate/src/CylCtrlInterf.cpp **** }
+ 198              		.loc 1 19 1 is_stmt 0 view .LVU33
+ 199 0000 90ED030A 		vldr.32	s0, [r0, #12]
+ 200 0004 7047     		bx	lr
+ 201              		.cfi_endproc
+ 202              	.LFE1082:
+ 203              		.cantunwind
+ 204              		.fnend
+ 206              		.global	__aeabi_f2d
+ 207              		.global	__aeabi_dcmplt
+ 208              		.section	.text._ZN13CylCtrlInterf12setDutyCycleERKf,"ax",%progbits
+ 209              		.align	1
+ 210              		.global	_ZN13CylCtrlInterf12setDutyCycleERKf
+ 211              		.syntax unified
+ 212              		.thumb
+ 213              		.thumb_func
+ 215              	_ZN13CylCtrlInterf12setDutyCycleERKf:
+ 216              		.fnstart
+ 217              	.LVL8:
+ 218              	.LFB1083:
+  20:Intermediate/src/CylCtrlInterf.cpp **** 
+  21:Intermediate/src/CylCtrlInterf.cpp **** void CylCtrlInterf::setDutyCycle(const float &dutyCycle) {
+ARM GAS  /tmp/ccwmXkzn.s 			page 5
+
+
+ 219              		.loc 1 21 58 is_stmt 1 view -0
+ 220              		.cfi_startproc
+ 221              		@ args = 0, pretend = 0, frame = 0
+ 222              		@ frame_needed = 0, uses_anonymous_args = 0
+ 223              		.loc 1 21 58 is_stmt 0 view .LVU35
+ 224 0000 10B5     		push	{r4, lr}
+ 225              		.save {r4, lr}
+ 226              		.cfi_def_cfa_offset 8
+ 227              		.cfi_offset 4, -8
+ 228              		.cfi_offset 14, -4
+ 229 0002 2DED028B 		vpush.64	{d8}
+ 230              		.vsave {d8}
+ 231              		.cfi_def_cfa_offset 16
+ 232              		.cfi_offset 80, -16
+ 233              		.cfi_offset 81, -12
+ 234 0006 0446     		mov	r4, r0
+  22:Intermediate/src/CylCtrlInterf.cpp ****     float magDC=abs(dutyCycle);
+ 235              		.loc 1 22 5 is_stmt 1 view .LVU36
+ 236              		.loc 1 22 20 is_stmt 0 view .LVU37
+ 237 0008 D1ED008A 		vldr.32	s17, [r1]
+ 238              	.LVL9:
+ 239              	.LBB6:
+ 240              	.LBI6:
+ 241              		.file 2 "/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h"
+   1:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // -*- C++ -*- C library enhancements header.
+   2:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+   3:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // Copyright (C) 2016-2023 Free Software Foundation, Inc.
+   4:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** //
+   5:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // This file is part of the GNU ISO C++ Library.  This library is free
+   6:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // software; you can redistribute it and/or modify it under the
+   7:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // terms of the GNU General Public License as published by the
+   8:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // Free Software Foundation; either version 3, or (at your option)
+   9:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // any later version.
+  10:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  11:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // This library is distributed in the hope that it will be useful,
+  12:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // GNU General Public License for more details.
+  15:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  16:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // Under Section 7 of GPL version 3, you are granted additional
+  17:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // permissions described in the GCC Runtime Library Exception, version
+  18:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // 3.1, as published by the Free Software Foundation.
+  19:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  20:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // You should have received a copy of the GNU General Public License and
+  21:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // a copy of the GCC Runtime Library Exception along with this program;
+  22:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  23:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // <http://www.gnu.org/licenses/>.
+  24:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  25:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** /** @file include/bits/std_abs.h
+  26:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****  *  This is an internal header file, included by other library headers.
+  27:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****  *  Do not attempt to use it directly. @headername{cmath, cstdlib}
+  28:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****  */
+  29:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  30:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #ifndef _GLIBCXX_BITS_STD_ABS_H
+  31:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #define _GLIBCXX_BITS_STD_ABS_H
+  32:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  33:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #pragma GCC system_header
+ARM GAS  /tmp/ccwmXkzn.s 			page 6
+
+
+  34:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  35:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #include <bits/c++config.h>
+  36:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  37:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #define _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+  38:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #include_next <stdlib.h>
+  39:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #ifdef __CORRECT_ISO_CPP_MATH_H_PROTO
+  40:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** # include_next <math.h>
+  41:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #endif
+  42:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+  43:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  44:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #undef abs
+  45:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  46:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** extern "C++"
+  47:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** {
+  48:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** namespace std _GLIBCXX_VISIBILITY(default)
+  49:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** {
+  50:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** _GLIBCXX_BEGIN_NAMESPACE_VERSION
+  51:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  52:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   using ::abs;
+  53:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  54:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #ifndef __CORRECT_ISO_CPP_STDLIB_H_PROTO
+  55:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   inline long
+  56:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   abs(long __i) { return __builtin_labs(__i); }
+  57:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #endif
+  58:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  59:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #ifdef _GLIBCXX_USE_LONG_LONG
+  60:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   inline long long
+  61:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   abs(long long __x) { return __builtin_llabs (__x); }
+  62:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #endif
+  63:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  64:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // _GLIBCXX_RESOLVE_LIB_DEFECTS
+  65:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // 2192. Validity and return type of std::abs(0u) is unclear
+  66:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // 2294. <cstdlib> should declare abs(double)
+  67:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** // 2735. std::abs(short), std::abs(signed char) and others should return int
+  68:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  69:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+  70:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   inline _GLIBCXX_CONSTEXPR double
+  71:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   abs(double __x)
+  72:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   { return __builtin_fabs(__x); }
+  73:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h **** 
+  74:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   inline _GLIBCXX_CONSTEXPR float
+  75:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   abs(float __x)
+ 242              		.loc 2 75 3 is_stmt 1 view .LVU38
+ 243              	.LBB7:
+  76:/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h ****   { return __builtin_fabsf(__x); }
+ 244              		.loc 2 76 5 view .LVU39
+ 245              		.loc 2 76 31 is_stmt 0 view .LVU40
+ 246 000c B0EEE88A 		vabs.f32	s16, s17
+ 247              	.LVL10:
+ 248              		.loc 2 76 31 view .LVU41
+ 249              	.LBE7:
+ 250              	.LBE6:
+  23:Intermediate/src/CylCtrlInterf.cpp ****     if (magDC < 0.07) {
+ 251              		.loc 1 23 5 is_stmt 1 view .LVU42
+ 252              		.loc 1 23 9 is_stmt 0 view .LVU43
+ 253 0010 18EE100A 		vmov	r0, s16
+ 254              	.LVL11:
+ARM GAS  /tmp/ccwmXkzn.s 			page 7
+
+
+ 255              		.loc 1 23 9 view .LVU44
+ 256 0014 FFF7FEFF 		bl	__aeabi_f2d
+ 257              	.LVL12:
+ 258              		.loc 1 23 5 view .LVU45
+ 259 0018 13A3     		adr	r3, .L25
+ 260 001a D3E90023 		ldrd	r2, [r3]
+ 261 001e FFF7FEFF 		bl	__aeabi_dcmplt
+ 262              	.LVL13:
+ 263 0022 50B1     		cbz	r0, .L20
+  24:Intermediate/src/CylCtrlInterf.cpp ****         this->dutyCycle = 0;
+ 264              		.loc 1 24 9 is_stmt 1 view .LVU46
+ 265              		.loc 1 24 25 is_stmt 0 view .LVU47
+ 266 0024 0023     		movs	r3, #0
+ 267 0026 E360     		str	r3, [r4, #12]	@ float
+ 268              	.L11:
+  25:Intermediate/src/CylCtrlInterf.cpp ****     }
+  26:Intermediate/src/CylCtrlInterf.cpp ****     else {
+  27:Intermediate/src/CylCtrlInterf.cpp ****         if (dutyCycle < 0) {
+  28:Intermediate/src/CylCtrlInterf.cpp ****             this->direction = GPIO_PIN_RESET;
+  29:Intermediate/src/CylCtrlInterf.cpp ****         }
+  30:Intermediate/src/CylCtrlInterf.cpp ****         else {
+  31:Intermediate/src/CylCtrlInterf.cpp ****             this->direction = GPIO_PIN_SET;
+  32:Intermediate/src/CylCtrlInterf.cpp ****         }
+  33:Intermediate/src/CylCtrlInterf.cpp **** 
+  34:Intermediate/src/CylCtrlInterf.cpp ****         if (magDC > 1) {
+  35:Intermediate/src/CylCtrlInterf.cpp ****             this->dutyCycle = 1;
+  36:Intermediate/src/CylCtrlInterf.cpp ****         }
+  37:Intermediate/src/CylCtrlInterf.cpp ****         else {
+  38:Intermediate/src/CylCtrlInterf.cpp ****             this->dutyCycle = magDC;
+  39:Intermediate/src/CylCtrlInterf.cpp ****         }
+  40:Intermediate/src/CylCtrlInterf.cpp ****     }
+  41:Intermediate/src/CylCtrlInterf.cpp **** 
+  42:Intermediate/src/CylCtrlInterf.cpp ****     setDir();
+ 269              		.loc 1 42 5 is_stmt 1 view .LVU48
+ 270              		.loc 1 42 11 is_stmt 0 view .LVU49
+ 271 0028 2046     		mov	r0, r4
+ 272 002a FFF7FEFF 		bl	_ZN13CylCtrlInterf6setDirEv
+ 273              	.LVL14:
+  43:Intermediate/src/CylCtrlInterf.cpp ****     setPWM();
+ 274              		.loc 1 43 5 is_stmt 1 view .LVU50
+ 275              		.loc 1 43 11 is_stmt 0 view .LVU51
+ 276 002e 2046     		mov	r0, r4
+ 277 0030 FFF7FEFF 		bl	_ZN13CylCtrlInterf6setPWMEv
+ 278              	.LVL15:
+  44:Intermediate/src/CylCtrlInterf.cpp **** }
+ 279              		.loc 1 44 1 view .LVU52
+ 280 0034 BDEC028B 		vldm	sp!, {d8}
+ 281              		.cfi_remember_state
+ 282              		.cfi_restore 80
+ 283              		.cfi_restore 81
+ 284              		.cfi_def_cfa_offset 8
+ 285              	.LVL16:
+ 286              		.loc 1 44 1 view .LVU53
+ 287 0038 10BD     		pop	{r4, pc}
+ 288              	.LVL17:
+ 289              	.L20:
+ 290              		.cfi_restore_state
+ARM GAS  /tmp/ccwmXkzn.s 			page 8
+
+
+  27:Intermediate/src/CylCtrlInterf.cpp ****             this->direction = GPIO_PIN_RESET;
+ 291              		.loc 1 27 9 is_stmt 1 view .LVU54
+ 292 003a F5EEC08A 		vcmpe.f32	s17, #0
+ 293 003e F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 294 0042 0BD4     		bmi	.L24
+  31:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 295              		.loc 1 31 13 view .LVU55
+  31:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 296              		.loc 1 31 29 is_stmt 0 view .LVU56
+ 297 0044 0123     		movs	r3, #1
+ 298 0046 2374     		strb	r3, [r4, #16]
+ 299              	.L14:
+  34:Intermediate/src/CylCtrlInterf.cpp ****             this->dutyCycle = 1;
+ 300              		.loc 1 34 9 is_stmt 1 view .LVU57
+ 301 0048 F7EE007A 		vmov.f32	s15, #1.0e+0
+ 302 004c B4EEE78A 		vcmpe.f32	s16, s15
+ 303 0050 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 304 0054 05DD     		ble	.L22
+  35:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 305              		.loc 1 35 13 view .LVU58
+  35:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 306              		.loc 1 35 29 is_stmt 0 view .LVU59
+ 307 0056 C4ED037A 		vstr.32	s15, [r4, #12]
+ 308 005a E5E7     		b	.L11
+ 309              	.L24:
+  28:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 310              		.loc 1 28 13 is_stmt 1 view .LVU60
+  28:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 311              		.loc 1 28 29 is_stmt 0 view .LVU61
+ 312 005c 0023     		movs	r3, #0
+ 313 005e 2374     		strb	r3, [r4, #16]
+ 314 0060 F2E7     		b	.L14
+ 315              	.L22:
+  38:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 316              		.loc 1 38 13 is_stmt 1 view .LVU62
+  38:Intermediate/src/CylCtrlInterf.cpp ****         }
+ 317              		.loc 1 38 29 is_stmt 0 view .LVU63
+ 318 0062 84ED038A 		vstr.32	s16, [r4, #12]
+ 319 0066 DFE7     		b	.L11
+ 320              	.L26:
+ 321              		.align	3
+ 322              	.L25:
+ 323 0068 EC51B81E 		.word	515396076
+ 324 006c 85EBB13F 		.word	1068624773
+ 325              		.cfi_endproc
+ 326              	.LFE1083:
+ 327              		.fnend
+ 329              		.text
+ 330              	.Letext0:
+ 331              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 332              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 333              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h"
+ 334              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
+ 335              		.file 7 "Intermediate/include/CylCtrlInterf.h"
+ 336              		.file 8 "/usr/arm-none-eabi/include/c++/13.2.0/cmath"
+ 337              		.file 9 "/usr/arm-none-eabi/include/c++/13.2.0/type_traits"
+ 338              		.file 10 "/usr/arm-none-eabi/include/c++/13.2.0/debug/debug.h"
+ARM GAS  /tmp/ccwmXkzn.s 			page 9
+
+
+ 339              		.file 11 "/usr/arm-none-eabi/include/c++/13.2.0/bits/predefined_ops.h"
+ 340              		.file 12 "/usr/arm-none-eabi/include/math.h"
+ 341              		.file 13 "/usr/arm-none-eabi/include/c++/13.2.0/arm-none-eabi/thumb/v7e-m+fp/hard/bits/c++config.h
+ 342              		.file 14 "/usr/arm-none-eabi/include/c++/13.2.0/math.h"
+ARM GAS  /tmp/ccwmXkzn.s 			page 10
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 CylCtrlInterf.cpp
+     /tmp/ccwmXkzn.s:21     .text._ZN13CylCtrlInterfC2Ev:00000000 $t
+     /tmp/ccwmXkzn.s:27     .text._ZN13CylCtrlInterfC2Ev:00000000 _ZN13CylCtrlInterfC2Ev
+.ARM.exidx.text._ZN13CylCtrlInterfC2Ev:00000000 $d
+     /tmp/ccwmXkzn.s:27     .text._ZN13CylCtrlInterfC2Ev:00000000 _ZN13CylCtrlInterfC1Ev
+     /tmp/ccwmXkzn.s:59     .text._ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft:00000000 $t
+     /tmp/ccwmXkzn.s:65     .text._ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft:00000000 _ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft
+.ARM.exidx.text._ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft:00000000 $d
+     /tmp/ccwmXkzn.s:65     .text._ZN13CylCtrlInterfC2ERVmP12GPIO_TypeDeft:00000000 _ZN13CylCtrlInterfC1ERVmP12GPIO_TypeDeft
+     /tmp/ccwmXkzn.s:106    .text._ZN13CylCtrlInterf6setPWMEv:00000000 $t
+     /tmp/ccwmXkzn.s:112    .text._ZN13CylCtrlInterf6setPWMEv:00000000 _ZN13CylCtrlInterf6setPWMEv
+.ARM.exidx.text._ZN13CylCtrlInterf6setPWMEv:00000000 $d
+     /tmp/ccwmXkzn.s:146    .text._ZN13CylCtrlInterf6setDirEv:00000000 $t
+     /tmp/ccwmXkzn.s:152    .text._ZN13CylCtrlInterf6setDirEv:00000000 _ZN13CylCtrlInterf6setDirEv
+.ARM.extab.text._ZN13CylCtrlInterf6setDirEv:00000000 $d
+.ARM.exidx.text._ZN13CylCtrlInterf6setDirEv:00000000 $d
+     /tmp/ccwmXkzn.s:182    .text._ZN13CylCtrlInterf12getDutyCycleEv:00000000 $t
+     /tmp/ccwmXkzn.s:188    .text._ZN13CylCtrlInterf12getDutyCycleEv:00000000 _ZN13CylCtrlInterf12getDutyCycleEv
+.ARM.exidx.text._ZN13CylCtrlInterf12getDutyCycleEv:00000000 $d
+     /tmp/ccwmXkzn.s:209    .text._ZN13CylCtrlInterf12setDutyCycleERKf:00000000 $t
+     /tmp/ccwmXkzn.s:215    .text._ZN13CylCtrlInterf12setDutyCycleERKf:00000000 _ZN13CylCtrlInterf12setDutyCycleERKf
+     /tmp/ccwmXkzn.s:323    .text._ZN13CylCtrlInterf12setDutyCycleERKf:00000068 $d
+.ARM.exidx.text._ZN13CylCtrlInterf12setDutyCycleERKf:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+__aeabi_unwind_cpp_pr1
+__aeabi_f2d
+__aeabi_dcmplt
+__aeabi_unwind_cpp_pr0

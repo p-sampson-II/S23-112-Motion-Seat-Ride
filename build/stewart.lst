@@ -1,0 +1,3157 @@
+ARM GAS  /tmp/ccRQrS5M.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"stewart.cpp"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Application/stewart.cpp"
+  20              		.section	.text._Z41__static_initialization_and_destruction_0v,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	_Z41__static_initialization_and_destruction_0v:
+  27              		.fnstart
+  28              	.LFB3389:
+   1:Application/stewart.cpp **** /**
+   2:Application/stewart.cpp **** Authors: Paul Sampson and Kelvin Hoang
+   3:Application/stewart.cpp **** 
+   4:Application/stewart.cpp **** Date: Fall 2023
+   5:Application/stewart.cpp **** 
+   6:Application/stewart.cpp **** Description: Matrix operations required to convert [Roll, Pitch, Yaw] -> [l1, l2, ... l6] for a ste
+   7:Application/stewart.cpp **** 
+   8:Application/stewart.cpp **** Formulae used:
+   9:Application/stewart.cpp **** 
+  10:Application/stewart.cpp ****     L = T + R*p-b
+  11:Application/stewart.cpp ****     Where:
+  12:Application/stewart.cpp ****         L = [l_x;l_y;l_z] is the cartesian location of the cylinder head.
+  13:Application/stewart.cpp ****         T = [0;0;23] is the translation matrix for the center of the moving platform.
+  14:Application/stewart.cpp ****         R = R_x*R_y*R_z is the rotation matrix of the moving platform.
+  15:Application/stewart.cpp ****         p and b are precalculated vectors representing unique cylinder position information.
+  16:Application/stewart.cpp ****     
+  17:Application/stewart.cpp ****     R=R_x*R_y*R_z
+  18:Application/stewart.cpp ****     Where:
+  19:Application/stewart.cpp ****             [1  0         0         ]
+  20:Application/stewart.cpp ****         R_x=[0  cos(roll) -sin(roll)]
+  21:Application/stewart.cpp ****             [0  sin(roll) cos(roll) ]
+  22:Application/stewart.cpp **** 
+  23:Application/stewart.cpp ****             [cos(pitch)  0  sin(pitch)]
+  24:Application/stewart.cpp ****         R_y=[0           1  0         ]
+  25:Application/stewart.cpp ****             [-sin(pitch) 0  sin(pitch)]
+  26:Application/stewart.cpp **** 
+  27:Application/stewart.cpp ****             [cos(yaw) -sin(yaw)   0 ]
+  28:Application/stewart.cpp ****         R_z=[sin(yaw) cos(yaw)    0 ]
+  29:Application/stewart.cpp ****             [0        0           1 ]
+  30:Application/stewart.cpp **** 
+ARM GAS  /tmp/ccRQrS5M.s 			page 2
+
+
+  31:Application/stewart.cpp ****     l = sqrt(l_x^2+l_y^2+l_z^2) (euclidian distance)
+  32:Application/stewart.cpp **** */
+  33:Application/stewart.cpp **** 
+  34:Application/stewart.cpp **** #include <math.h>
+  35:Application/stewart.cpp **** #include <array>
+  36:Application/stewart.cpp **** #include <tuple>
+  37:Application/stewart.cpp **** #include "arm_math.h"
+  38:Application/stewart.cpp **** #include "stewart.h"
+  39:Application/stewart.cpp **** #include "matrixdefs.h"
+  40:Application/stewart.cpp **** 
+  41:Application/stewart.cpp **** // Control Matrix Implementation
+  42:Application/stewart.cpp **** // Performs the matrix math required to convert roll, pitch and yaw into cylinder lengths.
+  43:Application/stewart.cpp **** // Then, performs PI control on 6 linear actuators to achieve the desired roll, pitch and yaw.
+  44:Application/stewart.cpp **** class StewartImpl {
+  45:Application/stewart.cpp **** public:
+  46:Application/stewart.cpp ****     StewartImpl();
+  47:Application/stewart.cpp ****     ~StewartImpl();
+  48:Application/stewart.cpp ****     mtx3D calcRotationMtx(fArr3 rpy);
+  49:Application/stewart.cpp ****     fArr6 xfmLinPos(fArr3 rpy);
+  50:Application/stewart.cpp **** private:
+  51:Application/stewart.cpp ****     fArr6 calcCylinderPos(mtx3D rotationMtx);
+  52:Application/stewart.cpp ****     float32_t calcNorm(fArr3 vector);
+  53:Application/stewart.cpp ****     float32_t performTrigOp(trigOp f, float x);
+  54:Application/stewart.cpp **** };
+  55:Application/stewart.cpp **** 
+  56:Application/stewart.cpp **** float32_t StewartImpl::performTrigOp(trigOp f, float x) {
+  57:Application/stewart.cpp ****     switch(trigEnum(f)) {
+  58:Application/stewart.cpp ****         case 0:
+  59:Application/stewart.cpp ****         case 1:
+  60:Application/stewart.cpp ****             return float(int(f));
+  61:Application/stewart.cpp ****         case COS:
+  62:Application/stewart.cpp ****             return cos(x);
+  63:Application/stewart.cpp ****         case SIN:
+  64:Application/stewart.cpp ****             return sin(x);
+  65:Application/stewart.cpp ****         case -COS:
+  66:Application/stewart.cpp ****             return -cos(x);
+  67:Application/stewart.cpp ****         case -SIN:
+  68:Application/stewart.cpp ****             return -sin(x);
+  69:Application/stewart.cpp ****         case -1:
+  70:Application/stewart.cpp ****             throw int(f); // Happens if we somehow get a trigOp of -1
+  71:Application/stewart.cpp ****     }
+  72:Application/stewart.cpp ****     return 0;
+  73:Application/stewart.cpp **** }
+  74:Application/stewart.cpp **** 
+  75:Application/stewart.cpp **** Stewart::Stewart() {
+  76:Application/stewart.cpp ****     impl = new StewartImpl();
+  77:Application/stewart.cpp **** }
+  78:Application/stewart.cpp **** 
+  79:Application/stewart.cpp **** Stewart::~Stewart() {
+  80:Application/stewart.cpp ****     delete impl;
+  81:Application/stewart.cpp **** }
+  82:Application/stewart.cpp **** 
+  83:Application/stewart.cpp **** fArr6 Stewart::xfmLinPos(fArr3 rpy) {
+  84:Application/stewart.cpp ****     return impl->xfmLinPos(rpy);
+  85:Application/stewart.cpp **** }
+  86:Application/stewart.cpp **** 
+  87:Application/stewart.cpp **** StewartImpl::StewartImpl() {}
+ARM GAS  /tmp/ccRQrS5M.s 			page 3
+
+
+  88:Application/stewart.cpp **** 
+  89:Application/stewart.cpp **** StewartImpl::~StewartImpl() {}
+  90:Application/stewart.cpp **** 
+  91:Application/stewart.cpp **** // TODO: Figure out the math necessary to convert a set of cylinder positions into roll, pitch and 
+  92:Application/stewart.cpp **** /*fArr3 StewartImpl::xfmRPY(fArr6 cylinderPos) {
+  93:Application/stewart.cpp ****     
+  94:Application/stewart.cpp **** }*/
+  95:Application/stewart.cpp **** 
+  96:Application/stewart.cpp **** /**
+  97:Application/stewart.cpp ****  * @brief Convert [Roll, Pitch, Yaw] -> [l1, l2, ... l6], 
+  98:Application/stewart.cpp ****                     where l1,...l6 are desired lengths of cylinders
+  99:Application/stewart.cpp ****                     on a stewart platform, and Roll, Pitch and Yaw
+ 100:Application/stewart.cpp ****                     describe polar rotations of the seat on the platform.
+ 101:Application/stewart.cpp ****  * 
+ 102:Application/stewart.cpp ****  * @param rpy [Roll, Pitch, Yaw]
+ 103:Application/stewart.cpp ****  * @return fArr6 [l1, l2, ... , l6]
+ 104:Application/stewart.cpp ****  */
+ 105:Application/stewart.cpp **** fArr6 StewartImpl::xfmLinPos(fArr3 rpy) {
+ 106:Application/stewart.cpp ****     mtx3D rotationMtx = calcRotationMtx(rpy);
+ 107:Application/stewart.cpp ****     fArr6 cylinderPos = calcCylinderPos(rotationMtx);
+ 108:Application/stewart.cpp ****     return cylinderPos;
+ 109:Application/stewart.cpp **** }
+ 110:Application/stewart.cpp **** 
+ 111:Application/stewart.cpp **** 
+ 112:Application/stewart.cpp **** /**
+ 113:Application/stewart.cpp ****  * @brief Performs a trig operation on a float depending on 
+ 114:Application/stewart.cpp ****             the value of a trigOp enumeration
+ 115:Application/stewart.cpp ****  * 
+ 116:Application/stewart.cpp ****  * @param f trigOp enumeration describing the operation to perform
+ 117:Application/stewart.cpp ****  * @param x Input of the trig operation being performed
+ 118:Application/stewart.cpp ****  * @return float Result of the trig operation
+ 119:Application/stewart.cpp ****  */
+ 120:Application/stewart.cpp **** 
+ 121:Application/stewart.cpp **** /**
+ 122:Application/stewart.cpp ****  * @brief Calculate a 3x3 rotation matrix from [Roll, Pitch, Yaw].
+ 123:Application/stewart.cpp ****  * 
+ 124:Application/stewart.cpp ****  * @param rpy Array representing [Roll, Pitch, Yaw]
+ 125:Application/stewart.cpp ****  * @return mtx3D Rotation Matrix calculated from rpy
+ 126:Application/stewart.cpp ****  */
+ 127:Application/stewart.cpp **** mtx3D StewartImpl::calcRotationMtx(fArr3 rpy) { 
+ 128:Application/stewart.cpp ****     // Array of matricies repressenting R_x, R_y, R_z
+ 129:Application/stewart.cpp ****     std::array<mtx3D,3> rotComponents;
+ 130:Application/stewart.cpp **** 
+ 131:Application/stewart.cpp ****     for (int i = 0; i < 3; i++) {
+ 132:Application/stewart.cpp ****         for (int j = 0; j < 9; j++) {
+ 133:Application/stewart.cpp ****             // Calculate the elements of each component matrix
+ 134:Application/stewart.cpp ****             rotComponents[i][j] = performTrigOp(ROTATION_COMPONENTS[i][j],rpy[i]);
+ 135:Application/stewart.cpp ****         }
+ 136:Application/stewart.cpp ****     }
+ 137:Application/stewart.cpp **** 
+ 138:Application/stewart.cpp ****     // Initialize matrix math objects
+ 139:Application/stewart.cpp ****     arm_matrix_instance_f32 am_accum[2];
+ 140:Application/stewart.cpp ****     mtx3D accumBuf[2];
+ 141:Application/stewart.cpp ****     arm_matrix_instance_f32 am_rotComponents[3];
+ 142:Application/stewart.cpp **** 
+ 143:Application/stewart.cpp ****     for(int i = 0; i < 3; i++) {
+ 144:Application/stewart.cpp ****         if( i < 2) {
+ARM GAS  /tmp/ccRQrS5M.s 			page 4
+
+
+ 145:Application/stewart.cpp ****             arm_mat_init_f32(&am_accum[i],3,3,(float *)(accumBuf[i].data()));
+ 146:Application/stewart.cpp ****         }
+ 147:Application/stewart.cpp ****         arm_mat_init_f32(&am_rotComponents[i],3,3,(float *)(rotComponents[i].data()));
+ 148:Application/stewart.cpp ****     }
+ 149:Application/stewart.cpp **** 
+ 150:Application/stewart.cpp ****     // Calculate R, the product of the rotation matrix components.
+ 151:Application/stewart.cpp ****     // Do so in two steps, the code was just easier to write this way.
+ 152:Application/stewart.cpp ****     arm_mat_mult_f32(&am_rotComponents[0],&am_rotComponents[1],&am_accum[0]);
+ 153:Application/stewart.cpp ****     arm_mat_mult_f32(&am_accum[0],&am_rotComponents[2],&am_accum[1]);
+ 154:Application/stewart.cpp ****     
+ 155:Application/stewart.cpp ****     return accumBuf[1];
+ 156:Application/stewart.cpp **** }
+ 157:Application/stewart.cpp **** 
+ 158:Application/stewart.cpp **** /**
+ 159:Application/stewart.cpp ****  * @brief Performs the operation [l1,l2,...,l6] = [norm(P)], where 
+ 160:Application/stewart.cpp ****  * P = T+R*p_i-b_i is the position of the head of each cylinder
+ 161:Application/stewart.cpp ****  * in cartesian coordinates, R is rotationMtx, p_i, T, and b_i are
+ 162:Application/stewart.cpp ****  * constant vectors derived from Hannah's calculations
+ 163:Application/stewart.cpp ****  * 
+ 164:Application/stewart.cpp ****  * @param rotationMtx A matrix describing how each element in a 
+ 165:Application/stewart.cpp ****                         vector is scaled based on the seat's rotation
+ 166:Application/stewart.cpp ****  * @return fArr6 A vector representing the length that each cylinder 
+ 167:Application/stewart.cpp ****                     must be to achieved the desired roll, pitch, and yaw
+ 168:Application/stewart.cpp ****  */
+ 169:Application/stewart.cpp **** fArr6 StewartImpl::calcCylinderPos(mtx3D rotationMtx) {
+ 170:Application/stewart.cpp ****     arm_matrix_instance_f32 am_rotMtx;
+ 171:Application/stewart.cpp ****     arm_matrix_instance_f32 am_T;
+ 172:Application/stewart.cpp ****     fArr6 lengths;
+ 173:Application/stewart.cpp ****     
+ 174:Application/stewart.cpp ****     // Matrix math initializations
+ 175:Application/stewart.cpp ****     arm_mat_init_f32(&am_T,NO_DOF,1, (float *)VECTOR_T_DATA);
+ 176:Application/stewart.cpp ****     arm_mat_init_f32(&am_rotMtx,NO_DOF,NO_DOF,(float *) rotationMtx.data());
+ 177:Application/stewart.cpp **** 
+ 178:Application/stewart.cpp ****     // Perform for each cylinder:
+ 179:Application/stewart.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 180:Application/stewart.cpp ****         // Point to the particular three values representing p and b
+ 181:Application/stewart.cpp ****         // for the particular cylinder
+ 182:Application/stewart.cpp ****         float32_t * p = (float32_t *)MATRIX_p_DATA + NO_DOF*i;
+ 183:Application/stewart.cpp ****         float32_t * b = (float32_t *)MATRIX_b_DATA + NO_DOF*i;
+ 184:Application/stewart.cpp ****         
+ 185:Application/stewart.cpp ****         // Buffers for matrix math
+ 186:Application/stewart.cpp ****         fArr3 RdotpBuf;
+ 187:Application/stewart.cpp ****         fArr3 RpSubbBuf;
+ 188:Application/stewart.cpp ****         fArr3 lengthVec;
+ 189:Application/stewart.cpp **** 
+ 190:Application/stewart.cpp ****         // More matrix math initializations
+ 191:Application/stewart.cpp ****         arm_matrix_instance_f32 am_p;
+ 192:Application/stewart.cpp ****         arm_matrix_instance_f32 am_b;
+ 193:Application/stewart.cpp **** 
+ 194:Application/stewart.cpp ****         arm_matrix_instance_f32 am_Rdotp;
+ 195:Application/stewart.cpp ****         arm_matrix_instance_f32 am_RpSubb;
+ 196:Application/stewart.cpp ****         arm_matrix_instance_f32 am_lengthVec;
+ 197:Application/stewart.cpp **** 
+ 198:Application/stewart.cpp ****         arm_mat_init_f32(&am_lengthVec,NO_DOF,1,lengthVec.data());
+ 199:Application/stewart.cpp ****         arm_mat_init_f32(&am_p,NO_DOF,1,p);
+ 200:Application/stewart.cpp ****         arm_mat_init_f32(&am_b,NO_DOF,1,b);
+ 201:Application/stewart.cpp ****         arm_mat_init_f32(&am_Rdotp,NO_DOF,1,RdotpBuf.data());
+ARM GAS  /tmp/ccRQrS5M.s 			page 5
+
+
+ 202:Application/stewart.cpp ****         arm_mat_init_f32(&am_RpSubb,NO_DOF,1,RpSubbBuf.data());
+ 203:Application/stewart.cpp **** 
+ 204:Application/stewart.cpp ****         // Do the math:
+ 205:Application/stewart.cpp ****         arm_mat_mult_f32(&am_rotMtx,&am_p,&am_Rdotp); // R*p = Rdotp
+ 206:Application/stewart.cpp ****         arm_mat_sub_f32(&am_Rdotp,&am_b,&am_RpSubb); // Rdotp-b = RpSubb
+ 207:Application/stewart.cpp ****         arm_mat_add_f32(&am_T,&am_RpSubb,&am_lengthVec); // T+RpSubb = lengthVec
+ 208:Application/stewart.cpp ****         
+ 209:Application/stewart.cpp ****         // lengthVec is in 3D cartesian coordinates. Get its magnitude:
+ 210:Application/stewart.cpp ****         lengths[i] = calcNorm(lengthVec);
+ 211:Application/stewart.cpp ****     }
+ 212:Application/stewart.cpp ****     return lengths;
+ 213:Application/stewart.cpp **** }
+ 214:Application/stewart.cpp **** 
+ 215:Application/stewart.cpp **** /**
+ 216:Application/stewart.cpp ****  * @brief Finds the pythagorian magnitude of a vector, e.g.:
+ 217:Application/stewart.cpp ****             y=sqrt(x_1^2+x_2^2+...+x_n^2) where n is the number of elements
+ 218:Application/stewart.cpp ****  * 
+ 219:Application/stewart.cpp ****  * @param vector The vector to find the norm of
+ 220:Application/stewart.cpp ****  * @return float The norm of the vector parameter
+ 221:Application/stewart.cpp ****  */
+ 222:Application/stewart.cpp **** float StewartImpl::calcNorm(fArr3 vector) {
+ 223:Application/stewart.cpp ****     // Buffer containing the square of sums
+ 224:Application/stewart.cpp ****     float vecPower = 0;
+ 225:Application/stewart.cpp ****     
+ 226:Application/stewart.cpp ****     // Perform sum of squares of the input vector
+ 227:Application/stewart.cpp ****     arm_power_f32((float *)vector.data(), 3, &vecPower);
+ 228:Application/stewart.cpp **** 
+ 229:Application/stewart.cpp ****     // Take the square root of the sum of squares
+ 230:Application/stewart.cpp ****     float norm = sqrt(vecPower);
+ 231:Application/stewart.cpp ****     return norm;
+ 232:Application/stewart.cpp **** }...
+  29              		.loc 1 232 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 30B5     		push	{r4, r5, lr}
+  34              		.cfi_def_cfa_offset 12
+  35              		.cfi_offset 4, -12
+  36              		.cfi_offset 5, -8
+  37              		.cfi_offset 14, -4
+  38              	.LVL0:
+  39              	.LBB181:
+  40              	.LBI181:
+  41              		.file 2 "Application/Include/matrixdefs.h"
+   1:Application/Include/matrixdefs.h **** 
+   2:Application/Include/matrixdefs.h **** #ifndef MATRIX_DEFS_H
+   3:Application/Include/matrixdefs.h **** #define MATRIX_DEFS_H
+   4:Application/Include/matrixdefs.h **** #include <cstdint>
+   5:Application/Include/matrixdefs.h **** #include <array>
+   6:Application/Include/matrixdefs.h **** #include <tuple>
+   7:Application/Include/matrixdefs.h **** #include <iostream>
+   8:Application/Include/matrixdefs.h **** 
+   9:Application/Include/matrixdefs.h **** #define NO_CYLS 6 // One output per cylinder representing linear position
+  10:Application/Include/matrixdefs.h **** #define NO_DOF 3 // Pitch, Roll, and Yaw; calculated from transformation matrix
+  11:Application/Include/matrixdefs.h **** 
+  12:Application/Include/matrixdefs.h **** // Describes a trig operation to be performed. ZERO and ONE simply indicate that the function shoul
+  13:Application/Include/matrixdefs.h **** // 0 or 1.
+ARM GAS  /tmp/ccRQrS5M.s 			page 6
+
+
+  14:Application/Include/matrixdefs.h **** typedef enum trigEnum { NEGSIN=-3, NEGCOS=-2, NEGONE=-1 ,ZERO=0, ONE=1, COS=2, SIN=3 } trigEnum;
+  15:Application/Include/matrixdefs.h **** 
+  16:Application/Include/matrixdefs.h **** // Implements a union of int and trigEnum, allowing the implicit conversion seen in the rotation fu
+  17:Application/Include/matrixdefs.h **** // This is done to make checking the function matricies at a glance a LOT easier.
+  18:Application/Include/matrixdefs.h **** typedef struct trigOp {
+  19:Application/Include/matrixdefs.h ****     union {
+  20:Application/Include/matrixdefs.h ****     int8_t value;
+  21:Application/Include/matrixdefs.h ****     trigEnum enumeration;
+  22:Application/Include/matrixdefs.h ****     };
+  23:Application/Include/matrixdefs.h **** 
+  24:Application/Include/matrixdefs.h ****   operator int() const{
+  25:Application/Include/matrixdefs.h ****     return value;
+  26:Application/Include/matrixdefs.h ****   }
+  27:Application/Include/matrixdefs.h **** 
+  28:Application/Include/matrixdefs.h ****   operator trigEnum() const{
+  29:Application/Include/matrixdefs.h ****     return enumeration;
+  30:Application/Include/matrixdefs.h ****   }
+  31:Application/Include/matrixdefs.h **** 
+  32:Application/Include/matrixdefs.h ****   trigOp& operator=(int i){
+  33:Application/Include/matrixdefs.h ****     this->set(i);
+  34:Application/Include/matrixdefs.h ****     return *this;
+  35:Application/Include/matrixdefs.h ****   }
+  36:Application/Include/matrixdefs.h **** 
+  37:Application/Include/matrixdefs.h ****   trigOp& operator=(trigEnum e){
+  38:Application/Include/matrixdefs.h ****     this->set(e);
+  39:Application/Include/matrixdefs.h ****     return *this;
+  40:Application/Include/matrixdefs.h ****   }
+  41:Application/Include/matrixdefs.h **** 
+  42:Application/Include/matrixdefs.h ****   void set(int i){
+  43:Application/Include/matrixdefs.h ****     value = i;
+  44:Application/Include/matrixdefs.h ****   }
+  45:Application/Include/matrixdefs.h ****   void set(trigEnum e){
+  46:Application/Include/matrixdefs.h ****     enumeration = e;
+  47:Application/Include/matrixdefs.h ****   }
+  48:Application/Include/matrixdefs.h **** 
+  49:Application/Include/matrixdefs.h ****   trigOp(int i){
+  42              		.loc 2 49 3 view .LVU1
+  43              	.LBB182:
+  44              	.LBB183:
+  45              	.LBI183:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  46              		.loc 2 42 8 view .LVU2
+  47              	.LBB184:
+  43:Application/Include/matrixdefs.h ****   }
+  48              		.loc 2 43 5 view .LVU3
+  43:Application/Include/matrixdefs.h ****   }
+  49              		.loc 2 43 11 is_stmt 0 view .LVU4
+  50 0002 204A     		ldr	r2, .L3
+  51 0004 0125     		movs	r5, #1
+  52 0006 1570     		strb	r5, [r2]
+  53              	.LVL1:
+  43:Application/Include/matrixdefs.h ****   }
+  54              		.loc 2 43 11 view .LVU5
+  55              	.LBE184:
+  56              	.LBE183:
+  57              	.LBE182:
+  58              	.LBE181:
+ARM GAS  /tmp/ccRQrS5M.s 			page 7
+
+
+  59              	.LBB185:
+  60              	.LBI185:
+  61              		.loc 2 49 3 is_stmt 1 view .LVU6
+  62              	.LBB186:
+  63              	.LBB187:
+  64              	.LBI187:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  65              		.loc 2 42 8 view .LVU7
+  66              	.LBB188:
+  43:Application/Include/matrixdefs.h ****   }
+  67              		.loc 2 43 5 view .LVU8
+  43:Application/Include/matrixdefs.h ****   }
+  68              		.loc 2 43 11 is_stmt 0 view .LVU9
+  69 0008 0021     		movs	r1, #0
+  70 000a 5170     		strb	r1, [r2, #1]
+  71              	.LVL2:
+  43:Application/Include/matrixdefs.h ****   }
+  72              		.loc 2 43 11 view .LVU10
+  73              	.LBE188:
+  74              	.LBE187:
+  75              	.LBE186:
+  76              	.LBE185:
+  77              	.LBB189:
+  78              	.LBI189:
+  79              		.loc 2 49 3 is_stmt 1 view .LVU11
+  80              	.LBB190:
+  81              	.LBB191:
+  82              	.LBI191:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  83              		.loc 2 42 8 view .LVU12
+  84              	.LBB192:
+  43:Application/Include/matrixdefs.h ****   }
+  85              		.loc 2 43 5 view .LVU13
+  43:Application/Include/matrixdefs.h ****   }
+  86              		.loc 2 43 11 is_stmt 0 view .LVU14
+  87 000c 9170     		strb	r1, [r2, #2]
+  88              	.LVL3:
+  43:Application/Include/matrixdefs.h ****   }
+  89              		.loc 2 43 11 view .LVU15
+  90              	.LBE192:
+  91              	.LBE191:
+  92              	.LBE190:
+  93              	.LBE189:
+  94              	.LBB193:
+  95              	.LBI193:
+  96              		.loc 2 49 3 is_stmt 1 view .LVU16
+  97              	.LBB194:
+  98              	.LBB195:
+  99              	.LBI195:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 100              		.loc 2 42 8 view .LVU17
+ 101              	.LBB196:
+  43:Application/Include/matrixdefs.h ****   }
+ 102              		.loc 2 43 5 view .LVU18
+  43:Application/Include/matrixdefs.h ****   }
+ 103              		.loc 2 43 11 is_stmt 0 view .LVU19
+ 104 000e D170     		strb	r1, [r2, #3]
+ARM GAS  /tmp/ccRQrS5M.s 			page 8
+
+
+ 105              	.LVL4:
+  43:Application/Include/matrixdefs.h ****   }
+ 106              		.loc 2 43 11 view .LVU20
+ 107              	.LBE196:
+ 108              	.LBE195:
+ 109              	.LBE194:
+ 110              	.LBE193:
+ 111              	.LBB197:
+ 112              	.LBI197:
+ 113              		.loc 2 49 3 is_stmt 1 view .LVU21
+ 114              	.LBB198:
+ 115              	.LBB199:
+ 116              	.LBI199:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 117              		.loc 2 42 8 view .LVU22
+ 118              	.LBB200:
+  43:Application/Include/matrixdefs.h ****   }
+ 119              		.loc 2 43 5 view .LVU23
+  43:Application/Include/matrixdefs.h ****   }
+ 120              		.loc 2 43 11 is_stmt 0 view .LVU24
+ 121 0010 0220     		movs	r0, #2
+ 122 0012 1071     		strb	r0, [r2, #4]
+ 123              	.LVL5:
+  43:Application/Include/matrixdefs.h ****   }
+ 124              		.loc 2 43 11 view .LVU25
+ 125              	.LBE200:
+ 126              	.LBE199:
+ 127              	.LBE198:
+ 128              	.LBE197:
+ 129              	.LBB201:
+ 130              	.LBI201:
+ 131              		.loc 2 49 3 is_stmt 1 view .LVU26
+ 132              	.LBB202:
+ 133              	.LBB203:
+ 134              	.LBI203:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 135              		.loc 2 42 8 view .LVU27
+ 136              	.LBB204:
+  43:Application/Include/matrixdefs.h ****   }
+ 137              		.loc 2 43 5 view .LVU28
+  43:Application/Include/matrixdefs.h ****   }
+ 138              		.loc 2 43 11 is_stmt 0 view .LVU29
+ 139 0014 4FF0FD0E 		mov	lr, #253
+ 140 0018 82F805E0 		strb	lr, [r2, #5]
+ 141              	.LVL6:
+  43:Application/Include/matrixdefs.h ****   }
+ 142              		.loc 2 43 11 view .LVU30
+ 143              	.LBE204:
+ 144              	.LBE203:
+ 145              	.LBE202:
+ 146              	.LBE201:
+ 147              	.LBB205:
+ 148              	.LBI205:
+ 149              		.loc 2 49 3 is_stmt 1 view .LVU31
+ 150              	.LBB206:
+ 151              	.LBB207:
+ 152              	.LBI207:
+ARM GAS  /tmp/ccRQrS5M.s 			page 9
+
+
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 153              		.loc 2 42 8 view .LVU32
+ 154              	.LBB208:
+  43:Application/Include/matrixdefs.h ****   }
+ 155              		.loc 2 43 5 view .LVU33
+  43:Application/Include/matrixdefs.h ****   }
+ 156              		.loc 2 43 11 is_stmt 0 view .LVU34
+ 157 001c 9171     		strb	r1, [r2, #6]
+ 158              	.LVL7:
+  43:Application/Include/matrixdefs.h ****   }
+ 159              		.loc 2 43 11 view .LVU35
+ 160              	.LBE208:
+ 161              	.LBE207:
+ 162              	.LBE206:
+ 163              	.LBE205:
+ 164              	.LBB209:
+ 165              	.LBI209:
+ 166              		.loc 2 49 3 is_stmt 1 view .LVU36
+ 167              	.LBB210:
+ 168              	.LBB211:
+ 169              	.LBI211:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 170              		.loc 2 42 8 view .LVU37
+ 171              	.LBB212:
+  43:Application/Include/matrixdefs.h ****   }
+ 172              		.loc 2 43 5 view .LVU38
+  43:Application/Include/matrixdefs.h ****   }
+ 173              		.loc 2 43 11 is_stmt 0 view .LVU39
+ 174 001e 4FF0030C 		mov	ip, #3
+ 175 0022 82F807C0 		strb	ip, [r2, #7]
+ 176              	.LVL8:
+  43:Application/Include/matrixdefs.h ****   }
+ 177              		.loc 2 43 11 view .LVU40
+ 178              	.LBE212:
+ 179              	.LBE211:
+ 180              	.LBE210:
+ 181              	.LBE209:
+ 182              	.LBB213:
+ 183              	.LBI213:
+ 184              		.loc 2 49 3 is_stmt 1 view .LVU41
+ 185              	.LBB214:
+ 186              	.LBB215:
+ 187              	.LBI215:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 188              		.loc 2 42 8 view .LVU42
+ 189              	.LBB216:
+  43:Application/Include/matrixdefs.h ****   }
+ 190              		.loc 2 43 5 view .LVU43
+  43:Application/Include/matrixdefs.h ****   }
+ 191              		.loc 2 43 11 is_stmt 0 view .LVU44
+ 192 0026 1072     		strb	r0, [r2, #8]
+ 193              	.LVL9:
+  43:Application/Include/matrixdefs.h ****   }
+ 194              		.loc 2 43 11 view .LVU45
+ 195              	.LBE216:
+ 196              	.LBE215:
+ 197              	.LBE214:
+ARM GAS  /tmp/ccRQrS5M.s 			page 10
+
+
+ 198              	.LBE213:
+ 199              	.LBB217:
+ 200              	.LBI217:
+ 201              		.loc 2 49 3 is_stmt 1 view .LVU46
+ 202              	.LBB218:
+ 203              	.LBB219:
+ 204              	.LBI219:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 205              		.loc 2 42 8 view .LVU47
+ 206              	.LBB220:
+  43:Application/Include/matrixdefs.h ****   }
+ 207              		.loc 2 43 5 view .LVU48
+  43:Application/Include/matrixdefs.h ****   }
+ 208              		.loc 2 43 11 is_stmt 0 view .LVU49
+ 209 0028 174C     		ldr	r4, .L3+4
+ 210 002a 2070     		strb	r0, [r4]
+ 211              	.LVL10:
+  43:Application/Include/matrixdefs.h ****   }
+ 212              		.loc 2 43 11 view .LVU50
+ 213              	.LBE220:
+ 214              	.LBE219:
+ 215              	.LBE218:
+ 216              	.LBE217:
+ 217              	.LBB221:
+ 218              	.LBI221:
+ 219              		.loc 2 49 3 is_stmt 1 view .LVU51
+ 220              	.LBB222:
+ 221              	.LBB223:
+ 222              	.LBI223:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 223              		.loc 2 42 8 view .LVU52
+ 224              	.LBB224:
+  43:Application/Include/matrixdefs.h ****   }
+ 225              		.loc 2 43 5 view .LVU53
+  43:Application/Include/matrixdefs.h ****   }
+ 226              		.loc 2 43 11 is_stmt 0 view .LVU54
+ 227 002c 6170     		strb	r1, [r4, #1]
+ 228              	.LVL11:
+  43:Application/Include/matrixdefs.h ****   }
+ 229              		.loc 2 43 11 view .LVU55
+ 230              	.LBE224:
+ 231              	.LBE223:
+ 232              	.LBE222:
+ 233              	.LBE221:
+ 234              	.LBB225:
+ 235              	.LBI225:
+ 236              		.loc 2 49 3 is_stmt 1 view .LVU56
+ 237              	.LBB226:
+ 238              	.LBB227:
+ 239              	.LBI227:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 240              		.loc 2 42 8 view .LVU57
+ 241              	.LBB228:
+  43:Application/Include/matrixdefs.h ****   }
+ 242              		.loc 2 43 5 view .LVU58
+  43:Application/Include/matrixdefs.h ****   }
+ 243              		.loc 2 43 11 is_stmt 0 view .LVU59
+ARM GAS  /tmp/ccRQrS5M.s 			page 11
+
+
+ 244 002e 84F802C0 		strb	ip, [r4, #2]
+ 245              	.LVL12:
+  43:Application/Include/matrixdefs.h ****   }
+ 246              		.loc 2 43 11 view .LVU60
+ 247              	.LBE228:
+ 248              	.LBE227:
+ 249              	.LBE226:
+ 250              	.LBE225:
+ 251              	.LBB229:
+ 252              	.LBI229:
+ 253              		.loc 2 49 3 is_stmt 1 view .LVU61
+ 254              	.LBB230:
+ 255              	.LBB231:
+ 256              	.LBI231:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 257              		.loc 2 42 8 view .LVU62
+ 258              	.LBB232:
+  43:Application/Include/matrixdefs.h ****   }
+ 259              		.loc 2 43 5 view .LVU63
+  43:Application/Include/matrixdefs.h ****   }
+ 260              		.loc 2 43 11 is_stmt 0 view .LVU64
+ 261 0032 E170     		strb	r1, [r4, #3]
+ 262              	.LVL13:
+  43:Application/Include/matrixdefs.h ****   }
+ 263              		.loc 2 43 11 view .LVU65
+ 264              	.LBE232:
+ 265              	.LBE231:
+ 266              	.LBE230:
+ 267              	.LBE229:
+ 268              	.LBB233:
+ 269              	.LBI233:
+ 270              		.loc 2 49 3 is_stmt 1 view .LVU66
+ 271              	.LBB234:
+ 272              	.LBB235:
+ 273              	.LBI235:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 274              		.loc 2 42 8 view .LVU67
+ 275              	.LBB236:
+  43:Application/Include/matrixdefs.h ****   }
+ 276              		.loc 2 43 5 view .LVU68
+  43:Application/Include/matrixdefs.h ****   }
+ 277              		.loc 2 43 11 is_stmt 0 view .LVU69
+ 278 0034 2571     		strb	r5, [r4, #4]
+ 279              	.LVL14:
+  43:Application/Include/matrixdefs.h ****   }
+ 280              		.loc 2 43 11 view .LVU70
+ 281              	.LBE236:
+ 282              	.LBE235:
+ 283              	.LBE234:
+ 284              	.LBE233:
+ 285              	.LBB237:
+ 286              	.LBI237:
+ 287              		.loc 2 49 3 is_stmt 1 view .LVU71
+ 288              	.LBB238:
+ 289              	.LBB239:
+ 290              	.LBI239:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ARM GAS  /tmp/ccRQrS5M.s 			page 12
+
+
+ 291              		.loc 2 42 8 view .LVU72
+ 292              	.LBB240:
+  43:Application/Include/matrixdefs.h ****   }
+ 293              		.loc 2 43 5 view .LVU73
+  43:Application/Include/matrixdefs.h ****   }
+ 294              		.loc 2 43 11 is_stmt 0 view .LVU74
+ 295 0036 6171     		strb	r1, [r4, #5]
+ 296              	.LVL15:
+  43:Application/Include/matrixdefs.h ****   }
+ 297              		.loc 2 43 11 view .LVU75
+ 298              	.LBE240:
+ 299              	.LBE239:
+ 300              	.LBE238:
+ 301              	.LBE237:
+ 302              	.LBB241:
+ 303              	.LBI241:
+ 304              		.loc 2 49 3 is_stmt 1 view .LVU76
+ 305              	.LBB242:
+ 306              	.LBB243:
+ 307              	.LBI243:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 308              		.loc 2 42 8 view .LVU77
+ 309              	.LBB244:
+  43:Application/Include/matrixdefs.h ****   }
+ 310              		.loc 2 43 5 view .LVU78
+  43:Application/Include/matrixdefs.h ****   }
+ 311              		.loc 2 43 11 is_stmt 0 view .LVU79
+ 312 0038 84F806E0 		strb	lr, [r4, #6]
+ 313              	.LVL16:
+  43:Application/Include/matrixdefs.h ****   }
+ 314              		.loc 2 43 11 view .LVU80
+ 315              	.LBE244:
+ 316              	.LBE243:
+ 317              	.LBE242:
+ 318              	.LBE241:
+ 319              	.LBB245:
+ 320              	.LBI245:
+ 321              		.loc 2 49 3 is_stmt 1 view .LVU81
+ 322              	.LBB246:
+ 323              	.LBB247:
+ 324              	.LBI247:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 325              		.loc 2 42 8 view .LVU82
+ 326              	.LBB248:
+  43:Application/Include/matrixdefs.h ****   }
+ 327              		.loc 2 43 5 view .LVU83
+  43:Application/Include/matrixdefs.h ****   }
+ 328              		.loc 2 43 11 is_stmt 0 view .LVU84
+ 329 003c E171     		strb	r1, [r4, #7]
+ 330              	.LVL17:
+  43:Application/Include/matrixdefs.h ****   }
+ 331              		.loc 2 43 11 view .LVU85
+ 332              	.LBE248:
+ 333              	.LBE247:
+ 334              	.LBE246:
+ 335              	.LBE245:
+ 336              	.LBB249:
+ARM GAS  /tmp/ccRQrS5M.s 			page 13
+
+
+ 337              	.LBI249:
+ 338              		.loc 2 49 3 is_stmt 1 view .LVU86
+ 339              	.LBB250:
+ 340              	.LBB251:
+ 341              	.LBI251:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 342              		.loc 2 42 8 view .LVU87
+ 343              	.LBB252:
+  43:Application/Include/matrixdefs.h ****   }
+ 344              		.loc 2 43 5 view .LVU88
+  43:Application/Include/matrixdefs.h ****   }
+ 345              		.loc 2 43 11 is_stmt 0 view .LVU89
+ 346 003e 2072     		strb	r0, [r4, #8]
+ 347              	.LVL18:
+  43:Application/Include/matrixdefs.h ****   }
+ 348              		.loc 2 43 11 view .LVU90
+ 349              	.LBE252:
+ 350              	.LBE251:
+ 351              	.LBE250:
+ 352              	.LBE249:
+ 353              	.LBB253:
+ 354              	.LBI253:
+ 355              		.loc 2 49 3 is_stmt 1 view .LVU91
+ 356              	.LBB254:
+ 357              	.LBB255:
+ 358              	.LBI255:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 359              		.loc 2 42 8 view .LVU92
+ 360              	.LBB256:
+  43:Application/Include/matrixdefs.h ****   }
+ 361              		.loc 2 43 5 view .LVU93
+  43:Application/Include/matrixdefs.h ****   }
+ 362              		.loc 2 43 11 is_stmt 0 view .LVU94
+ 363 0040 124B     		ldr	r3, .L3+8
+ 364 0042 1870     		strb	r0, [r3]
+ 365              	.LVL19:
+  43:Application/Include/matrixdefs.h ****   }
+ 366              		.loc 2 43 11 view .LVU95
+ 367              	.LBE256:
+ 368              	.LBE255:
+ 369              	.LBE254:
+ 370              	.LBE253:
+ 371              	.LBB257:
+ 372              	.LBI257:
+ 373              		.loc 2 49 3 is_stmt 1 view .LVU96
+ 374              	.LBB258:
+ 375              	.LBB259:
+ 376              	.LBI259:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 377              		.loc 2 42 8 view .LVU97
+ 378              	.LBB260:
+  43:Application/Include/matrixdefs.h ****   }
+ 379              		.loc 2 43 5 view .LVU98
+  43:Application/Include/matrixdefs.h ****   }
+ 380              		.loc 2 43 11 is_stmt 0 view .LVU99
+ 381 0044 83F801E0 		strb	lr, [r3, #1]
+ 382              	.LVL20:
+ARM GAS  /tmp/ccRQrS5M.s 			page 14
+
+
+  43:Application/Include/matrixdefs.h ****   }
+ 383              		.loc 2 43 11 view .LVU100
+ 384              	.LBE260:
+ 385              	.LBE259:
+ 386              	.LBE258:
+ 387              	.LBE257:
+ 388              	.LBB261:
+ 389              	.LBI261:
+ 390              		.loc 2 49 3 is_stmt 1 view .LVU101
+ 391              	.LBB262:
+ 392              	.LBB263:
+ 393              	.LBI263:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 394              		.loc 2 42 8 view .LVU102
+ 395              	.LBB264:
+  43:Application/Include/matrixdefs.h ****   }
+ 396              		.loc 2 43 5 view .LVU103
+  43:Application/Include/matrixdefs.h ****   }
+ 397              		.loc 2 43 11 is_stmt 0 view .LVU104
+ 398 0048 9970     		strb	r1, [r3, #2]
+ 399              	.LVL21:
+  43:Application/Include/matrixdefs.h ****   }
+ 400              		.loc 2 43 11 view .LVU105
+ 401              	.LBE264:
+ 402              	.LBE263:
+ 403              	.LBE262:
+ 404              	.LBE261:
+ 405              	.LBB265:
+ 406              	.LBI265:
+ 407              		.loc 2 49 3 is_stmt 1 view .LVU106
+ 408              	.LBB266:
+ 409              	.LBB267:
+ 410              	.LBI267:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 411              		.loc 2 42 8 view .LVU107
+ 412              	.LBB268:
+  43:Application/Include/matrixdefs.h ****   }
+ 413              		.loc 2 43 5 view .LVU108
+  43:Application/Include/matrixdefs.h ****   }
+ 414              		.loc 2 43 11 is_stmt 0 view .LVU109
+ 415 004a 83F803C0 		strb	ip, [r3, #3]
+ 416              	.LVL22:
+  43:Application/Include/matrixdefs.h ****   }
+ 417              		.loc 2 43 11 view .LVU110
+ 418              	.LBE268:
+ 419              	.LBE267:
+ 420              	.LBE266:
+ 421              	.LBE265:
+ 422              	.LBB269:
+ 423              	.LBI269:
+ 424              		.loc 2 49 3 is_stmt 1 view .LVU111
+ 425              	.LBB270:
+ 426              	.LBB271:
+ 427              	.LBI271:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 428              		.loc 2 42 8 view .LVU112
+ 429              	.LBB272:
+ARM GAS  /tmp/ccRQrS5M.s 			page 15
+
+
+  43:Application/Include/matrixdefs.h ****   }
+ 430              		.loc 2 43 5 view .LVU113
+  43:Application/Include/matrixdefs.h ****   }
+ 431              		.loc 2 43 11 is_stmt 0 view .LVU114
+ 432 004e 1871     		strb	r0, [r3, #4]
+ 433              	.LVL23:
+  43:Application/Include/matrixdefs.h ****   }
+ 434              		.loc 2 43 11 view .LVU115
+ 435              	.LBE272:
+ 436              	.LBE271:
+ 437              	.LBE270:
+ 438              	.LBE269:
+ 439              	.LBB273:
+ 440              	.LBI273:
+ 441              		.loc 2 49 3 is_stmt 1 view .LVU116
+ 442              	.LBB274:
+ 443              	.LBB275:
+ 444              	.LBI275:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 445              		.loc 2 42 8 view .LVU117
+ 446              	.LBB276:
+  43:Application/Include/matrixdefs.h ****   }
+ 447              		.loc 2 43 5 view .LVU118
+  43:Application/Include/matrixdefs.h ****   }
+ 448              		.loc 2 43 11 is_stmt 0 view .LVU119
+ 449 0050 5971     		strb	r1, [r3, #5]
+ 450              	.LVL24:
+  43:Application/Include/matrixdefs.h ****   }
+ 451              		.loc 2 43 11 view .LVU120
+ 452              	.LBE276:
+ 453              	.LBE275:
+ 454              	.LBE274:
+ 455              	.LBE273:
+ 456              	.LBB277:
+ 457              	.LBI277:
+ 458              		.loc 2 49 3 is_stmt 1 view .LVU121
+ 459              	.LBB278:
+ 460              	.LBB279:
+ 461              	.LBI279:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 462              		.loc 2 42 8 view .LVU122
+ 463              	.LBB280:
+  43:Application/Include/matrixdefs.h ****   }
+ 464              		.loc 2 43 5 view .LVU123
+  43:Application/Include/matrixdefs.h ****   }
+ 465              		.loc 2 43 11 is_stmt 0 view .LVU124
+ 466 0052 9971     		strb	r1, [r3, #6]
+ 467              	.LVL25:
+  43:Application/Include/matrixdefs.h ****   }
+ 468              		.loc 2 43 11 view .LVU125
+ 469              	.LBE280:
+ 470              	.LBE279:
+ 471              	.LBE278:
+ 472              	.LBE277:
+ 473              	.LBB281:
+ 474              	.LBI281:
+ 475              		.loc 2 49 3 is_stmt 1 view .LVU126
+ARM GAS  /tmp/ccRQrS5M.s 			page 16
+
+
+ 476              	.LBB282:
+ 477              	.LBB283:
+ 478              	.LBI283:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 479              		.loc 2 42 8 view .LVU127
+ 480              	.LBB284:
+  43:Application/Include/matrixdefs.h ****   }
+ 481              		.loc 2 43 5 view .LVU128
+  43:Application/Include/matrixdefs.h ****   }
+ 482              		.loc 2 43 11 is_stmt 0 view .LVU129
+ 483 0054 D971     		strb	r1, [r3, #7]
+ 484              	.LVL26:
+  43:Application/Include/matrixdefs.h ****   }
+ 485              		.loc 2 43 11 view .LVU130
+ 486              	.LBE284:
+ 487              	.LBE283:
+ 488              	.LBE282:
+ 489              	.LBE281:
+ 490              	.LBB285:
+ 491              	.LBI285:
+ 492              		.loc 2 49 3 is_stmt 1 view .LVU131
+ 493              	.LBB286:
+ 494              	.LBB287:
+ 495              	.LBI287:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 496              		.loc 2 42 8 view .LVU132
+ 497              	.LBB288:
+  43:Application/Include/matrixdefs.h ****   }
+ 498              		.loc 2 43 5 view .LVU133
+  43:Application/Include/matrixdefs.h ****   }
+ 499              		.loc 2 43 11 is_stmt 0 view .LVU134
+ 500 0056 1D72     		strb	r5, [r3, #8]
+ 501              	.LVL27:
+  43:Application/Include/matrixdefs.h ****   }
+ 502              		.loc 2 43 11 view .LVU135
+ 503              	.LBE288:
+ 504              	.LBE287:
+ 505              	.LBE286:
+ 506              	.LBE285:
+  50:Application/Include/matrixdefs.h ****     this->set(i);
+  51:Application/Include/matrixdefs.h ****   }
+  52:Application/Include/matrixdefs.h **** } trigOp;
+  53:Application/Include/matrixdefs.h **** 
+  54:Application/Include/matrixdefs.h **** // Aliases for commonly used array dimensions
+  55:Application/Include/matrixdefs.h **** using fArr6 = std::array<float, NO_CYLS>;
+  56:Application/Include/matrixdefs.h **** using fArr3 = std::array<float, NO_DOF>;
+  57:Application/Include/matrixdefs.h **** 
+  58:Application/Include/matrixdefs.h **** // Matricies in 3D cartesian space have 3*3 = 9 elements.
+  59:Application/Include/matrixdefs.h **** using mtx3D = std::array<float, NO_DOF*NO_DOF>;
+  60:Application/Include/matrixdefs.h **** 
+  61:Application/Include/matrixdefs.h **** //using ctrlArr = std::array<Controller, NO_CYLS>;
+  62:Application/Include/matrixdefs.h **** using trigOpArr = std::array<trigOp, 9>;
+  63:Application/Include/matrixdefs.h **** 
+  64:Application/Include/matrixdefs.h **** // Represents the set of vectors which describe ...
+  65:Application/Include/matrixdefs.h **** const float MATRIX_b_DATA[NO_CYLS*NO_DOF] = 
+  66:Application/Include/matrixdefs.h ****                                 {-1.75, 12.63, 0,
+  67:Application/Include/matrixdefs.h ****                                   1.75, 12.63, 0,
+ARM GAS  /tmp/ccRQrS5M.s 			page 17
+
+
+  68:Application/Include/matrixdefs.h ****                                   11.81, -4.8, 0,
+  69:Application/Include/matrixdefs.h ****                                   10.06,-7.83, 0,
+  70:Application/Include/matrixdefs.h ****                                  -10.06,-7.83, 0,
+  71:Application/Include/matrixdefs.h ****                                  -11.81, -4.8, 0 };
+  72:Application/Include/matrixdefs.h **** 
+  73:Application/Include/matrixdefs.h **** // Represents the set of vectors which describe ....
+  74:Application/Include/matrixdefs.h **** const float MATRIX_p_DATA[NO_CYLS*NO_DOF] = 
+  75:Application/Include/matrixdefs.h ****                                 {-8.1,   6.69, 0,
+  76:Application/Include/matrixdefs.h ****                                   8.1,   6.69, 0,
+  77:Application/Include/matrixdefs.h ****                                   9.84,  3.67, 0,
+  78:Application/Include/matrixdefs.h ****                                   1.74,-10.35, 0,
+  79:Application/Include/matrixdefs.h ****                                  -1.74,-10.35, 0,
+  80:Application/Include/matrixdefs.h ****                                  -9.84,  3.67, 0 };
+  81:Application/Include/matrixdefs.h **** 
+  82:Application/Include/matrixdefs.h **** // Represents the cartesian translation of the center of the seat plate
+  83:Application/Include/matrixdefs.h **** const float VECTOR_T_DATA[3] = { 0, 0, 23 };
+  84:Application/Include/matrixdefs.h **** 
+  85:Application/Include/matrixdefs.h **** // Rotation function matricies. Tells Stewart what operations to perform
+  86:Application/Include/matrixdefs.h **** // on each angle parameter to calculate the rotation matrix.
+  87:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_X = { 1, 0, 0, 0, COS, -SIN, 0, SIN, COS };
+  88:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_Y = { COS, 0, SIN, 0, 1, 0, -SIN, 0, COS };
+  89:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_Z = { COS, -SIN, 0, SIN, COS, 0, 0, 0, 1 };
+  90:Application/Include/matrixdefs.h **** 
+  91:Application/Include/matrixdefs.h **** // This is never used; nevertheless, it is included for future use.
+  92:Application/Include/matrixdefs.h **** const std::array<trigOpArr,3> ROTATION_COMPONENTS = {ROTATION_X, ROTATION_Y, ROTATION_Z};
+ 507              		.loc 2 92 88 view .LVU136
+ 508 0058 0D4D     		ldr	r5, .L3+12
+ 509 005a AC46     		mov	ip, r5
+ 510 005c 07CA     		ldm	r2, {r0, r1, r2}
+ 511 005e ACE80300 		stmia	ip!, {r0, r1}
+ 512 0062 8CF80020 		strb	r2, [ip]
+ 513 0066 03CC     		ldmia	r4!, {r0, r1}
+ 514 0068 C5F80900 		str	r0, [r5, #9]	@ unaligned
+ 515 006c C5F80D10 		str	r1, [r5, #13]	@ unaligned
+ 516 0070 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 517 0072 6A74     		strb	r2, [r5, #17]
+ 518 0074 03CB     		ldmia	r3!, {r0, r1}
+ 519 0076 C5F81200 		str	r0, [r5, #18]	@ unaligned
+ 520 007a C5F81610 		str	r1, [r5, #22]	@ unaligned
+ 521 007e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 522 0080 AB76     		strb	r3, [r5, #26]
+ 523              		.loc 1 232 1 view .LVU137
+ 524 0082 30BD     		pop	{r4, r5, pc}
+ 525              	.L4:
+ 526              		.align	2
+ 527              	.L3:
+ 528 0084 00000000 		.word	_ZL10ROTATION_X
+ 529 0088 00000000 		.word	_ZL10ROTATION_Y
+ 530 008c 00000000 		.word	_ZL10ROTATION_Z
+ 531 0090 00000000 		.word	_ZL19ROTATION_COMPONENTS
+ 532              		.cfi_endproc
+ 533              	.LFE3389:
+ 534              		.cantunwind
+ 535              		.fnend
+ 537              		.section	.text._ZN11StewartImpl13performTrigOpE6trigOpf,"ax",%progbits
+ 538              		.align	1
+ 539              		.global	_ZN11StewartImpl13performTrigOpE6trigOpf
+ARM GAS  /tmp/ccRQrS5M.s 			page 18
+
+
+ 540              		.syntax unified
+ 541              		.thumb
+ 542              		.thumb_func
+ 544              	_ZN11StewartImpl13performTrigOpE6trigOpf:
+ 545              		.fnstart
+ 546              	.LVL28:
+ 547              	.LFB2694:
+  56:Application/stewart.cpp **** float32_t StewartImpl::performTrigOp(trigOp f, float x) {
+ 548              		.loc 1 56 57 is_stmt 1 view -0
+ 549              		.cfi_startproc
+ 550              		@ args = 0, pretend = 0, frame = 0
+ 551              		@ frame_needed = 0, uses_anonymous_args = 0
+  56:Application/stewart.cpp **** float32_t StewartImpl::performTrigOp(trigOp f, float x) {
+ 552              		.loc 1 56 57 is_stmt 0 view .LVU139
+ 553 0000 10B5     		push	{r4, lr}
+ 554              		.save {r4, lr}
+ 555              		.cfi_def_cfa_offset 8
+ 556              		.cfi_offset 4, -8
+ 557              		.cfi_offset 14, -4
+  57:Application/stewart.cpp ****     switch(trigEnum(f)) {
+ 558              		.loc 1 57 5 is_stmt 1 view .LVU140
+ 559              	.LVL29:
+ 560              	.LBB289:
+ 561              	.LBI289:
+  28:Application/Include/matrixdefs.h ****     return enumeration;
+ 562              		.loc 2 28 3 view .LVU141
+ 563              	.LBB290:
+  29:Application/Include/matrixdefs.h ****   }
+ 564              		.loc 2 29 5 view .LVU142
+  29:Application/Include/matrixdefs.h ****   }
+ 565              		.loc 2 29 12 is_stmt 0 view .LVU143
+ 566 0002 4CB2     		sxtb	r4, r1
+ 567              	.LVL30:
+  29:Application/Include/matrixdefs.h ****   }
+ 568              		.loc 2 29 12 view .LVU144
+ 569              	.LBE290:
+ 570              	.LBE289:
+  57:Application/stewart.cpp ****     switch(trigEnum(f)) {
+ 571              		.loc 1 57 5 discriminator 1 view .LVU145
+ 572 0004 E31C     		adds	r3, r4, #3
+ 573 0006 062B     		cmp	r3, #6
+ 574 0008 22D8     		bhi	.L14
+ 575 000a DFE803F0 		tbb	[pc, r3]
+ 576              	.L8:
+ 577 000e 14       		.byte	(.L13-.L8)/2
+ 578 000f 0F       		.byte	(.L12-.L8)/2
+ 579 0010 19       		.byte	(.L11-.L8)/2
+ 580 0011 04       		.byte	(.L10-.L8)/2
+ 581 0012 04       		.byte	(.L10-.L8)/2
+ 582 0013 09       		.byte	(.L9-.L8)/2
+ 583 0014 0C       		.byte	(.L7-.L8)/2
+ 584 0015 00       		.p2align 1
+ 585              	.L10:
+  58:Application/stewart.cpp ****         case 0:
+ 586              		.loc 1 58 9 is_stmt 1 view .LVU146
+  59:Application/stewart.cpp ****         case 1:
+ 587              		.loc 1 59 9 view .LVU147
+ARM GAS  /tmp/ccRQrS5M.s 			page 19
+
+
+  60:Application/stewart.cpp ****             return float(int(f));
+ 588              		.loc 1 60 13 view .LVU148
+  60:Application/stewart.cpp ****             return float(int(f));
+ 589              		.loc 1 60 32 is_stmt 0 discriminator 1 view .LVU149
+ 590 0016 07EE904A 		vmov	s15, r4	@ int
+ 591 001a B8EEE70A 		vcvt.f32.s32	s0, s15
+ 592              	.LVL31:
+ 593              	.L5:
+  73:Application/stewart.cpp **** }
+ 594              		.loc 1 73 1 view .LVU150
+ 595 001e 10BD     		pop	{r4, pc}
+ 596              	.LVL32:
+ 597              	.L9:
+  61:Application/stewart.cpp ****         case COS:
+ 598              		.loc 1 61 9 is_stmt 1 view .LVU151
+  62:Application/stewart.cpp ****             return cos(x);
+ 599              		.loc 1 62 13 view .LVU152
+ 600              	.LBB291:
+ 601              	.LBI291:
+ 602              		.file 3 "/usr/arm-none-eabi/include/c++/13.2.0/cmath"
+   1:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // -*- C++ -*- C forwarding header.
+   2:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+   3:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // Copyright (C) 1997-2023 Free Software Foundation, Inc.
+   4:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** //
+   5:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // This file is part of the GNU ISO C++ Library.  This library is free
+   6:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // software; you can redistribute it and/or modify it under the
+   7:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // terms of the GNU General Public License as published by the
+   8:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // Free Software Foundation; either version 3, or (at your option)
+   9:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // any later version.
+  10:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  11:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // This library is distributed in the hope that it will be useful,
+  12:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // GNU General Public License for more details.
+  15:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  16:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // Under Section 7 of GPL version 3, you are granted additional
+  17:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // permissions described in the GCC Runtime Library Exception, version
+  18:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // 3.1, as published by the Free Software Foundation.
+  19:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  20:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // You should have received a copy of the GNU General Public License and
+  21:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // a copy of the GCC Runtime Library Exception along with this program;
+  22:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  23:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // <http://www.gnu.org/licenses/>.
+  24:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  25:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** /** @file include/cmath
+  26:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *  This is a Standard C++ Library file.  You should @c \#include this file
+  27:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *  in your programs, rather than any of the @a *.h implementation files.
+  28:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *
+  29:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *  This is the C++ version of the Standard C Library header @c math.h,
+  30:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *  and its contents are (mostly) the same as that header, but are all
+  31:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *  contained in the namespace @c std (except for names which are defined
+  32:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  *  as macros in C).
+  33:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****  */
+  34:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  35:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** //
+  36:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // ISO C++ 14882: 26.5  C library
+  37:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** //
+ARM GAS  /tmp/ccRQrS5M.s 			page 20
+
+
+  38:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  39:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #pragma GCC system_header
+  40:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  41:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #include <bits/requires_hosted.h>
+  42:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  43:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #include <bits/c++config.h>
+  44:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #include <bits/cpp_type_traits.h>
+  45:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #include <ext/type_traits.h>
+  46:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #define _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+  47:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #include_next <math.h>
+  48:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+  49:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #include <bits/std_abs.h>
+  50:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  51:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef _GLIBCXX_CMATH
+  52:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #define _GLIBCXX_CMATH 1
+  53:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  54:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** // Get rid of those macros defined in <math.h> in lieu of real functions.
+  55:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef div
+  56:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef acos
+  57:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef asin
+  58:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef atan
+  59:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef atan2
+  60:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef ceil
+  61:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef cos
+  62:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef cosh
+  63:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef exp
+  64:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef fabs
+  65:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef floor
+  66:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef fmod
+  67:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef frexp
+  68:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef ldexp
+  69:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef log
+  70:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef log10
+  71:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef modf
+  72:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef pow
+  73:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef sin
+  74:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef sinh
+  75:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef sqrt
+  76:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef tan
+  77:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #undef tanh
+  78:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  79:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** extern "C++"
+  80:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** {
+  81:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** namespace std _GLIBCXX_VISIBILITY(default)
+  82:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** {
+  83:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** _GLIBCXX_BEGIN_NAMESPACE_VERSION
+  84:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  85:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::acos;
+  86:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  87:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+  88:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+  89:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   acos(float __x)
+  90:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_acosf(__x); }
+  91:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  92:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+  93:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   acos(long double __x)
+  94:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_acosl(__x); }
+ARM GAS  /tmp/ccRQrS5M.s 			page 21
+
+
+  95:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+  96:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+  97:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+  98:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+  99:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 100:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 101:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     acos(_Tp __x)
+ 102:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_acos(__x); }
+ 103:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 104:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::asin;
+ 105:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 106:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 107:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 108:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   asin(float __x)
+ 109:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_asinf(__x); }
+ 110:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 111:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 112:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   asin(long double __x)
+ 113:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_asinl(__x); }
+ 114:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 115:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 116:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 117:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 118:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 119:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 120:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     asin(_Tp __x)
+ 121:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_asin(__x); }
+ 122:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 123:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::atan;
+ 124:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 125:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 126:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 127:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   atan(float __x)
+ 128:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_atanf(__x); }
+ 129:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 130:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 131:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   atan(long double __x)
+ 132:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_atanl(__x); }
+ 133:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 134:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 135:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 136:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 137:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 138:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 139:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     atan(_Tp __x)
+ 140:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_atan(__x); }
+ 141:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 142:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::atan2;
+ 143:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 144:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 145:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 146:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   atan2(float __y, float __x)
+ 147:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_atan2f(__y, __x); }
+ 148:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 149:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 150:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   atan2(long double __y, long double __x)
+ 151:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_atan2l(__y, __x); }
+ARM GAS  /tmp/ccRQrS5M.s 			page 22
+
+
+ 152:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 153:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 154:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::ceil;
+ 155:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 156:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 157:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 158:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   ceil(float __x)
+ 159:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_ceilf(__x); }
+ 160:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 161:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 162:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   ceil(long double __x)
+ 163:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_ceill(__x); }
+ 164:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 165:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 166:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 167:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 168:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 169:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 170:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     ceil(_Tp __x)
+ 171:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_ceil(__x); }
+ 172:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 173:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::cos;
+ 174:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 175:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 176:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 177:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   cos(float __x)
+ 603              		.loc 3 177 3 view .LVU153
+ 604              	.LBB292:
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_cosf(__x); }
+ 605              		.loc 3 178 5 view .LVU154
+ 606              		.loc 3 178 26 is_stmt 0 view .LVU155
+ 607 0020 FFF7FEFF 		bl	cosf
+ 608              	.LVL33:
+ 609              		.loc 3 178 26 view .LVU156
+ 610              	.LBE292:
+ 611              	.LBE291:
+  62:Application/stewart.cpp ****             return cos(x);
+ 612              		.loc 1 62 25 view .LVU157
+ 613 0024 FBE7     		b	.L5
+ 614              	.LVL34:
+ 615              	.L7:
+  63:Application/stewart.cpp ****         case SIN:
+ 616              		.loc 1 63 9 is_stmt 1 view .LVU158
+  64:Application/stewart.cpp ****             return sin(x);
+ 617              		.loc 1 64 13 view .LVU159
+ 618              	.LBB293:
+ 619              	.LBI293:
+ 179:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 180:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 181:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   cos(long double __x)
+ 182:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_cosl(__x); }
+ 183:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 184:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 185:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 186:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 187:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 188:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ARM GAS  /tmp/ccRQrS5M.s 			page 23
+
+
+ 189:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     cos(_Tp __x)
+ 190:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_cos(__x); }
+ 191:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 192:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::cosh;
+ 193:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 194:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 195:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 196:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   cosh(float __x)
+ 197:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_coshf(__x); }
+ 198:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 199:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   cosh(long double __x)
+ 201:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_coshl(__x); }
+ 202:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 203:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 204:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 205:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 206:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 207:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 208:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     cosh(_Tp __x)
+ 209:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_cosh(__x); }
+ 210:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 211:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::exp;
+ 212:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 213:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 214:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 215:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   exp(float __x)
+ 216:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_expf(__x); }
+ 217:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 218:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 219:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   exp(long double __x)
+ 220:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_expl(__x); }
+ 221:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 222:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 223:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 224:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 225:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 226:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 227:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     exp(_Tp __x)
+ 228:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_exp(__x); }
+ 229:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 230:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::fabs;
+ 231:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 232:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 233:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 234:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   fabs(float __x)
+ 235:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_fabsf(__x); }
+ 236:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 237:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 238:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   fabs(long double __x)
+ 239:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_fabsl(__x); }
+ 240:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 241:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 242:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 243:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 244:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 245:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ARM GAS  /tmp/ccRQrS5M.s 			page 24
+
+
+ 246:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     fabs(_Tp __x)
+ 247:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_fabs(__x); }
+ 248:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 249:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::floor;
+ 250:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 251:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 252:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 253:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   floor(float __x)
+ 254:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_floorf(__x); }
+ 255:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 256:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 257:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   floor(long double __x)
+ 258:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_floorl(__x); }
+ 259:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 260:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 261:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 262:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 263:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 264:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 265:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     floor(_Tp __x)
+ 266:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_floor(__x); }
+ 267:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 268:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::fmod;
+ 269:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 270:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 271:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 272:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   fmod(float __x, float __y)
+ 273:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_fmodf(__x, __y); }
+ 274:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 275:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   fmod(long double __x, long double __y)
+ 277:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_fmodl(__x, __y); }
+ 278:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 279:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 280:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::frexp;
+ 281:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 282:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 283:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline float
+ 284:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   frexp(float __x, int* __exp)
+ 285:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_frexpf(__x, __exp); }
+ 286:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 287:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline long double
+ 288:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   frexp(long double __x, int* __exp)
+ 289:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_frexpl(__x, __exp); }
+ 290:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 291:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 292:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 293:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 294:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 295:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 296:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     frexp(_Tp __x, int* __exp)
+ 297:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_frexp(__x, __exp); }
+ 298:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 299:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::ldexp;
+ 300:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 301:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 302:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ARM GAS  /tmp/ccRQrS5M.s 			page 25
+
+
+ 303:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   ldexp(float __x, int __exp)
+ 304:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_ldexpf(__x, __exp); }
+ 305:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 306:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 307:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   ldexp(long double __x, int __exp)
+ 308:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_ldexpl(__x, __exp); }
+ 309:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 310:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 311:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 312:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 313:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 314:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 315:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     ldexp(_Tp __x, int __exp)
+ 316:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_ldexp(__x, __exp); }
+ 317:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 318:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::log;
+ 319:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 320:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 321:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 322:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   log(float __x)
+ 323:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_logf(__x); }
+ 324:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 325:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 326:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   log(long double __x)
+ 327:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_logl(__x); }
+ 328:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 329:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 330:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 331:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 332:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 333:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 334:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     log(_Tp __x)
+ 335:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_log(__x); }
+ 336:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 337:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::log10;
+ 338:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 339:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 340:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 341:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   log10(float __x)
+ 342:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_log10f(__x); }
+ 343:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 344:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 345:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   log10(long double __x)
+ 346:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_log10l(__x); }
+ 347:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 348:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 349:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 350:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 351:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value,
+ 352:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 353:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     log10(_Tp __x)
+ 354:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_log10(__x); }
+ 355:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 356:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::modf;
+ 357:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 358:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 359:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline float
+ARM GAS  /tmp/ccRQrS5M.s 			page 26
+
+
+ 360:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   modf(float __x, float* __iptr)
+ 361:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_modff(__x, __iptr); }
+ 362:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 363:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline long double
+ 364:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   modf(long double __x, long double* __iptr)
+ 365:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_modfl(__x, __iptr); }
+ 366:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 367:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 368:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::pow;
+ 369:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 370:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 371:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 372:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   pow(float __x, float __y)
+ 373:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_powf(__x, __y); }
+ 374:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 375:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 376:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   pow(long double __x, long double __y)
+ 377:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_powl(__x, __y); }
+ 378:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 379:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #if __cplusplus < 201103L
+ 380:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   // _GLIBCXX_RESOLVE_LIB_DEFECTS
+ 381:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   // DR 550. What should the return type of pow(float,int) be?
+ 382:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline double
+ 383:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   pow(double __x, int __i)
+ 384:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_powi(__x, __i); }
+ 385:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 386:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline float
+ 387:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   pow(float __x, int __n)
+ 388:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_powif(__x, __n); }
+ 389:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 390:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline long double
+ 391:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   pow(long double __x, int __n)
+ 392:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_powil(__x, __n); }
+ 393:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 394:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 395:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 396:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::sin;
+ 397:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 398:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 399:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 400:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   sin(float __x)
+ 620              		.loc 3 400 3 view .LVU160
+ 621              	.LBB294:
+ 401:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_sinf(__x); }
+ 622              		.loc 3 401 5 view .LVU161
+ 623              		.loc 3 401 26 is_stmt 0 view .LVU162
+ 624 0026 FFF7FEFF 		bl	sinf
+ 625              	.LVL35:
+ 626              		.loc 3 401 26 view .LVU163
+ 627              	.LBE294:
+ 628              	.LBE293:
+  64:Application/stewart.cpp ****             return sin(x);
+ 629              		.loc 1 64 25 view .LVU164
+ 630 002a F8E7     		b	.L5
+ 631              	.LVL36:
+ 632              	.L12:
+  65:Application/stewart.cpp ****         case -COS:
+ARM GAS  /tmp/ccRQrS5M.s 			page 27
+
+
+ 633              		.loc 1 65 9 is_stmt 1 view .LVU165
+  66:Application/stewart.cpp ****             return -cos(x);
+ 634              		.loc 1 66 13 view .LVU166
+ 635              	.LBB295:
+ 636              	.LBI295:
+ 177:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_cosf(__x); }
+ 637              		.loc 3 177 3 view .LVU167
+ 638              	.LBB296:
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 639              		.loc 3 178 5 view .LVU168
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 640              		.loc 3 178 26 is_stmt 0 view .LVU169
+ 641 002c FFF7FEFF 		bl	cosf
+ 642              	.LVL37:
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 643              		.loc 3 178 26 view .LVU170
+ 644              	.LBE296:
+ 645              	.LBE295:
+  66:Application/stewart.cpp ****             return -cos(x);
+ 646              		.loc 1 66 26 discriminator 1 view .LVU171
+ 647 0030 B1EE400A 		vneg.f32	s0, s0
+  66:Application/stewart.cpp ****             return -cos(x);
+ 648              		.loc 1 66 26 view .LVU172
+ 649 0034 F3E7     		b	.L5
+ 650              	.LVL38:
+ 651              	.L13:
+  67:Application/stewart.cpp ****         case -SIN:
+ 652              		.loc 1 67 9 is_stmt 1 view .LVU173
+  68:Application/stewart.cpp ****             return -sin(x);
+ 653              		.loc 1 68 13 view .LVU174
+ 654              	.LBB297:
+ 655              	.LBI297:
+ 400:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_sinf(__x); }
+ 656              		.loc 3 400 3 view .LVU175
+ 657              	.LBB298:
+ 658              		.loc 3 401 5 view .LVU176
+ 659              		.loc 3 401 26 is_stmt 0 view .LVU177
+ 660 0036 FFF7FEFF 		bl	sinf
+ 661              	.LVL39:
+ 662              		.loc 3 401 26 view .LVU178
+ 663              	.LBE298:
+ 664              	.LBE297:
+  68:Application/stewart.cpp ****             return -sin(x);
+ 665              		.loc 1 68 26 discriminator 1 view .LVU179
+ 666 003a B1EE400A 		vneg.f32	s0, s0
+  68:Application/stewart.cpp ****             return -sin(x);
+ 667              		.loc 1 68 26 view .LVU180
+ 668 003e EEE7     		b	.L5
+ 669              	.LVL40:
+ 670              	.L11:
+  69:Application/stewart.cpp ****         case -1:
+ 671              		.loc 1 69 9 is_stmt 1 view .LVU181
+  70:Application/stewart.cpp ****             throw int(f); // Happens if we somehow get a trigOp of -1
+ 672              		.loc 1 70 13 view .LVU182
+  70:Application/stewart.cpp ****             throw int(f); // Happens if we somehow get a trigOp of -1
+ 673              		.loc 1 70 24 is_stmt 0 view .LVU183
+ 674 0040 0420     		movs	r0, #4
+ARM GAS  /tmp/ccRQrS5M.s 			page 28
+
+
+ 675              	.LVL41:
+  70:Application/stewart.cpp ****             throw int(f); // Happens if we somehow get a trigOp of -1
+ 676              		.loc 1 70 24 view .LVU184
+ 677 0042 FFF7FEFF 		bl	__cxa_allocate_exception
+ 678              	.LVL42:
+ 679              	.LBB299:
+ 680              	.LBI299:
+  24:Application/Include/matrixdefs.h ****     return value;
+ 681              		.loc 2 24 3 is_stmt 1 view .LVU185
+ 682              	.LBB300:
+  25:Application/Include/matrixdefs.h ****   }
+ 683              		.loc 2 25 5 view .LVU186
+  25:Application/Include/matrixdefs.h ****   }
+ 684              		.loc 2 25 5 is_stmt 0 view .LVU187
+ 685              	.LBE300:
+ 686              	.LBE299:
+  70:Application/stewart.cpp ****             throw int(f); // Happens if we somehow get a trigOp of -1
+ 687              		.loc 1 70 24 discriminator 2 view .LVU188
+ 688 0046 0460     		str	r4, [r0]
+ 689 0048 0022     		movs	r2, #0
+ 690 004a 0349     		ldr	r1, .L16
+ 691 004c FFF7FEFF 		bl	__cxa_throw
+ 692              	.LVL43:
+ 693              	.L14:
+  57:Application/stewart.cpp ****     switch(trigEnum(f)) {
+ 694              		.loc 1 57 5 discriminator 1 view .LVU189
+ 695 0050 9FED020A 		vldr.32	s0, .L16+4
+ 696              	.LVL44:
+  57:Application/stewart.cpp ****     switch(trigEnum(f)) {
+ 697              		.loc 1 57 5 discriminator 1 view .LVU190
+ 698 0054 E3E7     		b	.L5
+ 699              	.L17:
+ 700 0056 00BF     		.align	2
+ 701              	.L16:
+ 702 0058 00000000 		.word	_ZTIi
+ 703 005c 00000000 		.word	0
+ 704              		.cfi_endproc
+ 705              	.LFE2694:
+ 706              		.fnend
+ 708              		.section	.text._ZN7StewartC2Ev,"ax",%progbits
+ 709              		.align	1
+ 710              		.global	_ZN7StewartC2Ev
+ 711              		.syntax unified
+ 712              		.thumb
+ 713              		.thumb_func
+ 715              	_ZN7StewartC2Ev:
+ 716              		.fnstart
+ 717              	.LVL45:
+ 718              	.LFB2696:
+  75:Application/stewart.cpp **** Stewart::Stewart() {
+ 719              		.loc 1 75 1 is_stmt 1 view -0
+ 720              		.cfi_startproc
+ 721              		@ args = 0, pretend = 0, frame = 0
+ 722              		@ frame_needed = 0, uses_anonymous_args = 0
+  75:Application/stewart.cpp **** Stewart::Stewart() {
+ 723              		.loc 1 75 1 is_stmt 0 view .LVU192
+ 724 0000 10B5     		push	{r4, lr}
+ARM GAS  /tmp/ccRQrS5M.s 			page 29
+
+
+ 725              		.save {r4, lr}
+ 726              		.cfi_def_cfa_offset 8
+ 727              		.cfi_offset 4, -8
+ 728              		.cfi_offset 14, -4
+ 729 0002 0446     		mov	r4, r0
+ 730              	.LBB301:
+  76:Application/stewart.cpp ****     impl = new StewartImpl();
+ 731              		.loc 1 76 5 is_stmt 1 view .LVU193
+  76:Application/stewart.cpp ****     impl = new StewartImpl();
+ 732              		.loc 1 76 28 is_stmt 0 view .LVU194
+ 733 0004 0120     		movs	r0, #1
+ 734              	.LVL46:
+  76:Application/stewart.cpp ****     impl = new StewartImpl();
+ 735              		.loc 1 76 28 view .LVU195
+ 736 0006 FFF7FEFF 		bl	_Znwj
+ 737              	.LVL47:
+  76:Application/stewart.cpp ****     impl = new StewartImpl();
+ 738              		.loc 1 76 10 discriminator 2 view .LVU196
+ 739 000a 2060     		str	r0, [r4]
+ 740              	.LBE301:
+  77:Application/stewart.cpp **** }
+ 741              		.loc 1 77 1 view .LVU197
+ 742 000c 2046     		mov	r0, r4
+ 743 000e 10BD     		pop	{r4, pc}
+  77:Application/stewart.cpp **** }
+ 744              		.loc 1 77 1 view .LVU198
+ 745              		.cfi_endproc
+ 746              	.LFE2696:
+ 747              		.fnend
+ 749              		.global	_ZN7StewartC1Ev
+ 750              		.thumb_set _ZN7StewartC1Ev,_ZN7StewartC2Ev
+ 751              		.section	.text._ZN7StewartD2Ev,"ax",%progbits
+ 752              		.align	1
+ 753              		.global	_ZN7StewartD2Ev
+ 754              		.syntax unified
+ 755              		.thumb
+ 756              		.thumb_func
+ 758              	_ZN7StewartD2Ev:
+ 759              		.fnstart
+ 760              	.LVL48:
+ 761              	.LFB2699:
+  79:Application/stewart.cpp **** Stewart::~Stewart() {
+ 762              		.loc 1 79 1 is_stmt 1 view -0
+ 763              		.cfi_startproc
+ 764              		@ args = 0, pretend = 0, frame = 0
+ 765              		@ frame_needed = 0, uses_anonymous_args = 0
+  79:Application/stewart.cpp **** Stewart::~Stewart() {
+ 766              		.loc 1 79 1 is_stmt 0 view .LVU200
+ 767 0000 10B5     		push	{r4, lr}
+ 768              		.cfi_def_cfa_offset 8
+ 769              		.cfi_offset 4, -8
+ 770              		.cfi_offset 14, -4
+ 771 0002 0446     		mov	r4, r0
+ 772              	.LBB302:
+  80:Application/stewart.cpp ****     delete impl;
+ 773              		.loc 1 80 5 is_stmt 1 view .LVU201
+  80:Application/stewart.cpp ****     delete impl;
+ARM GAS  /tmp/ccRQrS5M.s 			page 30
+
+
+ 774              		.loc 1 80 12 is_stmt 0 view .LVU202
+ 775 0004 0068     		ldr	r0, [r0]
+ 776              	.LVL49:
+  80:Application/stewart.cpp ****     delete impl;
+ 777              		.loc 1 80 5 view .LVU203
+ 778 0006 10B1     		cbz	r0, .L21
+  80:Application/stewart.cpp ****     delete impl;
+ 779              		.loc 1 80 12 discriminator 1 view .LVU204
+ 780 0008 0121     		movs	r1, #1
+ 781 000a FFF7FEFF 		bl	_ZdlPvj
+ 782              	.LVL50:
+ 783              	.L21:
+ 784              	.LBE302:
+  81:Application/stewart.cpp **** }
+ 785              		.loc 1 81 1 view .LVU205
+ 786 000e 2046     		mov	r0, r4
+ 787 0010 10BD     		pop	{r4, pc}
+  81:Application/stewart.cpp **** }
+ 788              		.loc 1 81 1 view .LVU206
+ 789              		.cfi_endproc
+ 790              	.LFE2699:
+ 791              		.cantunwind
+ 792              		.fnend
+ 794              		.global	_ZN7StewartD1Ev
+ 795              		.thumb_set _ZN7StewartD1Ev,_ZN7StewartD2Ev
+ 796              		.section	.text._ZN11StewartImplC2Ev,"ax",%progbits
+ 797              		.align	1
+ 798              		.global	_ZN11StewartImplC2Ev
+ 799              		.syntax unified
+ 800              		.thumb
+ 801              		.thumb_func
+ 803              	_ZN11StewartImplC2Ev:
+ 804              		.fnstart
+ 805              	.LVL51:
+ 806              	.LFB2703:
+  87:Application/stewart.cpp **** StewartImpl::StewartImpl() {}
+ 807              		.loc 1 87 1 is_stmt 1 view -0
+ 808              		.cfi_startproc
+ 809              		@ args = 0, pretend = 0, frame = 0
+ 810              		@ frame_needed = 0, uses_anonymous_args = 0
+ 811              		@ link register save eliminated.
+  87:Application/stewart.cpp **** StewartImpl::StewartImpl() {}
+ 812              		.loc 1 87 29 is_stmt 0 view .LVU208
+ 813 0000 7047     		bx	lr
+ 814              		.cfi_endproc
+ 815              	.LFE2703:
+ 816              		.cantunwind
+ 817              		.fnend
+ 819              		.global	_ZN11StewartImplC1Ev
+ 820              		.thumb_set _ZN11StewartImplC1Ev,_ZN11StewartImplC2Ev
+ 821              		.section	.text._ZN11StewartImplD2Ev,"ax",%progbits
+ 822              		.align	1
+ 823              		.global	_ZN11StewartImplD2Ev
+ 824              		.syntax unified
+ 825              		.thumb
+ 826              		.thumb_func
+ 828              	_ZN11StewartImplD2Ev:
+ARM GAS  /tmp/ccRQrS5M.s 			page 31
+
+
+ 829              		.fnstart
+ 830              	.LVL52:
+ 831              	.LFB2706:
+  89:Application/stewart.cpp **** StewartImpl::~StewartImpl() {}
+ 832              		.loc 1 89 1 is_stmt 1 view -0
+ 833              		.cfi_startproc
+ 834              		@ args = 0, pretend = 0, frame = 0
+ 835              		@ frame_needed = 0, uses_anonymous_args = 0
+ 836              		@ link register save eliminated.
+  89:Application/stewart.cpp **** StewartImpl::~StewartImpl() {}
+ 837              		.loc 1 89 30 is_stmt 0 view .LVU210
+ 838 0000 7047     		bx	lr
+ 839              		.cfi_endproc
+ 840              	.LFE2706:
+ 841              		.cantunwind
+ 842              		.fnend
+ 844              		.global	_ZN11StewartImplD1Ev
+ 845              		.thumb_set _ZN11StewartImplD1Ev,_ZN11StewartImplD2Ev
+ 846              		.section	.text._ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE,"ax",%progbits
+ 847              		.align	1
+ 848              		.global	_ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE
+ 849              		.syntax unified
+ 850              		.thumb
+ 851              		.thumb_func
+ 853              	_ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE:
+ 854              		.fnstart
+ 855              	.LVL53:
+ 856              	.LFB2709:
+ 127:Application/stewart.cpp **** mtx3D StewartImpl::calcRotationMtx(fArr3 rpy) { 
+ 857              		.loc 1 127 47 is_stmt 1 view -0
+ 858              		.cfi_startproc
+ 859              		@ args = 0, pretend = 0, frame = 240
+ 860              		@ frame_needed = 0, uses_anonymous_args = 0
+ 127:Application/stewart.cpp **** mtx3D StewartImpl::calcRotationMtx(fArr3 rpy) { 
+ 861              		.loc 1 127 47 is_stmt 0 view .LVU212
+ 862 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 863              		.save {r4, r5, r6, r7, r8, lr}
+ 864              		.cfi_def_cfa_offset 24
+ 865              		.cfi_offset 4, -24
+ 866              		.cfi_offset 5, -20
+ 867              		.cfi_offset 6, -16
+ 868              		.cfi_offset 7, -12
+ 869              		.cfi_offset 8, -8
+ 870              		.cfi_offset 14, -4
+ 871              		.pad #240
+ 872 0004 BCB0     		sub	sp, sp, #240
+ 873              		.cfi_def_cfa_offset 264
+ 874 0006 8046     		mov	r8, r0
+ 875 0008 0F46     		mov	r7, r1
+ 876 000a 8DED010A 		vstr.32	s0, [sp, #4]
+ 877 000e CDED020A 		vstr.32	s1, [sp, #8]
+ 878 0012 8DED031A 		vstr.32	s2, [sp, #12]
+ 129:Application/stewart.cpp ****     std::array<mtx3D,3> rotComponents;
+ 879              		.loc 1 129 5 is_stmt 1 view .LVU213
+ 131:Application/stewart.cpp ****     for (int i = 0; i < 3; i++) {
+ 880              		.loc 1 131 5 view .LVU214
+ 881              	.LVL54:
+ARM GAS  /tmp/ccRQrS5M.s 			page 32
+
+
+ 882              	.LBB303:
+ 131:Application/stewart.cpp ****     for (int i = 0; i < 3; i++) {
+ 883              		.loc 1 131 14 is_stmt 0 view .LVU215
+ 884 0016 0026     		movs	r6, #0
+ 131:Application/stewart.cpp ****     for (int i = 0; i < 3; i++) {
+ 885              		.loc 1 131 5 view .LVU216
+ 886 0018 15E0     		b	.L26
+ 887              	.LVL55:
+ 888              	.L27:
+ 889              	.LBB304:
+ 134:Application/stewart.cpp ****             rotComponents[i][j] = performTrigOp(ROTATION_COMPONENTS[i][j],rpy[i]);
+ 890              		.loc 1 134 13 is_stmt 1 view .LVU217
+ 891              	.LBB305:
+ 892              	.LBI305:
+ 893              		.file 4 "/usr/arm-none-eabi/include/c++/13.2.0/array"
+   1:/usr/arm-none-eabi/include/c++/13.2.0/array **** // <array> -*- C++ -*-
+   2:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+   3:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   4:/usr/arm-none-eabi/include/c++/13.2.0/array **** //
+   5:/usr/arm-none-eabi/include/c++/13.2.0/array **** // This file is part of the GNU ISO C++ Library.  This library is free
+   6:/usr/arm-none-eabi/include/c++/13.2.0/array **** // software; you can redistribute it and/or modify it under the
+   7:/usr/arm-none-eabi/include/c++/13.2.0/array **** // terms of the GNU General Public License as published by the
+   8:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Free Software Foundation; either version 3, or (at your option)
+   9:/usr/arm-none-eabi/include/c++/13.2.0/array **** // any later version.
+  10:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  11:/usr/arm-none-eabi/include/c++/13.2.0/array **** // This library is distributed in the hope that it will be useful,
+  12:/usr/arm-none-eabi/include/c++/13.2.0/array **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:/usr/arm-none-eabi/include/c++/13.2.0/array **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:/usr/arm-none-eabi/include/c++/13.2.0/array **** // GNU General Public License for more details.
+  15:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  16:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Under Section 7 of GPL version 3, you are granted additional
+  17:/usr/arm-none-eabi/include/c++/13.2.0/array **** // permissions described in the GCC Runtime Library Exception, version
+  18:/usr/arm-none-eabi/include/c++/13.2.0/array **** // 3.1, as published by the Free Software Foundation.
+  19:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  20:/usr/arm-none-eabi/include/c++/13.2.0/array **** // You should have received a copy of the GNU General Public License and
+  21:/usr/arm-none-eabi/include/c++/13.2.0/array **** // a copy of the GCC Runtime Library Exception along with this program;
+  22:/usr/arm-none-eabi/include/c++/13.2.0/array **** // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  23:/usr/arm-none-eabi/include/c++/13.2.0/array **** // <http://www.gnu.org/licenses/>.
+  24:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  25:/usr/arm-none-eabi/include/c++/13.2.0/array **** /** @file include/array
+  26:/usr/arm-none-eabi/include/c++/13.2.0/array ****  *  This is a Standard C++ Library header.
+  27:/usr/arm-none-eabi/include/c++/13.2.0/array ****  */
+  28:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  29:/usr/arm-none-eabi/include/c++/13.2.0/array **** #ifndef _GLIBCXX_ARRAY
+  30:/usr/arm-none-eabi/include/c++/13.2.0/array **** #define _GLIBCXX_ARRAY 1
+  31:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  32:/usr/arm-none-eabi/include/c++/13.2.0/array **** #pragma GCC system_header
+  33:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  34:/usr/arm-none-eabi/include/c++/13.2.0/array **** #if __cplusplus < 201103L
+  35:/usr/arm-none-eabi/include/c++/13.2.0/array **** # include <bits/c++0x_warning.h>
+  36:/usr/arm-none-eabi/include/c++/13.2.0/array **** #else
+  37:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  38:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <compare>
+  39:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <initializer_list>
+  40:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  41:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <type_traits>
+  42:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/functexcept.h>
+ARM GAS  /tmp/ccRQrS5M.s 			page 33
+
+
+  43:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/stl_algobase.h>
+  44:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/range_access.h> // std::begin, std::end etc.
+  45:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/utility.h>      // std::index_sequence, std::tuple_size
+  46:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <debug/assertions.h>
+  47:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  48:/usr/arm-none-eabi/include/c++/13.2.0/array **** namespace std _GLIBCXX_VISIBILITY(default)
+  49:/usr/arm-none-eabi/include/c++/13.2.0/array **** {
+  50:/usr/arm-none-eabi/include/c++/13.2.0/array **** _GLIBCXX_BEGIN_NAMESPACE_VERSION
+  51:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  52:/usr/arm-none-eabi/include/c++/13.2.0/array ****   template<typename _Tp, size_t _Nm>
+  53:/usr/arm-none-eabi/include/c++/13.2.0/array ****     struct __array_traits
+  54:/usr/arm-none-eabi/include/c++/13.2.0/array ****     {
+  55:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Type = _Tp[_Nm];
+  56:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Is_swappable = __is_swappable<_Tp>;
+  57:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Is_nothrow_swappable = __is_nothrow_swappable<_Tp>;
+  58:/usr/arm-none-eabi/include/c++/13.2.0/array ****     };
+  59:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  60:/usr/arm-none-eabi/include/c++/13.2.0/array ****  template<typename _Tp>
+  61:/usr/arm-none-eabi/include/c++/13.2.0/array ****    struct __array_traits<_Tp, 0>
+  62:/usr/arm-none-eabi/include/c++/13.2.0/array ****    {
+  63:/usr/arm-none-eabi/include/c++/13.2.0/array ****      // Empty type used instead of _Tp[0] for std::array<_Tp, 0>.
+  64:/usr/arm-none-eabi/include/c++/13.2.0/array ****      struct _Type
+  65:/usr/arm-none-eabi/include/c++/13.2.0/array ****      {
+  66:/usr/arm-none-eabi/include/c++/13.2.0/array ****        // Indexing is undefined.
+  67:/usr/arm-none-eabi/include/c++/13.2.0/array ****        __attribute__((__always_inline__,__noreturn__))
+  68:/usr/arm-none-eabi/include/c++/13.2.0/array ****        _Tp& operator[](size_t) const noexcept { __builtin_trap(); }
+  69:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  70:/usr/arm-none-eabi/include/c++/13.2.0/array ****        // Conversion to a pointer produces a null pointer.
+  71:/usr/arm-none-eabi/include/c++/13.2.0/array ****        __attribute__((__always_inline__))
+  72:/usr/arm-none-eabi/include/c++/13.2.0/array ****        constexpr explicit operator _Tp*() const noexcept { return nullptr; }
+  73:/usr/arm-none-eabi/include/c++/13.2.0/array ****      };
+  74:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  75:/usr/arm-none-eabi/include/c++/13.2.0/array ****      using _Is_swappable = true_type;
+  76:/usr/arm-none-eabi/include/c++/13.2.0/array ****      using _Is_nothrow_swappable = true_type;
+  77:/usr/arm-none-eabi/include/c++/13.2.0/array ****    };
+  78:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  79:/usr/arm-none-eabi/include/c++/13.2.0/array ****   /**
+  80:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @brief A standard container for storing a fixed size sequence of elements.
+  81:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  82:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @ingroup sequences
+  83:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  84:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  Meets the requirements of a <a href="tables.html#65">container</a>, a
+  85:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  <a href="tables.html#66">reversible container</a>, and a
+  86:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  <a href="tables.html#67">sequence</a>.
+  87:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  88:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  Sets support random access iterators.
+  89:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  90:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @tparam  Tp  Type of element. Required to be a complete type.
+  91:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @tparam  Nm  Number of elements.
+  92:/usr/arm-none-eabi/include/c++/13.2.0/array ****   */
+  93:/usr/arm-none-eabi/include/c++/13.2.0/array ****   template<typename _Tp, std::size_t _Nm>
+  94:/usr/arm-none-eabi/include/c++/13.2.0/array ****     struct array
+  95:/usr/arm-none-eabi/include/c++/13.2.0/array ****     {
+  96:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef _Tp 	    			      value_type;
+  97:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type*			      pointer;
+  98:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type*                       const_pointer;
+  99:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type&                   	      reference;
+ARM GAS  /tmp/ccRQrS5M.s 			page 34
+
+
+ 100:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type&             	      const_reference;
+ 101:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type*          		      iterator;
+ 102:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type*			      const_iterator;
+ 103:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::size_t                    	      size_type;
+ 104:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::ptrdiff_t                   	      difference_type;
+ 105:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::reverse_iterator<iterator>	      reverse_iterator;
+ 106:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
+ 107:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 108:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Support for zero-sized arrays mandatory.
+ 109:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typename __array_traits<_Tp, _Nm>::_Type        _M_elems;
+ 110:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 111:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // No explicit construct/copy/destroy for aggregate type.
+ 112:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 113:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // DR 776.
+ 114:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX20_CONSTEXPR void
+ 115:/usr/arm-none-eabi/include/c++/13.2.0/array ****       fill(const value_type& __u)
+ 116:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { std::fill_n(begin(), size(), __u); }
+ 117:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 118:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX20_CONSTEXPR void
+ 119:/usr/arm-none-eabi/include/c++/13.2.0/array ****       swap(array& __other)
+ 120:/usr/arm-none-eabi/include/c++/13.2.0/array ****       noexcept(__array_traits<_Tp, _Nm>::_Is_nothrow_swappable::value)
+ 121:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { std::swap_ranges(begin(), end(), __other.begin()); }
+ 122:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 123:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Iterators.
+ 124:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 125:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR iterator
+ 126:/usr/arm-none-eabi/include/c++/13.2.0/array ****       begin() noexcept
+ 127:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return iterator(data()); }
+ 128:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 129:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 130:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 131:/usr/arm-none-eabi/include/c++/13.2.0/array ****       begin() const noexcept
+ 132:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data()); }
+ 133:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 134:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 135:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR iterator
+ 136:/usr/arm-none-eabi/include/c++/13.2.0/array ****       end() noexcept
+ 137:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return iterator(data() + _Nm); }
+ 138:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 139:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 140:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 141:/usr/arm-none-eabi/include/c++/13.2.0/array ****       end() const noexcept
+ 142:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data() + _Nm); }
+ 143:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 144:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 145:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reverse_iterator
+ 146:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rbegin() noexcept
+ 147:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return reverse_iterator(end()); }
+ 148:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 149:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 150:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 151:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rbegin() const noexcept
+ 152:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(end()); }
+ 153:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 154:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 155:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reverse_iterator
+ 156:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rend() noexcept
+ARM GAS  /tmp/ccRQrS5M.s 			page 35
+
+
+ 157:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return reverse_iterator(begin()); }
+ 158:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 159:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 160:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 161:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rend() const noexcept
+ 162:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(begin()); }
+ 163:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 164:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 165:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 166:/usr/arm-none-eabi/include/c++/13.2.0/array ****       cbegin() const noexcept
+ 167:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data()); }
+ 168:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 169:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 170:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 171:/usr/arm-none-eabi/include/c++/13.2.0/array ****       cend() const noexcept
+ 172:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data() + _Nm); }
+ 173:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 174:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 175:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 176:/usr/arm-none-eabi/include/c++/13.2.0/array ****       crbegin() const noexcept
+ 177:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(end()); }
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 179:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 180:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 181:/usr/arm-none-eabi/include/c++/13.2.0/array ****       crend() const noexcept
+ 182:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(begin()); }
+ 183:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 184:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Capacity.
+ 185:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 186:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr size_type
+ 187:/usr/arm-none-eabi/include/c++/13.2.0/array ****       size() const noexcept { return _Nm; }
+ 188:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 189:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 190:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr size_type
+ 191:/usr/arm-none-eabi/include/c++/13.2.0/array ****       max_size() const noexcept { return _Nm; }
+ 192:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 193:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 194:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr bool
+ 195:/usr/arm-none-eabi/include/c++/13.2.0/array ****       empty() const noexcept { return size() == 0; }
+ 196:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 197:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Element access.
+ 198:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 199:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reference
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       operator[](size_type __n) noexcept
+ 201:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 202:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_subscript(__n);
+ 203:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[__n];
+ 204:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 205:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 206:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 207:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr const_reference
+ 208:/usr/arm-none-eabi/include/c++/13.2.0/array ****       operator[](size_type __n) const noexcept
+ 894              		.loc 4 208 7 view .LVU218
+ 895              		.loc 4 208 7 is_stmt 0 view .LVU219
+ 896              	.LBE305:
+ 897              	.LBB306:
+ 898              	.LBI306:
+ARM GAS  /tmp/ccRQrS5M.s 			page 36
+
+
+ 899              		.loc 4 208 7 is_stmt 1 view .LVU220
+ 900              	.LBB307:
+ 209:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 210:/usr/arm-none-eabi/include/c++/13.2.0/array **** #if __cplusplus >= 201402L
+ 211:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_subscript(__n);
+ 212:/usr/arm-none-eabi/include/c++/13.2.0/array **** #endif
+ 213:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[__n];
+ 901              		.loc 4 213 21 is_stmt 0 view .LVU221
+ 902 001a 06EBC604 		add	r4, r6, r6, lsl #3
+ 903 001e 2C44     		add	r4, r4, r5
+ 904              	.LVL56:
+ 905              		.loc 4 213 21 view .LVU222
+ 906              	.LBE307:
+ 907              	.LBE306:
+ 908              	.LBB308:
+ 909              	.LBI308:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 910              		.loc 4 200 7 is_stmt 1 view .LVU223
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 911              		.loc 4 200 7 is_stmt 0 view .LVU224
+ 912              	.LBE308:
+ 134:Application/stewart.cpp ****             rotComponents[i][j] = performTrigOp(ROTATION_COMPONENTS[i][j],rpy[i]);
+ 913              		.loc 1 134 48 discriminator 3 view .LVU225
+ 914 0020 3CAB     		add	r3, sp, #240
+ 915 0022 03EB8603 		add	r3, r3, r6, lsl #2
+ 916 0026 13ED3B0A 		vldr.32	s0, [r3, #-236]
+ 917 002a 244B     		ldr	r3, .L36
+ 918 002c 195D     		ldrb	r1, [r3, r4]	@ zero_extendqisi2
+ 919 002e 3846     		mov	r0, r7
+ 920 0030 FFF7FEFF 		bl	_ZN11StewartImpl13performTrigOpE6trigOpf
+ 921              	.LVL57:
+ 922              	.LBB309:
+ 923              	.LBI309:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 924              		.loc 4 200 7 is_stmt 1 view .LVU226
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 925              		.loc 4 200 7 is_stmt 0 view .LVU227
+ 926              	.LBE309:
+ 927              	.LBB310:
+ 928              	.LBI310:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 929              		.loc 4 200 7 is_stmt 1 view .LVU228
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 930              		.loc 4 200 7 is_stmt 0 view .LVU229
+ 931              	.LBE310:
+ 134:Application/stewart.cpp ****             rotComponents[i][j] = performTrigOp(ROTATION_COMPONENTS[i][j],rpy[i]);
+ 932              		.loc 1 134 33 discriminator 2 view .LVU230
+ 933 0034 3CAB     		add	r3, sp, #240
+ 934 0036 03EB8404 		add	r4, r3, r4, lsl #2
+ 935 003a 04ED1B0A 		vstr.32	s0, [r4, #-108]
+ 132:Application/stewart.cpp ****         for (int j = 0; j < 9; j++) {
+ 936              		.loc 1 132 9 is_stmt 1 discriminator 2 view .LVU231
+ 937 003e 0135     		adds	r5, r5, #1
+ 938              	.LVL58:
+ 939              	.L28:
+ 132:Application/stewart.cpp ****         for (int j = 0; j < 9; j++) {
+ 940              		.loc 1 132 27 discriminator 1 view .LVU232
+ARM GAS  /tmp/ccRQrS5M.s 			page 37
+
+
+ 941 0040 082D     		cmp	r5, #8
+ 942 0042 EADD     		ble	.L27
+ 943              	.LBE304:
+ 131:Application/stewart.cpp ****     for (int i = 0; i < 3; i++) {
+ 944              		.loc 1 131 5 discriminator 2 view .LVU233
+ 945 0044 0136     		adds	r6, r6, #1
+ 946              	.LVL59:
+ 947              	.L26:
+ 131:Application/stewart.cpp ****     for (int i = 0; i < 3; i++) {
+ 948              		.loc 1 131 23 discriminator 1 view .LVU234
+ 949 0046 022E     		cmp	r6, #2
+ 950 0048 01DC     		bgt	.L34
+ 951              	.LBB311:
+ 132:Application/stewart.cpp ****         for (int j = 0; j < 9; j++) {
+ 952              		.loc 1 132 18 is_stmt 0 view .LVU235
+ 953 004a 0025     		movs	r5, #0
+ 954 004c F8E7     		b	.L28
+ 955              	.L34:
+ 956              	.LBE311:
+ 957              	.LBE303:
+ 958              	.LBB312:
+ 143:Application/stewart.cpp ****     for(int i = 0; i < 3; i++) {
+ 959              		.loc 1 143 13 view .LVU236
+ 960 004e 0024     		movs	r4, #0
+ 961 0050 0CE0     		b	.L29
+ 962              	.LVL60:
+ 963              	.L30:
+ 147:Application/stewart.cpp ****         arm_mat_init_f32(&am_rotComponents[i],3,3,(float *)(rotComponents[i].data()));
+ 964              		.loc 1 147 9 is_stmt 1 view .LVU237
+ 965              	.LBB313:
+ 966              	.LBI313:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 967              		.loc 4 200 7 view .LVU238
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 968              		.loc 4 200 7 is_stmt 0 view .LVU239
+ 969              	.LBE313:
+ 970              	.LBB314:
+ 971              	.LBI314:
+ 214:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 215:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 216:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reference
+ 217:/usr/arm-none-eabi/include/c++/13.2.0/array ****       at(size_type __n)
+ 218:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 219:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	if (__n >= _Nm)
+ 220:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	  std::__throw_out_of_range_fmt(__N("array::at: __n (which is %zu) "
+ 221:/usr/arm-none-eabi/include/c++/13.2.0/array **** 					    ">= _Nm (which is %zu)"),
+ 222:/usr/arm-none-eabi/include/c++/13.2.0/array **** 					__n, _Nm);
+ 223:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[__n];
+ 224:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 225:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 226:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr const_reference
+ 227:/usr/arm-none-eabi/include/c++/13.2.0/array ****       at(size_type __n) const
+ 228:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 229:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	// Result of conditional expression must be an lvalue so use
+ 230:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	// boolean ? lvalue : (throw-expr, lvalue)
+ 231:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return __n < _Nm ? _M_elems[__n]
+ 232:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	  : (std::__throw_out_of_range_fmt(__N("array::at: __n (which is %zu) "
+ARM GAS  /tmp/ccRQrS5M.s 			page 38
+
+
+ 233:/usr/arm-none-eabi/include/c++/13.2.0/array **** 					       ">= _Nm (which is %zu)"),
+ 234:/usr/arm-none-eabi/include/c++/13.2.0/array **** 					   __n, _Nm),
+ 235:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	     _M_elems[__n]);
+ 236:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 237:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 238:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 239:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reference
+ 240:/usr/arm-none-eabi/include/c++/13.2.0/array ****       front() noexcept
+ 241:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 242:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_nonempty();
+ 243:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[(size_type)0];
+ 244:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 245:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 246:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 247:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr const_reference
+ 248:/usr/arm-none-eabi/include/c++/13.2.0/array ****       front() const noexcept
+ 249:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 250:/usr/arm-none-eabi/include/c++/13.2.0/array **** #if __cplusplus >= 201402L
+ 251:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_nonempty();
+ 252:/usr/arm-none-eabi/include/c++/13.2.0/array **** #endif
+ 253:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[(size_type)0];
+ 254:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 255:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 256:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 257:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reference
+ 258:/usr/arm-none-eabi/include/c++/13.2.0/array ****       back() noexcept
+ 259:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 260:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_nonempty();
+ 261:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[_Nm - 1];
+ 262:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 263:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 264:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 265:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr const_reference
+ 266:/usr/arm-none-eabi/include/c++/13.2.0/array ****       back() const noexcept
+ 267:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 268:/usr/arm-none-eabi/include/c++/13.2.0/array **** #if __cplusplus >= 201402L
+ 269:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_nonempty();
+ 270:/usr/arm-none-eabi/include/c++/13.2.0/array **** #endif
+ 271:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[_Nm - 1];
+ 272:/usr/arm-none-eabi/include/c++/13.2.0/array ****       }
+ 273:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 274:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 275:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR pointer
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       data() noexcept
+ 972              		.loc 4 276 7 is_stmt 1 view .LVU240
+ 973              	.LBB315:
+ 277:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 974              		.loc 4 277 45 is_stmt 0 view .LVU241
+ 975 0052 04EBC403 		add	r3, r4, r4, lsl #3
+ 976              	.LVL61:
+ 977              		.loc 4 277 45 view .LVU242
+ 978              	.LBE315:
+ 979              	.LBE314:
+ 147:Application/stewart.cpp ****         arm_mat_init_f32(&am_rotComponents[i],3,3,(float *)(rotComponents[i].data()));
+ 980              		.loc 1 147 25 discriminator 2 view .LVU243
+ 981 0056 21AA     		add	r2, sp, #132
+ 982 0058 02EB8303 		add	r3, r2, r3, lsl #2
+ARM GAS  /tmp/ccRQrS5M.s 			page 39
+
+
+ 983 005c 0322     		movs	r2, #3
+ 984 005e 1146     		mov	r1, r2
+ 985 0060 05A8     		add	r0, sp, #20
+ 986 0062 00EBC400 		add	r0, r0, r4, lsl #3
+ 987 0066 FFF7FEFF 		bl	arm_mat_init_f32
+ 988              	.LVL62:
+ 143:Application/stewart.cpp ****     for(int i = 0; i < 3; i++) {
+ 989              		.loc 1 143 5 is_stmt 1 discriminator 2 view .LVU244
+ 990 006a 0134     		adds	r4, r4, #1
+ 991              	.LVL63:
+ 992              	.L29:
+ 143:Application/stewart.cpp ****     for(int i = 0; i < 3; i++) {
+ 993              		.loc 1 143 22 discriminator 1 view .LVU245
+ 994 006c 022C     		cmp	r4, #2
+ 995 006e 0EDC     		bgt	.L35
+ 144:Application/stewart.cpp ****         if( i < 2) {
+ 996              		.loc 1 144 9 view .LVU246
+ 997 0070 012C     		cmp	r4, #1
+ 998 0072 EEDC     		bgt	.L30
+ 145:Application/stewart.cpp ****             arm_mat_init_f32(&am_accum[i],3,3,(float *)(accumBuf[i].data()));
+ 999              		.loc 1 145 13 view .LVU247
+ 1000              	.LVL64:
+ 1001              	.LBB316:
+ 1002              	.LBI316:
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1003              		.loc 4 276 7 view .LVU248
+ 1004              	.LBB317:
+ 1005              		.loc 4 277 45 is_stmt 0 view .LVU249
+ 1006 0074 04EBC403 		add	r3, r4, r4, lsl #3
+ 1007              	.LVL65:
+ 1008              		.loc 4 277 45 view .LVU250
+ 1009              	.LBE317:
+ 1010              	.LBE316:
+ 145:Application/stewart.cpp ****             arm_mat_init_f32(&am_accum[i],3,3,(float *)(accumBuf[i].data()));
+ 1011              		.loc 1 145 29 discriminator 1 view .LVU251
+ 1012 0078 0BAA     		add	r2, sp, #44
+ 1013 007a 02EB8303 		add	r3, r2, r3, lsl #2
+ 1014 007e 0322     		movs	r2, #3
+ 1015 0080 1146     		mov	r1, r2
+ 1016 0082 1DA8     		add	r0, sp, #116
+ 1017 0084 00EBC400 		add	r0, r0, r4, lsl #3
+ 1018 0088 FFF7FEFF 		bl	arm_mat_init_f32
+ 1019              	.LVL66:
+ 1020 008c E1E7     		b	.L30
+ 1021              	.L35:
+ 1022              	.LBE312:
+ 152:Application/stewart.cpp ****     arm_mat_mult_f32(&am_rotComponents[0],&am_rotComponents[1],&am_accum[0]);
+ 1023              		.loc 1 152 5 is_stmt 1 view .LVU252
+ 152:Application/stewart.cpp ****     arm_mat_mult_f32(&am_rotComponents[0],&am_rotComponents[1],&am_accum[0]);
+ 1024              		.loc 1 152 21 is_stmt 0 view .LVU253
+ 1025 008e 1DAA     		add	r2, sp, #116
+ 1026 0090 07A9     		add	r1, sp, #28
+ 1027 0092 05A8     		add	r0, sp, #20
+ 1028 0094 FFF7FEFF 		bl	arm_mat_mult_f32
+ 1029              	.LVL67:
+ 153:Application/stewart.cpp ****     arm_mat_mult_f32(&am_accum[0],&am_rotComponents[2],&am_accum[1]);
+ 1030              		.loc 1 153 5 is_stmt 1 view .LVU254
+ARM GAS  /tmp/ccRQrS5M.s 			page 40
+
+
+ 153:Application/stewart.cpp ****     arm_mat_mult_f32(&am_accum[0],&am_rotComponents[2],&am_accum[1]);
+ 1031              		.loc 1 153 21 is_stmt 0 view .LVU255
+ 1032 0098 1FAA     		add	r2, sp, #124
+ 1033 009a 09A9     		add	r1, sp, #36
+ 1034 009c 1DA8     		add	r0, sp, #116
+ 1035 009e FFF7FEFF 		bl	arm_mat_mult_f32
+ 1036              	.LVL68:
+ 155:Application/stewart.cpp ****     return accumBuf[1];
+ 1037              		.loc 1 155 5 is_stmt 1 view .LVU256
+ 155:Application/stewart.cpp ****     return accumBuf[1];
+ 1038              		.loc 1 155 22 is_stmt 0 view .LVU257
+ 1039 00a2 4446     		mov	r4, r8
+ 1040              	.LVL69:
+ 155:Application/stewart.cpp ****     return accumBuf[1];
+ 1041              		.loc 1 155 22 view .LVU258
+ 1042 00a4 14AD     		add	r5, sp, #80
+ 1043 00a6 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 1044 00a8 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 1045 00aa 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 1046 00ac 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 1047 00ae 2B68     		ldr	r3, [r5]
+ 1048 00b0 2360     		str	r3, [r4]
+ 156:Application/stewart.cpp **** }
+ 1049              		.loc 1 156 1 view .LVU259
+ 1050 00b2 4046     		mov	r0, r8
+ 1051 00b4 3CB0     		add	sp, sp, #240
+ 1052              		.cfi_def_cfa_offset 24
+ 1053              		@ sp needed
+ 1054 00b6 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1055              	.LVL70:
+ 1056              	.L37:
+ 156:Application/stewart.cpp **** }
+ 1057              		.loc 1 156 1 view .LVU260
+ 1058 00ba 00BF     		.align	2
+ 1059              	.L36:
+ 1060 00bc 00000000 		.word	_ZL19ROTATION_COMPONENTS
+ 1061              		.cfi_endproc
+ 1062              	.LFE2709:
+ 1063              		.fnend
+ 1065              		.section	.text._ZN11StewartImpl8calcNormESt5arrayIfLj3EE,"ax",%progbits
+ 1066              		.align	1
+ 1067              		.global	_ZN11StewartImpl8calcNormESt5arrayIfLj3EE
+ 1068              		.syntax unified
+ 1069              		.thumb
+ 1070              		.thumb_func
+ 1072              	_ZN11StewartImpl8calcNormESt5arrayIfLj3EE:
+ 1073              		.fnstart
+ 1074              	.LVL71:
+ 1075              	.LFB2713:
+ 222:Application/stewart.cpp **** float StewartImpl::calcNorm(fArr3 vector) {
+ 1076              		.loc 1 222 43 is_stmt 1 view -0
+ 1077              		.cfi_startproc
+ 1078              		@ args = 0, pretend = 0, frame = 24
+ 1079              		@ frame_needed = 0, uses_anonymous_args = 0
+ 222:Application/stewart.cpp **** float StewartImpl::calcNorm(fArr3 vector) {
+ 1080              		.loc 1 222 43 is_stmt 0 view .LVU262
+ 1081 0000 00B5     		push	{lr}
+ARM GAS  /tmp/ccRQrS5M.s 			page 41
+
+
+ 1082              		.save {lr}
+ 1083              		.cfi_def_cfa_offset 4
+ 1084              		.cfi_offset 14, -4
+ 1085              		.pad #28
+ 1086 0002 87B0     		sub	sp, sp, #28
+ 1087              		.cfi_def_cfa_offset 32
+ 1088 0004 8DED010A 		vstr.32	s0, [sp, #4]
+ 1089 0008 CDED020A 		vstr.32	s1, [sp, #8]
+ 1090 000c 8DED031A 		vstr.32	s2, [sp, #12]
+ 224:Application/stewart.cpp ****     float vecPower = 0;
+ 1091              		.loc 1 224 5 is_stmt 1 view .LVU263
+ 224:Application/stewart.cpp ****     float vecPower = 0;
+ 1092              		.loc 1 224 11 is_stmt 0 view .LVU264
+ 1093 0010 0023     		movs	r3, #0
+ 1094 0012 0593     		str	r3, [sp, #20]	@ float
+ 227:Application/stewart.cpp ****     arm_power_f32((float *)vector.data(), 3, &vecPower);
+ 1095              		.loc 1 227 5 is_stmt 1 view .LVU265
+ 1096              	.LVL72:
+ 1097              	.LBB318:
+ 1098              	.LBI318:
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1099              		.loc 4 276 7 view .LVU266
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1100              		.loc 4 276 7 is_stmt 0 view .LVU267
+ 1101              	.LBE318:
+ 227:Application/stewart.cpp ****     arm_power_f32((float *)vector.data(), 3, &vecPower);
+ 1102              		.loc 1 227 18 discriminator 1 view .LVU268
+ 1103 0014 05AA     		add	r2, sp, #20
+ 1104 0016 0321     		movs	r1, #3
+ 1105 0018 01A8     		add	r0, sp, #4
+ 1106              	.LVL73:
+ 227:Application/stewart.cpp ****     arm_power_f32((float *)vector.data(), 3, &vecPower);
+ 1107              		.loc 1 227 18 discriminator 1 view .LVU269
+ 1108 001a FFF7FEFF 		bl	arm_power_f32
+ 1109              	.LVL74:
+ 230:Application/stewart.cpp ****     float norm = sqrt(vecPower);
+ 1110              		.loc 1 230 5 is_stmt 1 view .LVU270
+ 1111              	.LBB319:
+ 1112              	.LBI319:
+ 402:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 403:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 404:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   sin(long double __x)
+ 405:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_sinl(__x); }
+ 406:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 407:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 408:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 409:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 410:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 411:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 412:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     sin(_Tp __x)
+ 413:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_sin(__x); }
+ 414:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 415:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::sinh;
+ 416:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 417:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 418:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 419:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   sinh(float __x)
+ARM GAS  /tmp/ccRQrS5M.s 			page 42
+
+
+ 420:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_sinhf(__x); }
+ 421:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 422:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR long double
+ 423:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   sinh(long double __x)
+ 424:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_sinhl(__x); }
+ 425:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #endif
+ 426:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 427:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   template<typename _Tp>
+ 428:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     inline _GLIBCXX_CONSTEXPR
+ 429:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     typename __gnu_cxx::__enable_if<__is_integer<_Tp>::__value, 
+ 430:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****                                     double>::__type
+ 431:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     sinh(_Tp __x)
+ 432:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****     { return __builtin_sinh(__x); }
+ 433:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 434:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   using ::sqrt;
+ 435:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** 
+ 436:/usr/arm-none-eabi/include/c++/13.2.0/cmath **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+ 437:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   inline _GLIBCXX_CONSTEXPR float
+ 438:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   sqrt(float __x)
+ 1113              		.loc 3 438 3 view .LVU271
+ 1114              	.LBB320:
+ 439:/usr/arm-none-eabi/include/c++/13.2.0/cmath ****   { return __builtin_sqrtf(__x); }
+ 1115              		.loc 3 439 5 view .LVU272
+ 1116              		.loc 3 439 27 is_stmt 0 view .LVU273
+ 1117 001e 9DED050A 		vldr.32	s0, [sp, #20]
+ 1118 0022 FFF7FEFF 		bl	sqrtf
+ 1119              	.LVL75:
+ 1120              		.loc 3 439 27 view .LVU274
+ 1121              	.LBE320:
+ 1122              	.LBE319:
+ 231:Application/stewart.cpp ****     return norm;
+ 1123              		.loc 1 231 5 is_stmt 1 view .LVU275
+ 1124              		.loc 1 232 1 is_stmt 0 view .LVU276
+ 1125 0026 07B0     		add	sp, sp, #28
+ 1126              		.cfi_def_cfa_offset 4
+ 1127              		@ sp needed
+ 1128 0028 5DF804FB 		ldr	pc, [sp], #4
+ 1129              		.cfi_endproc
+ 1130              	.LFE2713:
+ 1131              		.fnend
+ 1133              		.section	.text._ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE,"ax",%progbits
+ 1134              		.align	1
+ 1135              		.global	_ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE
+ 1136              		.syntax unified
+ 1137              		.thumb
+ 1138              		.thumb_func
+ 1140              	_ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE:
+ 1141              		.fnstart
+ 1142              	.LVL76:
+ 1143              	.LFB2710:
+ 169:Application/stewart.cpp **** fArr6 StewartImpl::calcCylinderPos(mtx3D rotationMtx) {
+ 1144              		.loc 1 169 55 is_stmt 1 view -0
+ 1145              		.cfi_startproc
+ 1146              		@ args = 36, pretend = 8, frame = 96
+ 1147              		@ frame_needed = 0, uses_anonymous_args = 0
+ 169:Application/stewart.cpp **** fArr6 StewartImpl::calcCylinderPos(mtx3D rotationMtx) {
+ 1148              		.loc 1 169 55 is_stmt 0 view .LVU278
+ARM GAS  /tmp/ccRQrS5M.s 			page 43
+
+
+ 1149              		.pad #8
+ 1150 0000 82B0     		sub	sp, sp, #8
+ 1151              		.cfi_def_cfa_offset 8
+ 1152 0002 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1153              		.save {r4, r5, r6, r7, r8, lr}
+ 1154              		.cfi_def_cfa_offset 32
+ 1155              		.cfi_offset 4, -32
+ 1156              		.cfi_offset 5, -28
+ 1157              		.cfi_offset 6, -24
+ 1158              		.cfi_offset 7, -20
+ 1159              		.cfi_offset 8, -16
+ 1160              		.cfi_offset 14, -12
+ 1161              		.pad #96
+ 1162 0006 98B0     		sub	sp, sp, #96
+ 1163              		.cfi_def_cfa_offset 128
+ 1164 0008 0746     		mov	r7, r0
+ 1165 000a 8846     		mov	r8, r1
+ 1166 000c 1EA9     		add	r1, sp, #120
+ 1167              	.LVL77:
+ 169:Application/stewart.cpp **** fArr6 StewartImpl::calcCylinderPos(mtx3D rotationMtx) {
+ 1168              		.loc 1 169 55 view .LVU279
+ 1169 000e 81E80C00 		stm	r1, {r2, r3}
+ 170:Application/stewart.cpp ****     arm_matrix_instance_f32 am_rotMtx;
+ 1170              		.loc 1 170 5 is_stmt 1 view .LVU280
+ 171:Application/stewart.cpp ****     arm_matrix_instance_f32 am_T;
+ 1171              		.loc 1 171 5 view .LVU281
+ 172:Application/stewart.cpp ****     fArr6 lengths;
+ 1172              		.loc 1 172 5 view .LVU282
+ 175:Application/stewart.cpp ****     arm_mat_init_f32(&am_T,NO_DOF,1, (float *)VECTOR_T_DATA);
+ 1173              		.loc 1 175 5 view .LVU283
+ 175:Application/stewart.cpp ****     arm_mat_init_f32(&am_T,NO_DOF,1, (float *)VECTOR_T_DATA);
+ 1174              		.loc 1 175 21 is_stmt 0 view .LVU284
+ 1175 0012 2C4B     		ldr	r3, .L44
+ 1176 0014 0122     		movs	r2, #1
+ 1177 0016 0321     		movs	r1, #3
+ 1178 0018 14A8     		add	r0, sp, #80
+ 1179              	.LVL78:
+ 175:Application/stewart.cpp ****     arm_mat_init_f32(&am_T,NO_DOF,1, (float *)VECTOR_T_DATA);
+ 1180              		.loc 1 175 21 view .LVU285
+ 1181 001a FFF7FEFF 		bl	arm_mat_init_f32
+ 1182              	.LVL79:
+ 176:Application/stewart.cpp ****     arm_mat_init_f32(&am_rotMtx,NO_DOF,NO_DOF,(float *) rotationMtx.data());
+ 1183              		.loc 1 176 5 is_stmt 1 view .LVU286
+ 1184              	.LBB321:
+ 1185              	.LBI321:
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1186              		.loc 4 276 7 view .LVU287
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1187              		.loc 4 276 7 is_stmt 0 view .LVU288
+ 1188              	.LBE321:
+ 176:Application/stewart.cpp ****     arm_mat_init_f32(&am_rotMtx,NO_DOF,NO_DOF,(float *) rotationMtx.data());
+ 1189              		.loc 1 176 21 discriminator 1 view .LVU289
+ 1190 001e 1EAB     		add	r3, sp, #120
+ 1191 0020 0322     		movs	r2, #3
+ 1192 0022 1146     		mov	r1, r2
+ 1193 0024 16A8     		add	r0, sp, #88
+ 1194 0026 FFF7FEFF 		bl	arm_mat_init_f32
+ARM GAS  /tmp/ccRQrS5M.s 			page 44
+
+
+ 1195              	.LVL80:
+ 1196              	.LBB322:
+ 179:Application/stewart.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 1197              		.loc 1 179 14 view .LVU290
+ 1198 002a 0024     		movs	r4, #0
+ 1199 002c 42E0     		b	.L41
+ 1200              	.LVL81:
+ 1201              	.L42:
+ 1202              	.LBB323:
+ 182:Application/stewart.cpp ****         float32_t * p = (float32_t *)MATRIX_p_DATA + NO_DOF*i;
+ 1203              		.loc 1 182 9 is_stmt 1 view .LVU291
+ 182:Application/stewart.cpp ****         float32_t * p = (float32_t *)MATRIX_p_DATA + NO_DOF*i;
+ 1204              		.loc 1 182 52 is_stmt 0 view .LVU292
+ 1205 002e 04EB4403 		add	r3, r4, r4, lsl #1
+ 182:Application/stewart.cpp ****         float32_t * p = (float32_t *)MATRIX_p_DATA + NO_DOF*i;
+ 1206              		.loc 1 182 21 view .LVU293
+ 1207 0032 254E     		ldr	r6, .L44+4
+ 1208 0034 06EB8306 		add	r6, r6, r3, lsl #2
+ 1209              	.LVL82:
+ 183:Application/stewart.cpp ****         float32_t * b = (float32_t *)MATRIX_b_DATA + NO_DOF*i;
+ 1210              		.loc 1 183 9 is_stmt 1 view .LVU294
+ 183:Application/stewart.cpp ****         float32_t * b = (float32_t *)MATRIX_b_DATA + NO_DOF*i;
+ 1211              		.loc 1 183 21 is_stmt 0 view .LVU295
+ 1212 0038 244D     		ldr	r5, .L44+8
+ 1213 003a 05EB8305 		add	r5, r5, r3, lsl #2
+ 1214              	.LVL83:
+ 186:Application/stewart.cpp ****         fArr3 RdotpBuf;
+ 1215              		.loc 1 186 9 is_stmt 1 view .LVU296
+ 187:Application/stewart.cpp ****         fArr3 RpSubbBuf;
+ 1216              		.loc 1 187 9 view .LVU297
+ 188:Application/stewart.cpp ****         fArr3 lengthVec;
+ 1217              		.loc 1 188 9 view .LVU298
+ 191:Application/stewart.cpp ****         arm_matrix_instance_f32 am_p;
+ 1218              		.loc 1 191 9 view .LVU299
+ 192:Application/stewart.cpp ****         arm_matrix_instance_f32 am_b;
+ 1219              		.loc 1 192 9 view .LVU300
+ 194:Application/stewart.cpp ****         arm_matrix_instance_f32 am_Rdotp;
+ 1220              		.loc 1 194 9 view .LVU301
+ 195:Application/stewart.cpp ****         arm_matrix_instance_f32 am_RpSubb;
+ 1221              		.loc 1 195 9 view .LVU302
+ 196:Application/stewart.cpp ****         arm_matrix_instance_f32 am_lengthVec;
+ 1222              		.loc 1 196 9 view .LVU303
+ 198:Application/stewart.cpp ****         arm_mat_init_f32(&am_lengthVec,NO_DOF,1,lengthVec.data());
+ 1223              		.loc 1 198 9 view .LVU304
+ 1224              	.LBB324:
+ 1225              	.LBI324:
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1226              		.loc 4 276 7 view .LVU305
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1227              		.loc 4 276 7 is_stmt 0 view .LVU306
+ 1228              	.LBE324:
+ 198:Application/stewart.cpp ****         arm_mat_init_f32(&am_lengthVec,NO_DOF,1,lengthVec.data());
+ 1229              		.loc 1 198 25 discriminator 1 view .LVU307
+ 1230 003e 11AB     		add	r3, sp, #68
+ 1231 0040 0122     		movs	r2, #1
+ 1232 0042 0321     		movs	r1, #3
+ 1233 0044 09A8     		add	r0, sp, #36
+ARM GAS  /tmp/ccRQrS5M.s 			page 45
+
+
+ 1234 0046 FFF7FEFF 		bl	arm_mat_init_f32
+ 1235              	.LVL84:
+ 199:Application/stewart.cpp ****         arm_mat_init_f32(&am_p,NO_DOF,1,p);
+ 1236              		.loc 1 199 9 is_stmt 1 view .LVU308
+ 199:Application/stewart.cpp ****         arm_mat_init_f32(&am_p,NO_DOF,1,p);
+ 1237              		.loc 1 199 25 is_stmt 0 view .LVU309
+ 1238 004a 3346     		mov	r3, r6
+ 1239 004c 0122     		movs	r2, #1
+ 1240 004e 0321     		movs	r1, #3
+ 1241 0050 01A8     		add	r0, sp, #4
+ 1242 0052 FFF7FEFF 		bl	arm_mat_init_f32
+ 1243              	.LVL85:
+ 200:Application/stewart.cpp ****         arm_mat_init_f32(&am_b,NO_DOF,1,b);
+ 1244              		.loc 1 200 9 is_stmt 1 view .LVU310
+ 200:Application/stewart.cpp ****         arm_mat_init_f32(&am_b,NO_DOF,1,b);
+ 1245              		.loc 1 200 25 is_stmt 0 view .LVU311
+ 1246 0056 2B46     		mov	r3, r5
+ 1247 0058 0122     		movs	r2, #1
+ 1248 005a 0321     		movs	r1, #3
+ 1249 005c 03A8     		add	r0, sp, #12
+ 1250 005e FFF7FEFF 		bl	arm_mat_init_f32
+ 1251              	.LVL86:
+ 201:Application/stewart.cpp ****         arm_mat_init_f32(&am_Rdotp,NO_DOF,1,RdotpBuf.data());
+ 1252              		.loc 1 201 9 is_stmt 1 view .LVU312
+ 1253              	.LBB325:
+ 1254              	.LBI325:
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1255              		.loc 4 276 7 view .LVU313
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1256              		.loc 4 276 7 is_stmt 0 view .LVU314
+ 1257              	.LBE325:
+ 201:Application/stewart.cpp ****         arm_mat_init_f32(&am_Rdotp,NO_DOF,1,RdotpBuf.data());
+ 1258              		.loc 1 201 25 discriminator 1 view .LVU315
+ 1259 0062 0BAB     		add	r3, sp, #44
+ 1260 0064 0122     		movs	r2, #1
+ 1261 0066 0321     		movs	r1, #3
+ 1262 0068 05A8     		add	r0, sp, #20
+ 1263 006a FFF7FEFF 		bl	arm_mat_init_f32
+ 1264              	.LVL87:
+ 202:Application/stewart.cpp ****         arm_mat_init_f32(&am_RpSubb,NO_DOF,1,RpSubbBuf.data());
+ 1265              		.loc 1 202 9 is_stmt 1 view .LVU316
+ 1266              	.LBB326:
+ 1267              	.LBI326:
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1268              		.loc 4 276 7 view .LVU317
+ 276:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return static_cast<pointer>(_M_elems); }
+ 1269              		.loc 4 276 7 is_stmt 0 view .LVU318
+ 1270              	.LBE326:
+ 202:Application/stewart.cpp ****         arm_mat_init_f32(&am_RpSubb,NO_DOF,1,RpSubbBuf.data());
+ 1271              		.loc 1 202 25 discriminator 1 view .LVU319
+ 1272 006e 0EAB     		add	r3, sp, #56
+ 1273 0070 0122     		movs	r2, #1
+ 1274 0072 0321     		movs	r1, #3
+ 1275 0074 07A8     		add	r0, sp, #28
+ 1276 0076 FFF7FEFF 		bl	arm_mat_init_f32
+ 1277              	.LVL88:
+ 205:Application/stewart.cpp ****         arm_mat_mult_f32(&am_rotMtx,&am_p,&am_Rdotp); // R*p = Rdotp
+ARM GAS  /tmp/ccRQrS5M.s 			page 46
+
+
+ 1278              		.loc 1 205 9 is_stmt 1 view .LVU320
+ 205:Application/stewart.cpp ****         arm_mat_mult_f32(&am_rotMtx,&am_p,&am_Rdotp); // R*p = Rdotp
+ 1279              		.loc 1 205 25 is_stmt 0 view .LVU321
+ 1280 007a 05AA     		add	r2, sp, #20
+ 1281 007c 01A9     		add	r1, sp, #4
+ 1282 007e 16A8     		add	r0, sp, #88
+ 1283 0080 FFF7FEFF 		bl	arm_mat_mult_f32
+ 1284              	.LVL89:
+ 206:Application/stewart.cpp ****         arm_mat_sub_f32(&am_Rdotp,&am_b,&am_RpSubb); // Rdotp-b = RpSubb
+ 1285              		.loc 1 206 9 is_stmt 1 view .LVU322
+ 206:Application/stewart.cpp ****         arm_mat_sub_f32(&am_Rdotp,&am_b,&am_RpSubb); // Rdotp-b = RpSubb
+ 1286              		.loc 1 206 24 is_stmt 0 view .LVU323
+ 1287 0084 07AA     		add	r2, sp, #28
+ 1288 0086 03A9     		add	r1, sp, #12
+ 1289 0088 05A8     		add	r0, sp, #20
+ 1290 008a FFF7FEFF 		bl	arm_mat_sub_f32
+ 1291              	.LVL90:
+ 207:Application/stewart.cpp ****         arm_mat_add_f32(&am_T,&am_RpSubb,&am_lengthVec); // T+RpSubb = lengthVec
+ 1292              		.loc 1 207 9 is_stmt 1 view .LVU324
+ 207:Application/stewart.cpp ****         arm_mat_add_f32(&am_T,&am_RpSubb,&am_lengthVec); // T+RpSubb = lengthVec
+ 1293              		.loc 1 207 24 is_stmt 0 view .LVU325
+ 1294 008e 09AA     		add	r2, sp, #36
+ 1295 0090 07A9     		add	r1, sp, #28
+ 1296 0092 14A8     		add	r0, sp, #80
+ 1297 0094 FFF7FEFF 		bl	arm_mat_add_f32
+ 1298              	.LVL91:
+ 210:Application/stewart.cpp ****         lengths[i] = calcNorm(lengthVec);
+ 1299              		.loc 1 210 9 is_stmt 1 view .LVU326
+ 210:Application/stewart.cpp ****         lengths[i] = calcNorm(lengthVec);
+ 1300              		.loc 1 210 30 is_stmt 0 view .LVU327
+ 1301 0098 9DED110A 		vldr.32	s0, [sp, #68]
+ 1302 009c DDED120A 		vldr.32	s1, [sp, #72]
+ 1303 00a0 9DED131A 		vldr.32	s2, [sp, #76]
+ 1304 00a4 4046     		mov	r0, r8
+ 1305 00a6 FFF7FEFF 		bl	_ZN11StewartImpl8calcNormESt5arrayIfLj3EE
+ 1306              	.LVL92:
+ 1307              	.LBB327:
+ 1308              	.LBI327:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 1309              		.loc 4 200 7 is_stmt 1 view .LVU328
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 1310              		.loc 4 200 7 is_stmt 0 view .LVU329
+ 1311              	.LBE327:
+ 210:Application/stewart.cpp ****         lengths[i] = calcNorm(lengthVec);
+ 1312              		.loc 1 210 20 discriminator 1 view .LVU330
+ 1313 00aa 07EB8403 		add	r3, r7, r4, lsl #2
+ 1314 00ae 83ED000A 		vstr.32	s0, [r3]
+ 1315              	.LBE323:
+ 179:Application/stewart.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 1316              		.loc 1 179 5 is_stmt 1 discriminator 2 view .LVU331
+ 1317 00b2 0134     		adds	r4, r4, #1
+ 1318              	.LVL93:
+ 1319              	.L41:
+ 179:Application/stewart.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 1320              		.loc 1 179 23 discriminator 1 view .LVU332
+ 1321 00b4 052C     		cmp	r4, #5
+ 1322 00b6 BADD     		ble	.L42
+ARM GAS  /tmp/ccRQrS5M.s 			page 47
+
+
+ 1323              	.LBE322:
+ 212:Application/stewart.cpp ****     return lengths;
+ 1324              		.loc 1 212 5 view .LVU333
+ 213:Application/stewart.cpp **** }
+ 1325              		.loc 1 213 1 is_stmt 0 view .LVU334
+ 1326 00b8 3846     		mov	r0, r7
+ 1327 00ba 18B0     		add	sp, sp, #96
+ 1328              		.cfi_def_cfa_offset 32
+ 1329              		@ sp needed
+ 1330 00bc BDE8F041 		pop	{r4, r5, r6, r7, r8, lr}
+ 1331              		.cfi_restore 14
+ 1332              		.cfi_restore 8
+ 1333              		.cfi_restore 7
+ 1334              		.cfi_restore 6
+ 1335              		.cfi_restore 5
+ 1336              		.cfi_restore 4
+ 1337              		.cfi_def_cfa_offset 8
+ 1338              	.LVL94:
+ 213:Application/stewart.cpp **** }
+ 1339              		.loc 1 213 1 view .LVU335
+ 1340 00c0 02B0     		add	sp, sp, #8
+ 1341              		.cfi_def_cfa_offset 0
+ 1342 00c2 7047     		bx	lr
+ 1343              	.L45:
+ 1344              		.align	2
+ 1345              	.L44:
+ 1346 00c4 00000000 		.word	_ZL13VECTOR_T_DATA
+ 1347 00c8 00000000 		.word	_ZL13MATRIX_p_DATA
+ 1348 00cc 00000000 		.word	_ZL13MATRIX_b_DATA
+ 1349              		.cfi_endproc
+ 1350              	.LFE2710:
+ 1351              		.fnend
+ 1353              		.section	.text._ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE,"ax",%progbits
+ 1354              		.align	1
+ 1355              		.global	_ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE
+ 1356              		.syntax unified
+ 1357              		.thumb
+ 1358              		.thumb_func
+ 1360              	_ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE:
+ 1361              		.fnstart
+ 1362              	.LVL95:
+ 1363              	.LFB2708:
+ 105:Application/stewart.cpp **** fArr6 StewartImpl::xfmLinPos(fArr3 rpy) {
+ 1364              		.loc 1 105 41 is_stmt 1 view -0
+ 1365              		.cfi_startproc
+ 1366              		@ args = 0, pretend = 0, frame = 56
+ 1367              		@ frame_needed = 0, uses_anonymous_args = 0
+ 105:Application/stewart.cpp **** fArr6 StewartImpl::xfmLinPos(fArr3 rpy) {
+ 1368              		.loc 1 105 41 is_stmt 0 view .LVU337
+ 1369 0000 70B5     		push	{r4, r5, r6, lr}
+ 1370              		.save {r4, r5, r6, lr}
+ 1371              		.cfi_def_cfa_offset 16
+ 1372              		.cfi_offset 4, -16
+ 1373              		.cfi_offset 5, -12
+ 1374              		.cfi_offset 6, -8
+ 1375              		.cfi_offset 14, -4
+ 1376              		.pad #88
+ARM GAS  /tmp/ccRQrS5M.s 			page 48
+
+
+ 1377 0002 96B0     		sub	sp, sp, #88
+ 1378              		.cfi_def_cfa_offset 104
+ 1379 0004 0446     		mov	r4, r0
+ 1380 0006 0D46     		mov	r5, r1
+ 1381 0008 8DED090A 		vstr.32	s0, [sp, #36]
+ 1382 000c CDED0A0A 		vstr.32	s1, [sp, #40]
+ 1383 0010 8DED0B1A 		vstr.32	s2, [sp, #44]
+ 106:Application/stewart.cpp ****     mtx3D rotationMtx = calcRotationMtx(rpy);
+ 1384              		.loc 1 106 5 is_stmt 1 view .LVU338
+ 106:Application/stewart.cpp ****     mtx3D rotationMtx = calcRotationMtx(rpy);
+ 1385              		.loc 1 106 40 is_stmt 0 view .LVU339
+ 1386 0014 0DAE     		add	r6, sp, #52
+ 1387 0016 3046     		mov	r0, r6
+ 1388              	.LVL96:
+ 106:Application/stewart.cpp ****     mtx3D rotationMtx = calcRotationMtx(rpy);
+ 1389              		.loc 1 106 40 view .LVU340
+ 1390 0018 FFF7FEFF 		bl	_ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE
+ 1391              	.LVL97:
+ 107:Application/stewart.cpp ****     fArr6 cylinderPos = calcCylinderPos(rotationMtx);
+ 1392              		.loc 1 107 5 is_stmt 1 view .LVU341
+ 107:Application/stewart.cpp ****     fArr6 cylinderPos = calcCylinderPos(rotationMtx);
+ 1393              		.loc 1 107 40 is_stmt 0 view .LVU342
+ 1394 001c EC46     		mov	ip, sp
+ 1395 001e 0DF13C0E 		add	lr, sp, #60
+ 1396 0022 BEE80F00 		ldmia	lr!, {r0, r1, r2, r3}
+ 1397 0026 ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
+ 1398 002a 9EE80700 		ldm	lr, {r0, r1, r2}
+ 1399 002e 8CE80700 		stm	ip, {r0, r1, r2}
+ 1400 0032 96E80C00 		ldm	r6, {r2, r3}
+ 1401 0036 2946     		mov	r1, r5
+ 1402 0038 2046     		mov	r0, r4
+ 1403 003a FFF7FEFF 		bl	_ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE
+ 1404              	.LVL98:
+ 108:Application/stewart.cpp ****     return cylinderPos;
+ 1405              		.loc 1 108 5 is_stmt 1 view .LVU343
+ 109:Application/stewart.cpp **** }
+ 1406              		.loc 1 109 1 is_stmt 0 view .LVU344
+ 1407 003e 2046     		mov	r0, r4
+ 1408 0040 16B0     		add	sp, sp, #88
+ 1409              		.cfi_def_cfa_offset 16
+ 1410              		@ sp needed
+ 1411 0042 70BD     		pop	{r4, r5, r6, pc}
+ 109:Application/stewart.cpp **** }
+ 1412              		.loc 1 109 1 view .LVU345
+ 1413              		.cfi_endproc
+ 1414              	.LFE2708:
+ 1415              		.fnend
+ 1417              		.section	.text._ZN7Stewart9xfmLinPosESt5arrayIfLj3EE,"ax",%progbits
+ 1418              		.align	1
+ 1419              		.global	_ZN7Stewart9xfmLinPosESt5arrayIfLj3EE
+ 1420              		.syntax unified
+ 1421              		.thumb
+ 1422              		.thumb_func
+ 1424              	_ZN7Stewart9xfmLinPosESt5arrayIfLj3EE:
+ 1425              		.fnstart
+ 1426              	.LVL99:
+ 1427              	.LFB2701:
+ARM GAS  /tmp/ccRQrS5M.s 			page 49
+
+
+  83:Application/stewart.cpp **** fArr6 Stewart::xfmLinPos(fArr3 rpy) {
+ 1428              		.loc 1 83 37 is_stmt 1 view -0
+ 1429              		.cfi_startproc
+ 1430              		@ args = 0, pretend = 0, frame = 16
+ 1431              		@ frame_needed = 0, uses_anonymous_args = 0
+  83:Application/stewart.cpp **** fArr6 Stewart::xfmLinPos(fArr3 rpy) {
+ 1432              		.loc 1 83 37 is_stmt 0 view .LVU347
+ 1433 0000 10B5     		push	{r4, lr}
+ 1434              		.save {r4, lr}
+ 1435              		.cfi_def_cfa_offset 8
+ 1436              		.cfi_offset 4, -8
+ 1437              		.cfi_offset 14, -4
+ 1438              		.pad #16
+ 1439 0002 84B0     		sub	sp, sp, #16
+ 1440              		.cfi_def_cfa_offset 24
+ 1441 0004 0446     		mov	r4, r0
+ 1442 0006 8DED010A 		vstr.32	s0, [sp, #4]
+ 1443 000a CDED020A 		vstr.32	s1, [sp, #8]
+ 1444 000e 8DED031A 		vstr.32	s2, [sp, #12]
+  84:Application/stewart.cpp ****     return impl->xfmLinPos(rpy);
+ 1445              		.loc 1 84 5 is_stmt 1 view .LVU348
+  84:Application/stewart.cpp ****     return impl->xfmLinPos(rpy);
+ 1446              		.loc 1 84 27 is_stmt 0 view .LVU349
+ 1447 0012 0968     		ldr	r1, [r1]
+ 1448              	.LVL100:
+  84:Application/stewart.cpp ****     return impl->xfmLinPos(rpy);
+ 1449              		.loc 1 84 27 view .LVU350
+ 1450 0014 FFF7FEFF 		bl	_ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE
+ 1451              	.LVL101:
+  85:Application/stewart.cpp **** }
+ 1452              		.loc 1 85 1 view .LVU351
+ 1453 0018 2046     		mov	r0, r4
+ 1454 001a 04B0     		add	sp, sp, #16
+ 1455              		.cfi_def_cfa_offset 8
+ 1456              		@ sp needed
+ 1457 001c 10BD     		pop	{r4, pc}
+  85:Application/stewart.cpp **** }
+ 1458              		.loc 1 85 1 view .LVU352
+ 1459              		.cfi_endproc
+ 1460              	.LFE2701:
+ 1461              		.fnend
+ 1463              		.section	.text._GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf,"ax",%progbits
+ 1464              		.align	1
+ 1465              		.syntax unified
+ 1466              		.thumb
+ 1467              		.thumb_func
+ 1469              	_GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf:
+ 1470              		.fnstart
+ 1471              	.LFB3390:
+ 1472              		.loc 1 232 1 is_stmt 1 view -0
+ 1473              		.cfi_startproc
+ 1474              		@ args = 0, pretend = 0, frame = 0
+ 1475              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1476 0000 08B5     		push	{r3, lr}
+ 1477              		.cfi_def_cfa_offset 8
+ 1478              		.cfi_offset 3, -8
+ 1479              		.cfi_offset 14, -4
+ARM GAS  /tmp/ccRQrS5M.s 			page 50
+
+
+ 1480              		.loc 1 232 1 is_stmt 0 view .LVU354
+ 1481 0002 FFF7FEFF 		bl	_Z41__static_initialization_and_destruction_0v
+ 1482              	.LVL102:
+ 1483 0006 08BD     		pop	{r3, pc}
+ 1484              		.cfi_endproc
+ 1485              	.LFE3390:
+ 1486              		.cantunwind
+ 1487              		.fnend
+ 1489              		.section	.init_array,"aw",%init_array
+ 1490              		.align	2
+ 1491 0000 00000000 		.word	_GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf(target1)
+ 1492              		.section	.bss._ZL19ROTATION_COMPONENTS,"aw",%nobits
+ 1493              		.align	2
+ 1496              	_ZL19ROTATION_COMPONENTS:
+ 1497 0000 00000000 		.space	27
+ 1497      00000000 
+ 1497      00000000 
+ 1497      00000000 
+ 1497      00000000 
+ 1498              		.section	.bss._ZL10ROTATION_Z,"aw",%nobits
+ 1499              		.align	2
+ 1502              	_ZL10ROTATION_Z:
+ 1503 0000 00000000 		.space	9
+ 1503      00000000 
+ 1503      00
+ 1504              		.section	.bss._ZL10ROTATION_Y,"aw",%nobits
+ 1505              		.align	2
+ 1508              	_ZL10ROTATION_Y:
+ 1509 0000 00000000 		.space	9
+ 1509      00000000 
+ 1509      00
+ 1510              		.section	.bss._ZL10ROTATION_X,"aw",%nobits
+ 1511              		.align	2
+ 1514              	_ZL10ROTATION_X:
+ 1515 0000 00000000 		.space	9
+ 1515      00000000 
+ 1515      00
+ 1516              		.section	.rodata._ZL13VECTOR_T_DATA,"a"
+ 1517              		.align	2
+ 1520              	_ZL13VECTOR_T_DATA:
+ 1521 0000 00000000 		.word	0
+ 1522 0004 00000000 		.word	0
+ 1523 0008 0000B841 		.word	1102577664
+ 1524              		.section	.rodata._ZL13MATRIX_p_DATA,"a"
+ 1525              		.align	2
+ 1528              	_ZL13MATRIX_p_DATA:
+ 1529 0000 9A9901C1 		.word	-1056859750
+ 1530 0004 7B14D640 		.word	1087771771
+ 1531 0008 00000000 		.word	0
+ 1532 000c 9A990141 		.word	1090623898
+ 1533 0010 7B14D640 		.word	1087771771
+ 1534 0014 00000000 		.word	0
+ 1535 0018 A4701D41 		.word	1092448420
+ 1536 001c 48E16A40 		.word	1080746312
+ 1537 0020 00000000 		.word	0
+ 1538 0024 52B8DE3F 		.word	1071560786
+ 1539 0028 9A9925C1 		.word	-1054500454
+ARM GAS  /tmp/ccRQrS5M.s 			page 51
+
+
+ 1540 002c 00000000 		.word	0
+ 1541 0030 52B8DEBF 		.word	-1075922862
+ 1542 0034 9A9925C1 		.word	-1054500454
+ 1543 0038 00000000 		.word	0
+ 1544 003c A4701DC1 		.word	-1055035228
+ 1545 0040 48E16A40 		.word	1080746312
+ 1546 0044 00000000 		.word	0
+ 1547              		.section	.rodata._ZL13MATRIX_b_DATA,"a"
+ 1548              		.align	2
+ 1551              	_ZL13MATRIX_b_DATA:
+ 1552 0000 0000E0BF 		.word	-1075838976
+ 1553 0004 7B144A41 		.word	1095373947
+ 1554 0008 00000000 		.word	0
+ 1555 000c 0000E03F 		.word	1071644672
+ 1556 0010 7B144A41 		.word	1095373947
+ 1557 0014 00000000 		.word	0
+ 1558 0018 C3F53C41 		.word	1094514115
+ 1559 001c 9A9999C0 		.word	-1063675494
+ 1560 0020 00000000 		.word	0
+ 1561 0024 C3F52041 		.word	1092679107
+ 1562 0028 5C8FFAC0 		.word	-1057321124
+ 1563 002c 00000000 		.word	0
+ 1564 0030 C3F520C1 		.word	-1054804541
+ 1565 0034 5C8FFAC0 		.word	-1057321124
+ 1566 0038 00000000 		.word	0
+ 1567 003c C3F53CC1 		.word	-1052969533
+ 1568 0040 9A9999C0 		.word	-1063675494
+ 1569 0044 00000000 		.word	0
+ 1570              		.text
+ 1571              	.Letext0:
+ 1572              		.file 5 "/usr/arm-none-eabi/include/c++/13.2.0/type_traits"
+ 1573              		.file 6 "/usr/arm-none-eabi/include/c++/13.2.0/debug/debug.h"
+ 1574              		.file 7 "/usr/arm-none-eabi/include/c++/13.2.0/bits/std_abs.h"
+ 1575              		.file 8 "/usr/arm-none-eabi/include/c++/13.2.0/cstdint"
+ 1576              		.file 9 "/usr/arm-none-eabi/include/c++/13.2.0/cwchar"
+ 1577              		.file 10 "/usr/arm-none-eabi/include/c++/13.2.0/bits/exception_ptr.h"
+ 1578              		.file 11 "/usr/arm-none-eabi/include/c++/13.2.0/arm-none-eabi/thumb/v7e-m+fp/hard/bits/c++config.h
+ 1579              		.file 12 "/usr/arm-none-eabi/include/c++/13.2.0/clocale"
+ 1580              		.file 13 "/usr/arm-none-eabi/include/c++/13.2.0/cstdlib"
+ 1581              		.file 14 "/usr/arm-none-eabi/include/c++/13.2.0/cstdio"
+ 1582              		.file 15 "/usr/arm-none-eabi/include/c++/13.2.0/cstddef"
+ 1583              		.file 16 "/usr/arm-none-eabi/include/c++/13.2.0/cwctype"
+ 1584              		.file 17 "/usr/arm-none-eabi/include/c++/13.2.0/bits/charconv.h"
+ 1585              		.file 18 "/usr/arm-none-eabi/include/c++/13.2.0/bits/predefined_ops.h"
+ 1586              		.file 19 "/usr/lib/gcc/arm-none-eabi/13.2.0/include/stddef.h"
+ 1587              		.file 20 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1588              		.file 21 "/usr/arm-none-eabi/include/sys/_types.h"
+ 1589              		.file 22 "/usr/arm-none-eabi/include/sys/reent.h"
+ 1590              		.file 23 "/usr/arm-none-eabi/include/sys/lock.h"
+ 1591              		.file 24 "/usr/arm-none-eabi/include/math.h"
+ 1592              		.file 25 "/usr/arm-none-eabi/include/stdlib.h"
+ 1593              		.file 26 "/usr/arm-none-eabi/include/c++/13.2.0/math.h"
+ 1594              		.file 27 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1595              		.file 28 "/usr/arm-none-eabi/include/stdint.h"
+ 1596              		.file 29 "Drivers/CMSIS/DSP/Include/arm_math.h"
+ 1597              		.file 30 "/usr/lib/gcc/arm-none-eabi/13.2.0/include/stdarg.h"
+ 1598              		.file 31 "/usr/arm-none-eabi/include/wchar.h"
+ARM GAS  /tmp/ccRQrS5M.s 			page 52
+
+
+ 1599              		.file 32 "/usr/arm-none-eabi/include/locale.h"
+ 1600              		.file 33 "/usr/arm-none-eabi/include/stdio.h"
+ 1601              		.file 34 "/usr/arm-none-eabi/include/wctype.h"
+ 1602              		.file 35 "Application/Include/stewart.h"
+ 1603              		.file 36 "/usr/arm-none-eabi/include/c++/13.2.0/new"
+ 1604              		.file 37 "/usr/arm-none-eabi/include/c++/13.2.0/bits/memory_resource.h"
+ 1605              		.file 38 "/usr/arm-none-eabi/include/c++/13.2.0/system_error"
+ 1606              		.file 39 "<built-in>"
+ARM GAS  /tmp/ccRQrS5M.s 			page 53
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 stewart.cpp
+     /tmp/ccRQrS5M.s:21     .text._Z41__static_initialization_and_destruction_0v:00000000 $t
+     /tmp/ccRQrS5M.s:26     .text._Z41__static_initialization_and_destruction_0v:00000000 _Z41__static_initialization_and_destruction_0v
+     /tmp/ccRQrS5M.s:528    .text._Z41__static_initialization_and_destruction_0v:00000084 $d
+     /tmp/ccRQrS5M.s:1514   .bss._ZL10ROTATION_X:00000000 _ZL10ROTATION_X
+     /tmp/ccRQrS5M.s:1508   .bss._ZL10ROTATION_Y:00000000 _ZL10ROTATION_Y
+     /tmp/ccRQrS5M.s:1502   .bss._ZL10ROTATION_Z:00000000 _ZL10ROTATION_Z
+     /tmp/ccRQrS5M.s:1496   .bss._ZL19ROTATION_COMPONENTS:00000000 _ZL19ROTATION_COMPONENTS
+.ARM.exidx.text._Z41__static_initialization_and_destruction_0v:00000000 $d
+     /tmp/ccRQrS5M.s:538    .text._ZN11StewartImpl13performTrigOpE6trigOpf:00000000 $t
+     /tmp/ccRQrS5M.s:544    .text._ZN11StewartImpl13performTrigOpE6trigOpf:00000000 _ZN11StewartImpl13performTrigOpE6trigOpf
+     /tmp/ccRQrS5M.s:577    .text._ZN11StewartImpl13performTrigOpE6trigOpf:0000000e $d
+     /tmp/ccRQrS5M.s:702    .text._ZN11StewartImpl13performTrigOpE6trigOpf:00000058 $d
+.ARM.exidx.text._ZN11StewartImpl13performTrigOpE6trigOpf:00000000 $d
+     /tmp/ccRQrS5M.s:709    .text._ZN7StewartC2Ev:00000000 $t
+     /tmp/ccRQrS5M.s:715    .text._ZN7StewartC2Ev:00000000 _ZN7StewartC2Ev
+  .ARM.exidx.text._ZN7StewartC2Ev:00000000 $d
+     /tmp/ccRQrS5M.s:715    .text._ZN7StewartC2Ev:00000000 _ZN7StewartC1Ev
+     /tmp/ccRQrS5M.s:752    .text._ZN7StewartD2Ev:00000000 $t
+     /tmp/ccRQrS5M.s:758    .text._ZN7StewartD2Ev:00000000 _ZN7StewartD2Ev
+  .ARM.exidx.text._ZN7StewartD2Ev:00000000 $d
+     /tmp/ccRQrS5M.s:758    .text._ZN7StewartD2Ev:00000000 _ZN7StewartD1Ev
+     /tmp/ccRQrS5M.s:797    .text._ZN11StewartImplC2Ev:00000000 $t
+     /tmp/ccRQrS5M.s:803    .text._ZN11StewartImplC2Ev:00000000 _ZN11StewartImplC2Ev
+.ARM.exidx.text._ZN11StewartImplC2Ev:00000000 $d
+     /tmp/ccRQrS5M.s:803    .text._ZN11StewartImplC2Ev:00000000 _ZN11StewartImplC1Ev
+     /tmp/ccRQrS5M.s:822    .text._ZN11StewartImplD2Ev:00000000 $t
+     /tmp/ccRQrS5M.s:828    .text._ZN11StewartImplD2Ev:00000000 _ZN11StewartImplD2Ev
+.ARM.exidx.text._ZN11StewartImplD2Ev:00000000 $d
+     /tmp/ccRQrS5M.s:828    .text._ZN11StewartImplD2Ev:00000000 _ZN11StewartImplD1Ev
+     /tmp/ccRQrS5M.s:847    .text._ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE:00000000 $t
+     /tmp/ccRQrS5M.s:853    .text._ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE:00000000 _ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE
+     /tmp/ccRQrS5M.s:1060   .text._ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE:000000bc $d
+.ARM.exidx.text._ZN11StewartImpl15calcRotationMtxESt5arrayIfLj3EE:00000000 $d
+     /tmp/ccRQrS5M.s:1066   .text._ZN11StewartImpl8calcNormESt5arrayIfLj3EE:00000000 $t
+     /tmp/ccRQrS5M.s:1072   .text._ZN11StewartImpl8calcNormESt5arrayIfLj3EE:00000000 _ZN11StewartImpl8calcNormESt5arrayIfLj3EE
+.ARM.exidx.text._ZN11StewartImpl8calcNormESt5arrayIfLj3EE:00000000 $d
+     /tmp/ccRQrS5M.s:1134   .text._ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE:00000000 $t
+     /tmp/ccRQrS5M.s:1140   .text._ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE:00000000 _ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE
+     /tmp/ccRQrS5M.s:1346   .text._ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE:000000c4 $d
+     /tmp/ccRQrS5M.s:1520   .rodata._ZL13VECTOR_T_DATA:00000000 _ZL13VECTOR_T_DATA
+     /tmp/ccRQrS5M.s:1528   .rodata._ZL13MATRIX_p_DATA:00000000 _ZL13MATRIX_p_DATA
+     /tmp/ccRQrS5M.s:1551   .rodata._ZL13MATRIX_b_DATA:00000000 _ZL13MATRIX_b_DATA
+.ARM.exidx.text._ZN11StewartImpl15calcCylinderPosESt5arrayIfLj9EE:00000000 $d
+     /tmp/ccRQrS5M.s:1354   .text._ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE:00000000 $t
+     /tmp/ccRQrS5M.s:1360   .text._ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE:00000000 _ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE
+.ARM.exidx.text._ZN11StewartImpl9xfmLinPosESt5arrayIfLj3EE:00000000 $d
+     /tmp/ccRQrS5M.s:1418   .text._ZN7Stewart9xfmLinPosESt5arrayIfLj3EE:00000000 $t
+     /tmp/ccRQrS5M.s:1424   .text._ZN7Stewart9xfmLinPosESt5arrayIfLj3EE:00000000 _ZN7Stewart9xfmLinPosESt5arrayIfLj3EE
+.ARM.exidx.text._ZN7Stewart9xfmLinPosESt5arrayIfLj3EE:00000000 $d
+     /tmp/ccRQrS5M.s:1464   .text._GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf:00000000 $t
+     /tmp/ccRQrS5M.s:1469   .text._GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf:00000000 _GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf
+.ARM.exidx.text._GLOBAL__sub_I__ZN11StewartImpl13performTrigOpE6trigOpf:00000000 $d
+     /tmp/ccRQrS5M.s:1490   .init_array:00000000 $d
+     /tmp/ccRQrS5M.s:1493   .bss._ZL19ROTATION_COMPONENTS:00000000 $d
+     /tmp/ccRQrS5M.s:1499   .bss._ZL10ROTATION_Z:00000000 $d
+ARM GAS  /tmp/ccRQrS5M.s 			page 54
+
+
+     /tmp/ccRQrS5M.s:1505   .bss._ZL10ROTATION_Y:00000000 $d
+     /tmp/ccRQrS5M.s:1511   .bss._ZL10ROTATION_X:00000000 $d
+     /tmp/ccRQrS5M.s:1517   .rodata._ZL13VECTOR_T_DATA:00000000 $d
+     /tmp/ccRQrS5M.s:1525   .rodata._ZL13MATRIX_p_DATA:00000000 $d
+     /tmp/ccRQrS5M.s:1548   .rodata._ZL13MATRIX_b_DATA:00000000 $d
+     /tmp/ccRQrS5M.s:584    .text._ZN11StewartImpl13performTrigOpE6trigOpf:00000015 $d
+     /tmp/ccRQrS5M.s:584    .text._ZN11StewartImpl13performTrigOpE6trigOpf:00000016 $t
+
+UNDEFINED SYMBOLS
+cosf
+sinf
+__cxa_allocate_exception
+__cxa_throw
+_ZTIi
+__aeabi_unwind_cpp_pr0
+_Znwj
+_ZdlPvj
+arm_mat_init_f32
+arm_mat_mult_f32
+arm_power_f32
+sqrtf
+arm_mat_sub_f32
+arm_mat_add_f32

@@ -1,0 +1,260 @@
+ARM GAS  /tmp/cc1hL920.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"i2cInterf.cpp"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Intermediate/src/i2cInterf.cpp"
+  20              		.section	.text._ZN9i2cInterfC2Ev,"ax",%progbits
+  21              		.align	1
+  22              		.global	_ZN9i2cInterfC2Ev
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	_ZN9i2cInterfC2Ev:
+  28              		.fnstart
+  29              	.LVL0:
+  30              	.LFB131:
+   1:Intermediate/src/i2cInterf.cpp **** #include "i2cInterf.h"
+   2:Intermediate/src/i2cInterf.cpp **** #include "stm32f4xx_hal.h"
+   3:Intermediate/src/i2cInterf.cpp **** 
+   4:Intermediate/src/i2cInterf.cpp **** i2cInterf::i2cInterf() : hi2c(NULL), devAddr(0) {}
+  31              		.loc 1 4 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  36              	.LBB2:
+  37              		.loc 1 4 26 is_stmt 0 view .LVU1
+  38 0000 0022     		movs	r2, #0
+  39 0002 0260     		str	r2, [r0]
+  40              		.loc 1 4 38 view .LVU2
+  41 0004 0271     		strb	r2, [r0, #4]
+  42              	.LBE2:
+  43              		.loc 1 4 50 view .LVU3
+  44 0006 7047     		bx	lr
+  45              		.cfi_endproc
+  46              	.LFE131:
+  47              		.cantunwind
+  48              		.fnend
+  50              		.global	_ZN9i2cInterfC1Ev
+  51              		.thumb_set _ZN9i2cInterfC1Ev,_ZN9i2cInterfC2Ev
+  52              		.section	.text._ZN9i2cInterfC2ER17I2C_HandleTypeDefh,"ax",%progbits
+  53              		.align	1
+  54              		.global	_ZN9i2cInterfC2ER17I2C_HandleTypeDefh
+  55              		.syntax unified
+ARM GAS  /tmp/cc1hL920.s 			page 2
+
+
+  56              		.thumb
+  57              		.thumb_func
+  59              	_ZN9i2cInterfC2ER17I2C_HandleTypeDefh:
+  60              		.fnstart
+  61              	.LVL1:
+  62              	.LFB134:
+   5:Intermediate/src/i2cInterf.cpp **** i2cInterf::i2cInterf(I2C_HandleTypeDef &hi2c, uint8_t devAddr) : hi2c(&hi2c), devAddr(devAddr) {}
+  63              		.loc 1 5 1 is_stmt 1 view -0
+  64              		.cfi_startproc
+  65              		@ args = 0, pretend = 0, frame = 0
+  66              		@ frame_needed = 0, uses_anonymous_args = 0
+  67              		@ link register save eliminated.
+  68              	.LBB3:
+  69              		.loc 1 5 66 is_stmt 0 view .LVU5
+  70 0000 0160     		str	r1, [r0]
+  71              		.loc 1 5 79 view .LVU6
+  72 0002 0271     		strb	r2, [r0, #4]
+  73              	.LBE3:
+  74              		.loc 1 5 97 view .LVU7
+  75 0004 7047     		bx	lr
+  76              		.cfi_endproc
+  77              	.LFE134:
+  78              		.cantunwind
+  79              		.fnend
+  81              		.global	_ZN9i2cInterfC1ER17I2C_HandleTypeDefh
+  82              		.thumb_set _ZN9i2cInterfC1ER17I2C_HandleTypeDefh,_ZN9i2cInterfC2ER17I2C_HandleTypeDefh
+  83              		.section	.text._ZN9i2cInterf10getDevAddrEv,"ax",%progbits
+  84              		.align	1
+  85              		.global	_ZN9i2cInterf10getDevAddrEv
+  86              		.syntax unified
+  87              		.thumb
+  88              		.thumb_func
+  90              	_ZN9i2cInterf10getDevAddrEv:
+  91              		.fnstart
+  92              	.LVL2:
+  93              	.LFB136:
+   6:Intermediate/src/i2cInterf.cpp **** 
+   7:Intermediate/src/i2cInterf.cpp **** uint8_t i2cInterf::getDevAddr() {
+  94              		.loc 1 7 33 is_stmt 1 view -0
+  95              		.cfi_startproc
+  96              		@ args = 0, pretend = 0, frame = 0
+  97              		@ frame_needed = 0, uses_anonymous_args = 0
+  98              		@ link register save eliminated.
+   8:Intermediate/src/i2cInterf.cpp ****     return devAddr;
+  99              		.loc 1 8 5 view .LVU9
+   9:Intermediate/src/i2cInterf.cpp **** }
+ 100              		.loc 1 9 1 is_stmt 0 view .LVU10
+ 101 0000 0079     		ldrb	r0, [r0, #4]	@ zero_extendqisi2
+ 102              	.LVL3:
+ 103              		.loc 1 9 1 view .LVU11
+ 104 0002 7047     		bx	lr
+ 105              		.cfi_endproc
+ 106              	.LFE136:
+ 107              		.cantunwind
+ 108              		.fnend
+ 110              		.section	.text._ZN9i2cInterf5writeEPch,"ax",%progbits
+ 111              		.align	1
+ARM GAS  /tmp/cc1hL920.s 			page 3
+
+
+ 112              		.global	_ZN9i2cInterf5writeEPch
+ 113              		.syntax unified
+ 114              		.thumb
+ 115              		.thumb_func
+ 117              	_ZN9i2cInterf5writeEPch:
+ 118              		.fnstart
+ 119              	.LVL4:
+ 120              	.LFB137:
+  10:Intermediate/src/i2cInterf.cpp **** 
+  11:Intermediate/src/i2cInterf.cpp **** void i2cInterf::write(char * register_address, uint8_t length) {
+ 121              		.loc 1 11 64 is_stmt 1 view -0
+ 122              		.cfi_startproc
+ 123              		@ args = 0, pretend = 0, frame = 0
+ 124              		@ frame_needed = 0, uses_anonymous_args = 0
+ 125              		.loc 1 11 64 is_stmt 0 view .LVU13
+ 126 0000 00B5     		push	{lr}
+ 127              		.save {lr}
+ 128              		.cfi_def_cfa_offset 4
+ 129              		.cfi_offset 14, -4
+ 130              		.pad #12
+ 131 0002 83B0     		sub	sp, sp, #12
+ 132              		.cfi_def_cfa_offset 16
+ 133 0004 1346     		mov	r3, r2
+  12:Intermediate/src/i2cInterf.cpp ****     HAL_I2C_Master_Transmit(hi2c, this->devAddr,(unsigned char *)register_address, length,100);
+ 134              		.loc 1 12 5 is_stmt 1 view .LVU14
+ 135              		.loc 1 12 28 is_stmt 0 view .LVU15
+ 136 0006 6422     		movs	r2, #100
+ 137              	.LVL5:
+ 138              		.loc 1 12 28 view .LVU16
+ 139 0008 0092     		str	r2, [sp]
+ 140 000a 0A46     		mov	r2, r1
+ 141 000c 0179     		ldrb	r1, [r0, #4]	@ zero_extendqisi2
+ 142              	.LVL6:
+ 143              		.loc 1 12 28 view .LVU17
+ 144 000e 0068     		ldr	r0, [r0]
+ 145              	.LVL7:
+ 146              		.loc 1 12 28 view .LVU18
+ 147 0010 FFF7FEFF 		bl	HAL_I2C_Master_Transmit
+ 148              	.LVL8:
+  13:Intermediate/src/i2cInterf.cpp **** }
+ 149              		.loc 1 13 1 view .LVU19
+ 150 0014 03B0     		add	sp, sp, #12
+ 151              		.cfi_def_cfa_offset 4
+ 152              		@ sp needed
+ 153 0016 5DF804FB 		ldr	pc, [sp], #4
+ 154              		.cfi_endproc
+ 155              	.LFE137:
+ 156              		.fnend
+ 158              		.section	.text._ZN9i2cInterf4readEPch,"ax",%progbits
+ 159              		.align	1
+ 160              		.global	_ZN9i2cInterf4readEPch
+ 161              		.syntax unified
+ 162              		.thumb
+ 163              		.thumb_func
+ 165              	_ZN9i2cInterf4readEPch:
+ 166              		.fnstart
+ 167              	.LVL9:
+ARM GAS  /tmp/cc1hL920.s 			page 4
+
+
+ 168              	.LFB138:
+  14:Intermediate/src/i2cInterf.cpp **** 
+  15:Intermediate/src/i2cInterf.cpp **** void i2cInterf::read(char * data, uint8_t length) {
+ 169              		.loc 1 15 51 is_stmt 1 view -0
+ 170              		.cfi_startproc
+ 171              		@ args = 0, pretend = 0, frame = 0
+ 172              		@ frame_needed = 0, uses_anonymous_args = 0
+ 173              		.loc 1 15 51 is_stmt 0 view .LVU21
+ 174 0000 00B5     		push	{lr}
+ 175              		.save {lr}
+ 176              		.cfi_def_cfa_offset 4
+ 177              		.cfi_offset 14, -4
+ 178              		.pad #12
+ 179 0002 83B0     		sub	sp, sp, #12
+ 180              		.cfi_def_cfa_offset 16
+ 181 0004 1346     		mov	r3, r2
+  16:Intermediate/src/i2cInterf.cpp ****     HAL_I2C_Master_Receive(hi2c, this->devAddr,(unsigned char *)data, length,100);
+ 182              		.loc 1 16 5 is_stmt 1 view .LVU22
+ 183              		.loc 1 16 27 is_stmt 0 view .LVU23
+ 184 0006 6422     		movs	r2, #100
+ 185              	.LVL10:
+ 186              		.loc 1 16 27 view .LVU24
+ 187 0008 0092     		str	r2, [sp]
+ 188 000a 0A46     		mov	r2, r1
+ 189 000c 0179     		ldrb	r1, [r0, #4]	@ zero_extendqisi2
+ 190              	.LVL11:
+ 191              		.loc 1 16 27 view .LVU25
+ 192 000e 0068     		ldr	r0, [r0]
+ 193              	.LVL12:
+ 194              		.loc 1 16 27 view .LVU26
+ 195 0010 FFF7FEFF 		bl	HAL_I2C_Master_Receive
+ 196              	.LVL13:
+  17:Intermediate/src/i2cInterf.cpp **** }...
+ 197              		.loc 1 17 1 view .LVU27
+ 198 0014 03B0     		add	sp, sp, #12
+ 199              		.cfi_def_cfa_offset 4
+ 200              		@ sp needed
+ 201 0016 5DF804FB 		ldr	pc, [sp], #4
+ 202              		.cfi_endproc
+ 203              	.LFE138:
+ 204              		.fnend
+ 206              		.text
+ 207              	.Letext0:
+ 208              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 209              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 210              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h"
+ 211              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 212              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 213              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h"
+ 214              		.file 8 "Intermediate/include/i2cInterf.h"
+ARM GAS  /tmp/cc1hL920.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2cInterf.cpp
+     /tmp/cc1hL920.s:21     .text._ZN9i2cInterfC2Ev:00000000 $t
+     /tmp/cc1hL920.s:27     .text._ZN9i2cInterfC2Ev:00000000 _ZN9i2cInterfC2Ev
+.ARM.exidx.text._ZN9i2cInterfC2Ev:00000000 $d
+     /tmp/cc1hL920.s:27     .text._ZN9i2cInterfC2Ev:00000000 _ZN9i2cInterfC1Ev
+     /tmp/cc1hL920.s:53     .text._ZN9i2cInterfC2ER17I2C_HandleTypeDefh:00000000 $t
+     /tmp/cc1hL920.s:59     .text._ZN9i2cInterfC2ER17I2C_HandleTypeDefh:00000000 _ZN9i2cInterfC2ER17I2C_HandleTypeDefh
+.ARM.exidx.text._ZN9i2cInterfC2ER17I2C_HandleTypeDefh:00000000 $d
+     /tmp/cc1hL920.s:59     .text._ZN9i2cInterfC2ER17I2C_HandleTypeDefh:00000000 _ZN9i2cInterfC1ER17I2C_HandleTypeDefh
+     /tmp/cc1hL920.s:84     .text._ZN9i2cInterf10getDevAddrEv:00000000 $t
+     /tmp/cc1hL920.s:90     .text._ZN9i2cInterf10getDevAddrEv:00000000 _ZN9i2cInterf10getDevAddrEv
+.ARM.exidx.text._ZN9i2cInterf10getDevAddrEv:00000000 $d
+     /tmp/cc1hL920.s:111    .text._ZN9i2cInterf5writeEPch:00000000 $t
+     /tmp/cc1hL920.s:117    .text._ZN9i2cInterf5writeEPch:00000000 _ZN9i2cInterf5writeEPch
+.ARM.exidx.text._ZN9i2cInterf5writeEPch:00000000 $d
+     /tmp/cc1hL920.s:159    .text._ZN9i2cInterf4readEPch:00000000 $t
+     /tmp/cc1hL920.s:165    .text._ZN9i2cInterf4readEPch:00000000 _ZN9i2cInterf4readEPch
+.ARM.exidx.text._ZN9i2cInterf4readEPch:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_I2C_Master_Transmit
+__aeabi_unwind_cpp_pr0
+HAL_I2C_Master_Receive

@@ -1,0 +1,1631 @@
+ARM GAS  /tmp/ccq1G13O.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"distGovernor.cpp"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Application/distGovernor.cpp"
+  20              		.section	.text._Z41__static_initialization_and_destruction_0v,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	_Z41__static_initialization_and_destruction_0v:
+  27              		.fnstart
+  28              	.LFB2660:
+   1:Application/distGovernor.cpp **** #include "distGovernor.h"
+   2:Application/distGovernor.cpp **** 
+   3:Application/distGovernor.cpp **** 
+   4:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+   5:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+   7:Application/distGovernor.cpp ****     }
+   8:Application/distGovernor.cpp **** }
+   9:Application/distGovernor.cpp **** 
+  10:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c) {
+  11:Application/distGovernor.cpp ****     //I2C_HandleTypeDef &hi2c = NULL;
+  12:Application/distGovernor.cpp ****     byteArr6 sensorAddrs = sensor_addresses;
+  13:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+  14:Application/distGovernor.cpp **** }
+  15:Application/distGovernor.cpp **** 
+  16:Application/distGovernor.cpp **** fArr6 DistGov::readDistances() {
+  17:Application/distGovernor.cpp ****     fArr6 output;
+  18:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+  19:Application/distGovernor.cpp ****         output[i] = sensors[i]->readDistance();
+  20:Application/distGovernor.cpp ****     }
+  21:Application/distGovernor.cpp ****     return output;
+  22:Application/distGovernor.cpp **** }
+  23:Application/distGovernor.cpp **** 
+  24:Application/distGovernor.cpp **** void DistGov::e_fuse_run(uint8_t sensor, uint8_t new_address) {
+  25:Application/distGovernor.cpp ****     sensors[sensor]->e_fuse_run(new_address);
+  26:Application/distGovernor.cpp **** }
+  27:Application/distGovernor.cpp **** 
+  28:Application/distGovernor.cpp **** DistGov::DistGov(I2C_HandleTypeDef &hi2c) {
+  29:Application/distGovernor.cpp ****     init(hi2c);
+  30:Application/distGovernor.cpp **** }
+ARM GAS  /tmp/ccq1G13O.s 			page 2
+
+
+  31:Application/distGovernor.cpp **** 
+  32:Application/distGovernor.cpp **** DistGov::DistGov(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+  33:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+  34:Application/distGovernor.cpp **** }...
+  29              		.loc 1 34 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 30B5     		push	{r4, r5, lr}
+  34              		.cfi_def_cfa_offset 12
+  35              		.cfi_offset 4, -12
+  36              		.cfi_offset 5, -8
+  37              		.cfi_offset 14, -4
+  38              	.LVL0:
+  39              	.LBB125:
+  40              	.LBI125:
+  41              		.file 2 "Application/Include/matrixdefs.h"
+   1:Application/Include/matrixdefs.h **** 
+   2:Application/Include/matrixdefs.h **** #ifndef MATRIX_DEFS_H
+   3:Application/Include/matrixdefs.h **** #define MATRIX_DEFS_H
+   4:Application/Include/matrixdefs.h **** #include <cstdint>
+   5:Application/Include/matrixdefs.h **** #include <array>
+   6:Application/Include/matrixdefs.h **** #include <tuple>
+   7:Application/Include/matrixdefs.h **** #include <iostream>
+   8:Application/Include/matrixdefs.h **** 
+   9:Application/Include/matrixdefs.h **** #define NO_CYLS 6 // One output per cylinder representing linear position
+  10:Application/Include/matrixdefs.h **** #define NO_DOF 3 // Pitch, Roll, and Yaw; calculated from transformation matrix
+  11:Application/Include/matrixdefs.h **** 
+  12:Application/Include/matrixdefs.h **** // Describes a trig operation to be performed. ZERO and ONE simply indicate that the function shoul
+  13:Application/Include/matrixdefs.h **** // 0 or 1.
+  14:Application/Include/matrixdefs.h **** typedef enum trigEnum { NEGSIN=-3, NEGCOS=-2, NEGONE=-1 ,ZERO=0, ONE=1, COS=2, SIN=3 } trigEnum;
+  15:Application/Include/matrixdefs.h **** 
+  16:Application/Include/matrixdefs.h **** // Implements a union of int and trigEnum, allowing the implicit conversion seen in the rotation fu
+  17:Application/Include/matrixdefs.h **** // This is done to make checking the function matricies at a glance a LOT easier.
+  18:Application/Include/matrixdefs.h **** typedef struct trigOp {
+  19:Application/Include/matrixdefs.h ****     union {
+  20:Application/Include/matrixdefs.h ****     int8_t value;
+  21:Application/Include/matrixdefs.h ****     trigEnum enumeration;
+  22:Application/Include/matrixdefs.h ****     };
+  23:Application/Include/matrixdefs.h **** 
+  24:Application/Include/matrixdefs.h ****   operator int() const{
+  25:Application/Include/matrixdefs.h ****     return value;
+  26:Application/Include/matrixdefs.h ****   }
+  27:Application/Include/matrixdefs.h **** 
+  28:Application/Include/matrixdefs.h ****   operator trigEnum() const{
+  29:Application/Include/matrixdefs.h ****     return enumeration;
+  30:Application/Include/matrixdefs.h ****   }
+  31:Application/Include/matrixdefs.h **** 
+  32:Application/Include/matrixdefs.h ****   trigOp& operator=(int i){
+  33:Application/Include/matrixdefs.h ****     this->set(i);
+  34:Application/Include/matrixdefs.h ****     return *this;
+  35:Application/Include/matrixdefs.h ****   }
+  36:Application/Include/matrixdefs.h **** 
+  37:Application/Include/matrixdefs.h ****   trigOp& operator=(trigEnum e){
+  38:Application/Include/matrixdefs.h ****     this->set(e);
+  39:Application/Include/matrixdefs.h ****     return *this;
+  40:Application/Include/matrixdefs.h ****   }
+ARM GAS  /tmp/ccq1G13O.s 			page 3
+
+
+  41:Application/Include/matrixdefs.h **** 
+  42:Application/Include/matrixdefs.h ****   void set(int i){
+  43:Application/Include/matrixdefs.h ****     value = i;
+  44:Application/Include/matrixdefs.h ****   }
+  45:Application/Include/matrixdefs.h ****   void set(trigEnum e){
+  46:Application/Include/matrixdefs.h ****     enumeration = e;
+  47:Application/Include/matrixdefs.h ****   }
+  48:Application/Include/matrixdefs.h **** 
+  49:Application/Include/matrixdefs.h ****   trigOp(int i){
+  42              		.loc 2 49 3 view .LVU1
+  43              	.LBB126:
+  44              	.LBB127:
+  45              	.LBI127:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  46              		.loc 2 42 8 view .LVU2
+  47              	.LBB128:
+  43:Application/Include/matrixdefs.h ****   }
+  48              		.loc 2 43 5 view .LVU3
+  43:Application/Include/matrixdefs.h ****   }
+  49              		.loc 2 43 11 is_stmt 0 view .LVU4
+  50 0002 204A     		ldr	r2, .L3
+  51 0004 0125     		movs	r5, #1
+  52 0006 1570     		strb	r5, [r2]
+  53              	.LVL1:
+  43:Application/Include/matrixdefs.h ****   }
+  54              		.loc 2 43 11 view .LVU5
+  55              	.LBE128:
+  56              	.LBE127:
+  57              	.LBE126:
+  58              	.LBE125:
+  59              	.LBB129:
+  60              	.LBI129:
+  61              		.loc 2 49 3 is_stmt 1 view .LVU6
+  62              	.LBB130:
+  63              	.LBB131:
+  64              	.LBI131:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  65              		.loc 2 42 8 view .LVU7
+  66              	.LBB132:
+  43:Application/Include/matrixdefs.h ****   }
+  67              		.loc 2 43 5 view .LVU8
+  43:Application/Include/matrixdefs.h ****   }
+  68              		.loc 2 43 11 is_stmt 0 view .LVU9
+  69 0008 0021     		movs	r1, #0
+  70 000a 5170     		strb	r1, [r2, #1]
+  71              	.LVL2:
+  43:Application/Include/matrixdefs.h ****   }
+  72              		.loc 2 43 11 view .LVU10
+  73              	.LBE132:
+  74              	.LBE131:
+  75              	.LBE130:
+  76              	.LBE129:
+  77              	.LBB133:
+  78              	.LBI133:
+  79              		.loc 2 49 3 is_stmt 1 view .LVU11
+  80              	.LBB134:
+  81              	.LBB135:
+ARM GAS  /tmp/ccq1G13O.s 			page 4
+
+
+  82              	.LBI135:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  83              		.loc 2 42 8 view .LVU12
+  84              	.LBB136:
+  43:Application/Include/matrixdefs.h ****   }
+  85              		.loc 2 43 5 view .LVU13
+  43:Application/Include/matrixdefs.h ****   }
+  86              		.loc 2 43 11 is_stmt 0 view .LVU14
+  87 000c 9170     		strb	r1, [r2, #2]
+  88              	.LVL3:
+  43:Application/Include/matrixdefs.h ****   }
+  89              		.loc 2 43 11 view .LVU15
+  90              	.LBE136:
+  91              	.LBE135:
+  92              	.LBE134:
+  93              	.LBE133:
+  94              	.LBB137:
+  95              	.LBI137:
+  96              		.loc 2 49 3 is_stmt 1 view .LVU16
+  97              	.LBB138:
+  98              	.LBB139:
+  99              	.LBI139:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 100              		.loc 2 42 8 view .LVU17
+ 101              	.LBB140:
+  43:Application/Include/matrixdefs.h ****   }
+ 102              		.loc 2 43 5 view .LVU18
+  43:Application/Include/matrixdefs.h ****   }
+ 103              		.loc 2 43 11 is_stmt 0 view .LVU19
+ 104 000e D170     		strb	r1, [r2, #3]
+ 105              	.LVL4:
+  43:Application/Include/matrixdefs.h ****   }
+ 106              		.loc 2 43 11 view .LVU20
+ 107              	.LBE140:
+ 108              	.LBE139:
+ 109              	.LBE138:
+ 110              	.LBE137:
+ 111              	.LBB141:
+ 112              	.LBI141:
+ 113              		.loc 2 49 3 is_stmt 1 view .LVU21
+ 114              	.LBB142:
+ 115              	.LBB143:
+ 116              	.LBI143:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 117              		.loc 2 42 8 view .LVU22
+ 118              	.LBB144:
+  43:Application/Include/matrixdefs.h ****   }
+ 119              		.loc 2 43 5 view .LVU23
+  43:Application/Include/matrixdefs.h ****   }
+ 120              		.loc 2 43 11 is_stmt 0 view .LVU24
+ 121 0010 0220     		movs	r0, #2
+ 122 0012 1071     		strb	r0, [r2, #4]
+ 123              	.LVL5:
+  43:Application/Include/matrixdefs.h ****   }
+ 124              		.loc 2 43 11 view .LVU25
+ 125              	.LBE144:
+ 126              	.LBE143:
+ARM GAS  /tmp/ccq1G13O.s 			page 5
+
+
+ 127              	.LBE142:
+ 128              	.LBE141:
+ 129              	.LBB145:
+ 130              	.LBI145:
+ 131              		.loc 2 49 3 is_stmt 1 view .LVU26
+ 132              	.LBB146:
+ 133              	.LBB147:
+ 134              	.LBI147:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 135              		.loc 2 42 8 view .LVU27
+ 136              	.LBB148:
+  43:Application/Include/matrixdefs.h ****   }
+ 137              		.loc 2 43 5 view .LVU28
+  43:Application/Include/matrixdefs.h ****   }
+ 138              		.loc 2 43 11 is_stmt 0 view .LVU29
+ 139 0014 4FF0FD0E 		mov	lr, #253
+ 140 0018 82F805E0 		strb	lr, [r2, #5]
+ 141              	.LVL6:
+  43:Application/Include/matrixdefs.h ****   }
+ 142              		.loc 2 43 11 view .LVU30
+ 143              	.LBE148:
+ 144              	.LBE147:
+ 145              	.LBE146:
+ 146              	.LBE145:
+ 147              	.LBB149:
+ 148              	.LBI149:
+ 149              		.loc 2 49 3 is_stmt 1 view .LVU31
+ 150              	.LBB150:
+ 151              	.LBB151:
+ 152              	.LBI151:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 153              		.loc 2 42 8 view .LVU32
+ 154              	.LBB152:
+  43:Application/Include/matrixdefs.h ****   }
+ 155              		.loc 2 43 5 view .LVU33
+  43:Application/Include/matrixdefs.h ****   }
+ 156              		.loc 2 43 11 is_stmt 0 view .LVU34
+ 157 001c 9171     		strb	r1, [r2, #6]
+ 158              	.LVL7:
+  43:Application/Include/matrixdefs.h ****   }
+ 159              		.loc 2 43 11 view .LVU35
+ 160              	.LBE152:
+ 161              	.LBE151:
+ 162              	.LBE150:
+ 163              	.LBE149:
+ 164              	.LBB153:
+ 165              	.LBI153:
+ 166              		.loc 2 49 3 is_stmt 1 view .LVU36
+ 167              	.LBB154:
+ 168              	.LBB155:
+ 169              	.LBI155:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 170              		.loc 2 42 8 view .LVU37
+ 171              	.LBB156:
+  43:Application/Include/matrixdefs.h ****   }
+ 172              		.loc 2 43 5 view .LVU38
+  43:Application/Include/matrixdefs.h ****   }
+ARM GAS  /tmp/ccq1G13O.s 			page 6
+
+
+ 173              		.loc 2 43 11 is_stmt 0 view .LVU39
+ 174 001e 4FF0030C 		mov	ip, #3
+ 175 0022 82F807C0 		strb	ip, [r2, #7]
+ 176              	.LVL8:
+  43:Application/Include/matrixdefs.h ****   }
+ 177              		.loc 2 43 11 view .LVU40
+ 178              	.LBE156:
+ 179              	.LBE155:
+ 180              	.LBE154:
+ 181              	.LBE153:
+ 182              	.LBB157:
+ 183              	.LBI157:
+ 184              		.loc 2 49 3 is_stmt 1 view .LVU41
+ 185              	.LBB158:
+ 186              	.LBB159:
+ 187              	.LBI159:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 188              		.loc 2 42 8 view .LVU42
+ 189              	.LBB160:
+  43:Application/Include/matrixdefs.h ****   }
+ 190              		.loc 2 43 5 view .LVU43
+  43:Application/Include/matrixdefs.h ****   }
+ 191              		.loc 2 43 11 is_stmt 0 view .LVU44
+ 192 0026 1072     		strb	r0, [r2, #8]
+ 193              	.LVL9:
+  43:Application/Include/matrixdefs.h ****   }
+ 194              		.loc 2 43 11 view .LVU45
+ 195              	.LBE160:
+ 196              	.LBE159:
+ 197              	.LBE158:
+ 198              	.LBE157:
+ 199              	.LBB161:
+ 200              	.LBI161:
+ 201              		.loc 2 49 3 is_stmt 1 view .LVU46
+ 202              	.LBB162:
+ 203              	.LBB163:
+ 204              	.LBI163:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 205              		.loc 2 42 8 view .LVU47
+ 206              	.LBB164:
+  43:Application/Include/matrixdefs.h ****   }
+ 207              		.loc 2 43 5 view .LVU48
+  43:Application/Include/matrixdefs.h ****   }
+ 208              		.loc 2 43 11 is_stmt 0 view .LVU49
+ 209 0028 174C     		ldr	r4, .L3+4
+ 210 002a 2070     		strb	r0, [r4]
+ 211              	.LVL10:
+  43:Application/Include/matrixdefs.h ****   }
+ 212              		.loc 2 43 11 view .LVU50
+ 213              	.LBE164:
+ 214              	.LBE163:
+ 215              	.LBE162:
+ 216              	.LBE161:
+ 217              	.LBB165:
+ 218              	.LBI165:
+ 219              		.loc 2 49 3 is_stmt 1 view .LVU51
+ 220              	.LBB166:
+ARM GAS  /tmp/ccq1G13O.s 			page 7
+
+
+ 221              	.LBB167:
+ 222              	.LBI167:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 223              		.loc 2 42 8 view .LVU52
+ 224              	.LBB168:
+  43:Application/Include/matrixdefs.h ****   }
+ 225              		.loc 2 43 5 view .LVU53
+  43:Application/Include/matrixdefs.h ****   }
+ 226              		.loc 2 43 11 is_stmt 0 view .LVU54
+ 227 002c 6170     		strb	r1, [r4, #1]
+ 228              	.LVL11:
+  43:Application/Include/matrixdefs.h ****   }
+ 229              		.loc 2 43 11 view .LVU55
+ 230              	.LBE168:
+ 231              	.LBE167:
+ 232              	.LBE166:
+ 233              	.LBE165:
+ 234              	.LBB169:
+ 235              	.LBI169:
+ 236              		.loc 2 49 3 is_stmt 1 view .LVU56
+ 237              	.LBB170:
+ 238              	.LBB171:
+ 239              	.LBI171:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 240              		.loc 2 42 8 view .LVU57
+ 241              	.LBB172:
+  43:Application/Include/matrixdefs.h ****   }
+ 242              		.loc 2 43 5 view .LVU58
+  43:Application/Include/matrixdefs.h ****   }
+ 243              		.loc 2 43 11 is_stmt 0 view .LVU59
+ 244 002e 84F802C0 		strb	ip, [r4, #2]
+ 245              	.LVL12:
+  43:Application/Include/matrixdefs.h ****   }
+ 246              		.loc 2 43 11 view .LVU60
+ 247              	.LBE172:
+ 248              	.LBE171:
+ 249              	.LBE170:
+ 250              	.LBE169:
+ 251              	.LBB173:
+ 252              	.LBI173:
+ 253              		.loc 2 49 3 is_stmt 1 view .LVU61
+ 254              	.LBB174:
+ 255              	.LBB175:
+ 256              	.LBI175:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 257              		.loc 2 42 8 view .LVU62
+ 258              	.LBB176:
+  43:Application/Include/matrixdefs.h ****   }
+ 259              		.loc 2 43 5 view .LVU63
+  43:Application/Include/matrixdefs.h ****   }
+ 260              		.loc 2 43 11 is_stmt 0 view .LVU64
+ 261 0032 E170     		strb	r1, [r4, #3]
+ 262              	.LVL13:
+  43:Application/Include/matrixdefs.h ****   }
+ 263              		.loc 2 43 11 view .LVU65
+ 264              	.LBE176:
+ 265              	.LBE175:
+ARM GAS  /tmp/ccq1G13O.s 			page 8
+
+
+ 266              	.LBE174:
+ 267              	.LBE173:
+ 268              	.LBB177:
+ 269              	.LBI177:
+ 270              		.loc 2 49 3 is_stmt 1 view .LVU66
+ 271              	.LBB178:
+ 272              	.LBB179:
+ 273              	.LBI179:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 274              		.loc 2 42 8 view .LVU67
+ 275              	.LBB180:
+  43:Application/Include/matrixdefs.h ****   }
+ 276              		.loc 2 43 5 view .LVU68
+  43:Application/Include/matrixdefs.h ****   }
+ 277              		.loc 2 43 11 is_stmt 0 view .LVU69
+ 278 0034 2571     		strb	r5, [r4, #4]
+ 279              	.LVL14:
+  43:Application/Include/matrixdefs.h ****   }
+ 280              		.loc 2 43 11 view .LVU70
+ 281              	.LBE180:
+ 282              	.LBE179:
+ 283              	.LBE178:
+ 284              	.LBE177:
+ 285              	.LBB181:
+ 286              	.LBI181:
+ 287              		.loc 2 49 3 is_stmt 1 view .LVU71
+ 288              	.LBB182:
+ 289              	.LBB183:
+ 290              	.LBI183:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 291              		.loc 2 42 8 view .LVU72
+ 292              	.LBB184:
+  43:Application/Include/matrixdefs.h ****   }
+ 293              		.loc 2 43 5 view .LVU73
+  43:Application/Include/matrixdefs.h ****   }
+ 294              		.loc 2 43 11 is_stmt 0 view .LVU74
+ 295 0036 6171     		strb	r1, [r4, #5]
+ 296              	.LVL15:
+  43:Application/Include/matrixdefs.h ****   }
+ 297              		.loc 2 43 11 view .LVU75
+ 298              	.LBE184:
+ 299              	.LBE183:
+ 300              	.LBE182:
+ 301              	.LBE181:
+ 302              	.LBB185:
+ 303              	.LBI185:
+ 304              		.loc 2 49 3 is_stmt 1 view .LVU76
+ 305              	.LBB186:
+ 306              	.LBB187:
+ 307              	.LBI187:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 308              		.loc 2 42 8 view .LVU77
+ 309              	.LBB188:
+  43:Application/Include/matrixdefs.h ****   }
+ 310              		.loc 2 43 5 view .LVU78
+  43:Application/Include/matrixdefs.h ****   }
+ 311              		.loc 2 43 11 is_stmt 0 view .LVU79
+ARM GAS  /tmp/ccq1G13O.s 			page 9
+
+
+ 312 0038 84F806E0 		strb	lr, [r4, #6]
+ 313              	.LVL16:
+  43:Application/Include/matrixdefs.h ****   }
+ 314              		.loc 2 43 11 view .LVU80
+ 315              	.LBE188:
+ 316              	.LBE187:
+ 317              	.LBE186:
+ 318              	.LBE185:
+ 319              	.LBB189:
+ 320              	.LBI189:
+ 321              		.loc 2 49 3 is_stmt 1 view .LVU81
+ 322              	.LBB190:
+ 323              	.LBB191:
+ 324              	.LBI191:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 325              		.loc 2 42 8 view .LVU82
+ 326              	.LBB192:
+  43:Application/Include/matrixdefs.h ****   }
+ 327              		.loc 2 43 5 view .LVU83
+  43:Application/Include/matrixdefs.h ****   }
+ 328              		.loc 2 43 11 is_stmt 0 view .LVU84
+ 329 003c E171     		strb	r1, [r4, #7]
+ 330              	.LVL17:
+  43:Application/Include/matrixdefs.h ****   }
+ 331              		.loc 2 43 11 view .LVU85
+ 332              	.LBE192:
+ 333              	.LBE191:
+ 334              	.LBE190:
+ 335              	.LBE189:
+ 336              	.LBB193:
+ 337              	.LBI193:
+ 338              		.loc 2 49 3 is_stmt 1 view .LVU86
+ 339              	.LBB194:
+ 340              	.LBB195:
+ 341              	.LBI195:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 342              		.loc 2 42 8 view .LVU87
+ 343              	.LBB196:
+  43:Application/Include/matrixdefs.h ****   }
+ 344              		.loc 2 43 5 view .LVU88
+  43:Application/Include/matrixdefs.h ****   }
+ 345              		.loc 2 43 11 is_stmt 0 view .LVU89
+ 346 003e 2072     		strb	r0, [r4, #8]
+ 347              	.LVL18:
+  43:Application/Include/matrixdefs.h ****   }
+ 348              		.loc 2 43 11 view .LVU90
+ 349              	.LBE196:
+ 350              	.LBE195:
+ 351              	.LBE194:
+ 352              	.LBE193:
+ 353              	.LBB197:
+ 354              	.LBI197:
+ 355              		.loc 2 49 3 is_stmt 1 view .LVU91
+ 356              	.LBB198:
+ 357              	.LBB199:
+ 358              	.LBI199:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ARM GAS  /tmp/ccq1G13O.s 			page 10
+
+
+ 359              		.loc 2 42 8 view .LVU92
+ 360              	.LBB200:
+  43:Application/Include/matrixdefs.h ****   }
+ 361              		.loc 2 43 5 view .LVU93
+  43:Application/Include/matrixdefs.h ****   }
+ 362              		.loc 2 43 11 is_stmt 0 view .LVU94
+ 363 0040 124B     		ldr	r3, .L3+8
+ 364 0042 1870     		strb	r0, [r3]
+ 365              	.LVL19:
+  43:Application/Include/matrixdefs.h ****   }
+ 366              		.loc 2 43 11 view .LVU95
+ 367              	.LBE200:
+ 368              	.LBE199:
+ 369              	.LBE198:
+ 370              	.LBE197:
+ 371              	.LBB201:
+ 372              	.LBI201:
+ 373              		.loc 2 49 3 is_stmt 1 view .LVU96
+ 374              	.LBB202:
+ 375              	.LBB203:
+ 376              	.LBI203:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 377              		.loc 2 42 8 view .LVU97
+ 378              	.LBB204:
+  43:Application/Include/matrixdefs.h ****   }
+ 379              		.loc 2 43 5 view .LVU98
+  43:Application/Include/matrixdefs.h ****   }
+ 380              		.loc 2 43 11 is_stmt 0 view .LVU99
+ 381 0044 83F801E0 		strb	lr, [r3, #1]
+ 382              	.LVL20:
+  43:Application/Include/matrixdefs.h ****   }
+ 383              		.loc 2 43 11 view .LVU100
+ 384              	.LBE204:
+ 385              	.LBE203:
+ 386              	.LBE202:
+ 387              	.LBE201:
+ 388              	.LBB205:
+ 389              	.LBI205:
+ 390              		.loc 2 49 3 is_stmt 1 view .LVU101
+ 391              	.LBB206:
+ 392              	.LBB207:
+ 393              	.LBI207:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 394              		.loc 2 42 8 view .LVU102
+ 395              	.LBB208:
+  43:Application/Include/matrixdefs.h ****   }
+ 396              		.loc 2 43 5 view .LVU103
+  43:Application/Include/matrixdefs.h ****   }
+ 397              		.loc 2 43 11 is_stmt 0 view .LVU104
+ 398 0048 9970     		strb	r1, [r3, #2]
+ 399              	.LVL21:
+  43:Application/Include/matrixdefs.h ****   }
+ 400              		.loc 2 43 11 view .LVU105
+ 401              	.LBE208:
+ 402              	.LBE207:
+ 403              	.LBE206:
+ 404              	.LBE205:
+ARM GAS  /tmp/ccq1G13O.s 			page 11
+
+
+ 405              	.LBB209:
+ 406              	.LBI209:
+ 407              		.loc 2 49 3 is_stmt 1 view .LVU106
+ 408              	.LBB210:
+ 409              	.LBB211:
+ 410              	.LBI211:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 411              		.loc 2 42 8 view .LVU107
+ 412              	.LBB212:
+  43:Application/Include/matrixdefs.h ****   }
+ 413              		.loc 2 43 5 view .LVU108
+  43:Application/Include/matrixdefs.h ****   }
+ 414              		.loc 2 43 11 is_stmt 0 view .LVU109
+ 415 004a 83F803C0 		strb	ip, [r3, #3]
+ 416              	.LVL22:
+  43:Application/Include/matrixdefs.h ****   }
+ 417              		.loc 2 43 11 view .LVU110
+ 418              	.LBE212:
+ 419              	.LBE211:
+ 420              	.LBE210:
+ 421              	.LBE209:
+ 422              	.LBB213:
+ 423              	.LBI213:
+ 424              		.loc 2 49 3 is_stmt 1 view .LVU111
+ 425              	.LBB214:
+ 426              	.LBB215:
+ 427              	.LBI215:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 428              		.loc 2 42 8 view .LVU112
+ 429              	.LBB216:
+  43:Application/Include/matrixdefs.h ****   }
+ 430              		.loc 2 43 5 view .LVU113
+  43:Application/Include/matrixdefs.h ****   }
+ 431              		.loc 2 43 11 is_stmt 0 view .LVU114
+ 432 004e 1871     		strb	r0, [r3, #4]
+ 433              	.LVL23:
+  43:Application/Include/matrixdefs.h ****   }
+ 434              		.loc 2 43 11 view .LVU115
+ 435              	.LBE216:
+ 436              	.LBE215:
+ 437              	.LBE214:
+ 438              	.LBE213:
+ 439              	.LBB217:
+ 440              	.LBI217:
+ 441              		.loc 2 49 3 is_stmt 1 view .LVU116
+ 442              	.LBB218:
+ 443              	.LBB219:
+ 444              	.LBI219:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 445              		.loc 2 42 8 view .LVU117
+ 446              	.LBB220:
+  43:Application/Include/matrixdefs.h ****   }
+ 447              		.loc 2 43 5 view .LVU118
+  43:Application/Include/matrixdefs.h ****   }
+ 448              		.loc 2 43 11 is_stmt 0 view .LVU119
+ 449 0050 5971     		strb	r1, [r3, #5]
+ 450              	.LVL24:
+ARM GAS  /tmp/ccq1G13O.s 			page 12
+
+
+  43:Application/Include/matrixdefs.h ****   }
+ 451              		.loc 2 43 11 view .LVU120
+ 452              	.LBE220:
+ 453              	.LBE219:
+ 454              	.LBE218:
+ 455              	.LBE217:
+ 456              	.LBB221:
+ 457              	.LBI221:
+ 458              		.loc 2 49 3 is_stmt 1 view .LVU121
+ 459              	.LBB222:
+ 460              	.LBB223:
+ 461              	.LBI223:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 462              		.loc 2 42 8 view .LVU122
+ 463              	.LBB224:
+  43:Application/Include/matrixdefs.h ****   }
+ 464              		.loc 2 43 5 view .LVU123
+  43:Application/Include/matrixdefs.h ****   }
+ 465              		.loc 2 43 11 is_stmt 0 view .LVU124
+ 466 0052 9971     		strb	r1, [r3, #6]
+ 467              	.LVL25:
+  43:Application/Include/matrixdefs.h ****   }
+ 468              		.loc 2 43 11 view .LVU125
+ 469              	.LBE224:
+ 470              	.LBE223:
+ 471              	.LBE222:
+ 472              	.LBE221:
+ 473              	.LBB225:
+ 474              	.LBI225:
+ 475              		.loc 2 49 3 is_stmt 1 view .LVU126
+ 476              	.LBB226:
+ 477              	.LBB227:
+ 478              	.LBI227:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 479              		.loc 2 42 8 view .LVU127
+ 480              	.LBB228:
+  43:Application/Include/matrixdefs.h ****   }
+ 481              		.loc 2 43 5 view .LVU128
+  43:Application/Include/matrixdefs.h ****   }
+ 482              		.loc 2 43 11 is_stmt 0 view .LVU129
+ 483 0054 D971     		strb	r1, [r3, #7]
+ 484              	.LVL26:
+  43:Application/Include/matrixdefs.h ****   }
+ 485              		.loc 2 43 11 view .LVU130
+ 486              	.LBE228:
+ 487              	.LBE227:
+ 488              	.LBE226:
+ 489              	.LBE225:
+ 490              	.LBB229:
+ 491              	.LBI229:
+ 492              		.loc 2 49 3 is_stmt 1 view .LVU131
+ 493              	.LBB230:
+ 494              	.LBB231:
+ 495              	.LBI231:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 496              		.loc 2 42 8 view .LVU132
+ 497              	.LBB232:
+ARM GAS  /tmp/ccq1G13O.s 			page 13
+
+
+  43:Application/Include/matrixdefs.h ****   }
+ 498              		.loc 2 43 5 view .LVU133
+  43:Application/Include/matrixdefs.h ****   }
+ 499              		.loc 2 43 11 is_stmt 0 view .LVU134
+ 500 0056 1D72     		strb	r5, [r3, #8]
+ 501              	.LVL27:
+  43:Application/Include/matrixdefs.h ****   }
+ 502              		.loc 2 43 11 view .LVU135
+ 503              	.LBE232:
+ 504              	.LBE231:
+ 505              	.LBE230:
+ 506              	.LBE229:
+  50:Application/Include/matrixdefs.h ****     this->set(i);
+  51:Application/Include/matrixdefs.h ****   }
+  52:Application/Include/matrixdefs.h **** } trigOp;
+  53:Application/Include/matrixdefs.h **** 
+  54:Application/Include/matrixdefs.h **** // Aliases for commonly used array dimensions
+  55:Application/Include/matrixdefs.h **** using fArr6 = std::array<float, NO_CYLS>;
+  56:Application/Include/matrixdefs.h **** using fArr3 = std::array<float, NO_DOF>;
+  57:Application/Include/matrixdefs.h **** 
+  58:Application/Include/matrixdefs.h **** // Matricies in 3D cartesian space have 3*3 = 9 elements.
+  59:Application/Include/matrixdefs.h **** using mtx3D = std::array<float, NO_DOF*NO_DOF>;
+  60:Application/Include/matrixdefs.h **** 
+  61:Application/Include/matrixdefs.h **** //using ctrlArr = std::array<Controller, NO_CYLS>;
+  62:Application/Include/matrixdefs.h **** using trigOpArr = std::array<trigOp, 9>;
+  63:Application/Include/matrixdefs.h **** 
+  64:Application/Include/matrixdefs.h **** // Represents the set of vectors which describe ...
+  65:Application/Include/matrixdefs.h **** const float MATRIX_b_DATA[NO_CYLS*NO_DOF] = 
+  66:Application/Include/matrixdefs.h ****                                 {-1.75, 12.63, 0,
+  67:Application/Include/matrixdefs.h ****                                   1.75, 12.63, 0,
+  68:Application/Include/matrixdefs.h ****                                   11.81, -4.8, 0,
+  69:Application/Include/matrixdefs.h ****                                   10.06,-7.83, 0,
+  70:Application/Include/matrixdefs.h ****                                  -10.06,-7.83, 0,
+  71:Application/Include/matrixdefs.h ****                                  -11.81, -4.8, 0 };
+  72:Application/Include/matrixdefs.h **** 
+  73:Application/Include/matrixdefs.h **** // Represents the set of vectors which describe ....
+  74:Application/Include/matrixdefs.h **** const float MATRIX_p_DATA[NO_CYLS*NO_DOF] = 
+  75:Application/Include/matrixdefs.h ****                                 {-8.1,   6.69, 0,
+  76:Application/Include/matrixdefs.h ****                                   8.1,   6.69, 0,
+  77:Application/Include/matrixdefs.h ****                                   9.84,  3.67, 0,
+  78:Application/Include/matrixdefs.h ****                                   1.74,-10.35, 0,
+  79:Application/Include/matrixdefs.h ****                                  -1.74,-10.35, 0,
+  80:Application/Include/matrixdefs.h ****                                  -9.84,  3.67, 0 };
+  81:Application/Include/matrixdefs.h **** 
+  82:Application/Include/matrixdefs.h **** // Represents the cartesian translation of the center of the seat plate
+  83:Application/Include/matrixdefs.h **** const float VECTOR_T_DATA[3] = { 0, 0, 23 };
+  84:Application/Include/matrixdefs.h **** 
+  85:Application/Include/matrixdefs.h **** // Rotation function matricies. Tells Stewart what operations to perform
+  86:Application/Include/matrixdefs.h **** // on each angle parameter to calculate the rotation matrix.
+  87:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_X = { 1, 0, 0, 0, COS, -SIN, 0, SIN, COS };
+  88:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_Y = { COS, 0, SIN, 0, 1, 0, -SIN, 0, COS };
+  89:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_Z = { COS, -SIN, 0, SIN, COS, 0, 0, 0, 1 };
+  90:Application/Include/matrixdefs.h **** 
+  91:Application/Include/matrixdefs.h **** // This is never used; nevertheless, it is included for future use.
+  92:Application/Include/matrixdefs.h **** const std::array<trigOpArr,3> ROTATION_COMPONENTS = {ROTATION_X, ROTATION_Y, ROTATION_Z};
+ 507              		.loc 2 92 88 view .LVU136
+ 508 0058 0D4D     		ldr	r5, .L3+12
+ARM GAS  /tmp/ccq1G13O.s 			page 14
+
+
+ 509 005a AC46     		mov	ip, r5
+ 510 005c 07CA     		ldm	r2, {r0, r1, r2}
+ 511 005e ACE80300 		stmia	ip!, {r0, r1}
+ 512 0062 8CF80020 		strb	r2, [ip]
+ 513 0066 03CC     		ldmia	r4!, {r0, r1}
+ 514 0068 C5F80900 		str	r0, [r5, #9]	@ unaligned
+ 515 006c C5F80D10 		str	r1, [r5, #13]	@ unaligned
+ 516 0070 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 517 0072 6A74     		strb	r2, [r5, #17]
+ 518 0074 03CB     		ldmia	r3!, {r0, r1}
+ 519 0076 C5F81200 		str	r0, [r5, #18]	@ unaligned
+ 520 007a C5F81610 		str	r1, [r5, #22]	@ unaligned
+ 521 007e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 522 0080 AB76     		strb	r3, [r5, #26]
+ 523              		.loc 1 34 1 view .LVU137
+ 524 0082 30BD     		pop	{r4, r5, pc}
+ 525              	.L4:
+ 526              		.align	2
+ 527              	.L3:
+ 528 0084 00000000 		.word	_ZL10ROTATION_X
+ 529 0088 00000000 		.word	_ZL10ROTATION_Y
+ 530 008c 00000000 		.word	_ZL10ROTATION_Z
+ 531 0090 00000000 		.word	_ZL19ROTATION_COMPONENTS
+ 532              		.cfi_endproc
+ 533              	.LFE2660:
+ 534              		.cantunwind
+ 535              		.fnend
+ 537              		.section	.text._ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE,"ax",%progbits
+ 538              		.align	1
+ 539              		.global	_ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE
+ 540              		.syntax unified
+ 541              		.thumb
+ 542              		.thumb_func
+ 544              	_ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:
+ 545              		.fnstart
+ 546              	.LVL28:
+ 547              	.LFB2128:
+   4:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+ 548              		.loc 1 4 67 is_stmt 1 view -0
+ 549              		.cfi_startproc
+ 550              		@ args = 0, pretend = 0, frame = 8
+ 551              		@ frame_needed = 0, uses_anonymous_args = 0
+   4:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+ 552              		.loc 1 4 67 is_stmt 0 view .LVU139
+ 553 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 554              		.save {r4, r5, r6, r7, lr}
+ 555              		.cfi_def_cfa_offset 20
+ 556              		.cfi_offset 4, -20
+ 557              		.cfi_offset 5, -16
+ 558              		.cfi_offset 6, -12
+ 559              		.cfi_offset 7, -8
+ 560              		.cfi_offset 14, -4
+ 561              		.pad #12
+ 562 0002 83B0     		sub	sp, sp, #12
+ 563              		.cfi_def_cfa_offset 32
+ 564 0004 0746     		mov	r7, r0
+ 565 0006 0E46     		mov	r6, r1
+ARM GAS  /tmp/ccq1G13O.s 			page 15
+
+
+ 566 0008 02A9     		add	r1, sp, #8
+ 567              	.LVL29:
+   4:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+ 568              		.loc 1 4 67 view .LVU140
+ 569 000a 01E90C00 		stmdb	r1, {r2, r3}
+   5:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 570              		.loc 1 5 5 is_stmt 1 view .LVU141
+ 571              	.LVL30:
+ 572              	.LBB233:
+   5:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 573              		.loc 1 5 14 is_stmt 0 view .LVU142
+ 574 000e 0024     		movs	r4, #0
+   5:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 575              		.loc 1 5 5 view .LVU143
+ 576 0010 02E0     		b	.L6
+ 577              	.LVL31:
+ 578              	.L13:
+ 579              	.LBB234:
+ 580              	.LBI234:
+ 581              		.file 3 "/usr/arm-none-eabi/include/c++/13.2.0/array"
+   1:/usr/arm-none-eabi/include/c++/13.2.0/array **** // <array> -*- C++ -*-
+   2:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+   3:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   4:/usr/arm-none-eabi/include/c++/13.2.0/array **** //
+   5:/usr/arm-none-eabi/include/c++/13.2.0/array **** // This file is part of the GNU ISO C++ Library.  This library is free
+   6:/usr/arm-none-eabi/include/c++/13.2.0/array **** // software; you can redistribute it and/or modify it under the
+   7:/usr/arm-none-eabi/include/c++/13.2.0/array **** // terms of the GNU General Public License as published by the
+   8:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Free Software Foundation; either version 3, or (at your option)
+   9:/usr/arm-none-eabi/include/c++/13.2.0/array **** // any later version.
+  10:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  11:/usr/arm-none-eabi/include/c++/13.2.0/array **** // This library is distributed in the hope that it will be useful,
+  12:/usr/arm-none-eabi/include/c++/13.2.0/array **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:/usr/arm-none-eabi/include/c++/13.2.0/array **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:/usr/arm-none-eabi/include/c++/13.2.0/array **** // GNU General Public License for more details.
+  15:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  16:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Under Section 7 of GPL version 3, you are granted additional
+  17:/usr/arm-none-eabi/include/c++/13.2.0/array **** // permissions described in the GCC Runtime Library Exception, version
+  18:/usr/arm-none-eabi/include/c++/13.2.0/array **** // 3.1, as published by the Free Software Foundation.
+  19:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  20:/usr/arm-none-eabi/include/c++/13.2.0/array **** // You should have received a copy of the GNU General Public License and
+  21:/usr/arm-none-eabi/include/c++/13.2.0/array **** // a copy of the GCC Runtime Library Exception along with this program;
+  22:/usr/arm-none-eabi/include/c++/13.2.0/array **** // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  23:/usr/arm-none-eabi/include/c++/13.2.0/array **** // <http://www.gnu.org/licenses/>.
+  24:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  25:/usr/arm-none-eabi/include/c++/13.2.0/array **** /** @file include/array
+  26:/usr/arm-none-eabi/include/c++/13.2.0/array ****  *  This is a Standard C++ Library header.
+  27:/usr/arm-none-eabi/include/c++/13.2.0/array ****  */
+  28:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  29:/usr/arm-none-eabi/include/c++/13.2.0/array **** #ifndef _GLIBCXX_ARRAY
+  30:/usr/arm-none-eabi/include/c++/13.2.0/array **** #define _GLIBCXX_ARRAY 1
+  31:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  32:/usr/arm-none-eabi/include/c++/13.2.0/array **** #pragma GCC system_header
+  33:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  34:/usr/arm-none-eabi/include/c++/13.2.0/array **** #if __cplusplus < 201103L
+  35:/usr/arm-none-eabi/include/c++/13.2.0/array **** # include <bits/c++0x_warning.h>
+  36:/usr/arm-none-eabi/include/c++/13.2.0/array **** #else
+  37:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ARM GAS  /tmp/ccq1G13O.s 			page 16
+
+
+  38:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <compare>
+  39:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <initializer_list>
+  40:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  41:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <type_traits>
+  42:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/functexcept.h>
+  43:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/stl_algobase.h>
+  44:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/range_access.h> // std::begin, std::end etc.
+  45:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/utility.h>      // std::index_sequence, std::tuple_size
+  46:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <debug/assertions.h>
+  47:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  48:/usr/arm-none-eabi/include/c++/13.2.0/array **** namespace std _GLIBCXX_VISIBILITY(default)
+  49:/usr/arm-none-eabi/include/c++/13.2.0/array **** {
+  50:/usr/arm-none-eabi/include/c++/13.2.0/array **** _GLIBCXX_BEGIN_NAMESPACE_VERSION
+  51:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  52:/usr/arm-none-eabi/include/c++/13.2.0/array ****   template<typename _Tp, size_t _Nm>
+  53:/usr/arm-none-eabi/include/c++/13.2.0/array ****     struct __array_traits
+  54:/usr/arm-none-eabi/include/c++/13.2.0/array ****     {
+  55:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Type = _Tp[_Nm];
+  56:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Is_swappable = __is_swappable<_Tp>;
+  57:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Is_nothrow_swappable = __is_nothrow_swappable<_Tp>;
+  58:/usr/arm-none-eabi/include/c++/13.2.0/array ****     };
+  59:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  60:/usr/arm-none-eabi/include/c++/13.2.0/array ****  template<typename _Tp>
+  61:/usr/arm-none-eabi/include/c++/13.2.0/array ****    struct __array_traits<_Tp, 0>
+  62:/usr/arm-none-eabi/include/c++/13.2.0/array ****    {
+  63:/usr/arm-none-eabi/include/c++/13.2.0/array ****      // Empty type used instead of _Tp[0] for std::array<_Tp, 0>.
+  64:/usr/arm-none-eabi/include/c++/13.2.0/array ****      struct _Type
+  65:/usr/arm-none-eabi/include/c++/13.2.0/array ****      {
+  66:/usr/arm-none-eabi/include/c++/13.2.0/array ****        // Indexing is undefined.
+  67:/usr/arm-none-eabi/include/c++/13.2.0/array ****        __attribute__((__always_inline__,__noreturn__))
+  68:/usr/arm-none-eabi/include/c++/13.2.0/array ****        _Tp& operator[](size_t) const noexcept { __builtin_trap(); }
+  69:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  70:/usr/arm-none-eabi/include/c++/13.2.0/array ****        // Conversion to a pointer produces a null pointer.
+  71:/usr/arm-none-eabi/include/c++/13.2.0/array ****        __attribute__((__always_inline__))
+  72:/usr/arm-none-eabi/include/c++/13.2.0/array ****        constexpr explicit operator _Tp*() const noexcept { return nullptr; }
+  73:/usr/arm-none-eabi/include/c++/13.2.0/array ****      };
+  74:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  75:/usr/arm-none-eabi/include/c++/13.2.0/array ****      using _Is_swappable = true_type;
+  76:/usr/arm-none-eabi/include/c++/13.2.0/array ****      using _Is_nothrow_swappable = true_type;
+  77:/usr/arm-none-eabi/include/c++/13.2.0/array ****    };
+  78:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  79:/usr/arm-none-eabi/include/c++/13.2.0/array ****   /**
+  80:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @brief A standard container for storing a fixed size sequence of elements.
+  81:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  82:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @ingroup sequences
+  83:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  84:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  Meets the requirements of a <a href="tables.html#65">container</a>, a
+  85:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  <a href="tables.html#66">reversible container</a>, and a
+  86:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  <a href="tables.html#67">sequence</a>.
+  87:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  88:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  Sets support random access iterators.
+  89:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  90:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @tparam  Tp  Type of element. Required to be a complete type.
+  91:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @tparam  Nm  Number of elements.
+  92:/usr/arm-none-eabi/include/c++/13.2.0/array ****   */
+  93:/usr/arm-none-eabi/include/c++/13.2.0/array ****   template<typename _Tp, std::size_t _Nm>
+  94:/usr/arm-none-eabi/include/c++/13.2.0/array ****     struct array
+ARM GAS  /tmp/ccq1G13O.s 			page 17
+
+
+  95:/usr/arm-none-eabi/include/c++/13.2.0/array ****     {
+  96:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef _Tp 	    			      value_type;
+  97:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type*			      pointer;
+  98:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type*                       const_pointer;
+  99:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type&                   	      reference;
+ 100:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type&             	      const_reference;
+ 101:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type*          		      iterator;
+ 102:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type*			      const_iterator;
+ 103:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::size_t                    	      size_type;
+ 104:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::ptrdiff_t                   	      difference_type;
+ 105:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::reverse_iterator<iterator>	      reverse_iterator;
+ 106:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
+ 107:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 108:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Support for zero-sized arrays mandatory.
+ 109:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typename __array_traits<_Tp, _Nm>::_Type        _M_elems;
+ 110:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 111:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // No explicit construct/copy/destroy for aggregate type.
+ 112:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 113:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // DR 776.
+ 114:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX20_CONSTEXPR void
+ 115:/usr/arm-none-eabi/include/c++/13.2.0/array ****       fill(const value_type& __u)
+ 116:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { std::fill_n(begin(), size(), __u); }
+ 117:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 118:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX20_CONSTEXPR void
+ 119:/usr/arm-none-eabi/include/c++/13.2.0/array ****       swap(array& __other)
+ 120:/usr/arm-none-eabi/include/c++/13.2.0/array ****       noexcept(__array_traits<_Tp, _Nm>::_Is_nothrow_swappable::value)
+ 121:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { std::swap_ranges(begin(), end(), __other.begin()); }
+ 122:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 123:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Iterators.
+ 124:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 125:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR iterator
+ 126:/usr/arm-none-eabi/include/c++/13.2.0/array ****       begin() noexcept
+ 127:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return iterator(data()); }
+ 128:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 129:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 130:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 131:/usr/arm-none-eabi/include/c++/13.2.0/array ****       begin() const noexcept
+ 132:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data()); }
+ 133:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 134:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 135:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR iterator
+ 136:/usr/arm-none-eabi/include/c++/13.2.0/array ****       end() noexcept
+ 137:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return iterator(data() + _Nm); }
+ 138:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 139:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 140:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 141:/usr/arm-none-eabi/include/c++/13.2.0/array ****       end() const noexcept
+ 142:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data() + _Nm); }
+ 143:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 144:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 145:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reverse_iterator
+ 146:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rbegin() noexcept
+ 147:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return reverse_iterator(end()); }
+ 148:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 149:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 150:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 151:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rbegin() const noexcept
+ARM GAS  /tmp/ccq1G13O.s 			page 18
+
+
+ 152:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(end()); }
+ 153:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 154:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 155:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reverse_iterator
+ 156:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rend() noexcept
+ 157:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return reverse_iterator(begin()); }
+ 158:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 159:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 160:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 161:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rend() const noexcept
+ 162:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(begin()); }
+ 163:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 164:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 165:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 166:/usr/arm-none-eabi/include/c++/13.2.0/array ****       cbegin() const noexcept
+ 167:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data()); }
+ 168:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 169:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 170:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 171:/usr/arm-none-eabi/include/c++/13.2.0/array ****       cend() const noexcept
+ 172:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data() + _Nm); }
+ 173:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 174:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 175:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 176:/usr/arm-none-eabi/include/c++/13.2.0/array ****       crbegin() const noexcept
+ 177:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(end()); }
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 179:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 180:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 181:/usr/arm-none-eabi/include/c++/13.2.0/array ****       crend() const noexcept
+ 182:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(begin()); }
+ 183:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 184:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Capacity.
+ 185:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 186:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr size_type
+ 187:/usr/arm-none-eabi/include/c++/13.2.0/array ****       size() const noexcept { return _Nm; }
+ 188:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 189:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 190:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr size_type
+ 191:/usr/arm-none-eabi/include/c++/13.2.0/array ****       max_size() const noexcept { return _Nm; }
+ 192:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 193:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 194:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr bool
+ 195:/usr/arm-none-eabi/include/c++/13.2.0/array ****       empty() const noexcept { return size() == 0; }
+ 196:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 197:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Element access.
+ 198:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 199:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reference
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       operator[](size_type __n) noexcept
+ 582              		.loc 3 200 7 is_stmt 1 view .LVU144
+ 583              		.loc 3 200 7 is_stmt 0 view .LVU145
+ 584              	.LBE234:
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+ 585              		.loc 1 6 20 discriminator 1 view .LVU146
+ 586 0012 47F82450 		str	r5, [r7, r4, lsl #2]
+   5:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 587              		.loc 1 5 5 is_stmt 1 discriminator 2 view .LVU147
+ARM GAS  /tmp/ccq1G13O.s 			page 19
+
+
+ 588 0016 0134     		adds	r4, r4, #1
+ 589              	.LVL32:
+ 590              	.L6:
+   5:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 591              		.loc 1 5 23 discriminator 1 view .LVU148
+ 592 0018 052C     		cmp	r4, #5
+ 593 001a 12DC     		bgt	.L12
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+ 594              		.loc 1 6 9 view .LVU149
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+ 595              		.loc 1 6 61 is_stmt 0 view .LVU150
+ 596 001c 1020     		movs	r0, #16
+ 597              	.LEHB0:
+ 598 001e FFF7FEFF 		bl	_Znwj
+ 599              	.LVL33:
+ 600              	.LEHE0:
+ 601 0022 0546     		mov	r5, r0
+ 602              	.LVL34:
+ 603              	.LBB235:
+ 604              	.LBI235:
+ 605              		.loc 3 200 7 is_stmt 1 view .LVU151
+ 606              		.loc 3 200 7 is_stmt 0 view .LVU152
+ 607              	.LBE235:
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+ 608              		.loc 1 6 61 discriminator 2 view .LVU153
+ 609 0024 04F10803 		add	r3, r4, #8
+ 610 0028 6B44     		add	r3, sp, r3
+ 611 002a 13F8082C 		ldrb	r2, [r3, #-8]	@ zero_extendqisi2
+ 612 002e 3146     		mov	r1, r6
+ 613              	.LEHB1:
+ 614 0030 FFF7FEFF 		bl	_ZN14distanceInterfC1ER17I2C_HandleTypeDefh
+ 615              	.LVL35:
+ 616              	.LEHE1:
+ 617 0034 EDE7     		b	.L13
+ 618              	.L9:
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+ 619              		.loc 1 6 61 discriminator 3 view .LVU154
+ 620 0036 1021     		movs	r1, #16
+ 621 0038 2846     		mov	r0, r5
+ 622 003a FFF7FEFF 		bl	_ZdlPvj
+ 623              	.LVL36:
+ 624              	.LEHB2:
+ 625 003e FFF7FEFF 		bl	__cxa_end_cleanup
+ 626              	.LVL37:
+ 627              	.LEHE2:
+ 628              	.L12:
+   6:Application/distGovernor.cpp ****         sensors[i] = new distanceInterf(hi2c, sensorAddrs[i]);
+ 629              		.loc 1 6 61 discriminator 3 view .LVU155
+ 630              	.LBE233:
+   8:Application/distGovernor.cpp **** }
+ 631              		.loc 1 8 1 view .LVU156
+ 632 0042 03B0     		add	sp, sp, #12
+ 633              		.cfi_def_cfa_offset 20
+ 634              		@ sp needed
+ 635 0044 F0BD     		pop	{r4, r5, r6, r7, pc}
+   8:Application/distGovernor.cpp **** }
+ 636              		.loc 1 8 1 view .LVU157
+ARM GAS  /tmp/ccq1G13O.s 			page 20
+
+
+ 637              		.cfi_endproc
+ 638              	.LFE2128:
+ 639              		.global	__gxx_personality_v0
+ 640              		.personality	__gxx_personality_v0
+ 641              		.handlerdata
+ 642              	.LLSDA2128:
+ 643 0008 FF       		.byte	0xff
+ 644 0009 FF       		.byte	0xff
+ 645 000a 01       		.byte	0x1
+ 646 000b 0C       		.uleb128 .LLSDACSE2128-.LLSDACSB2128
+ 647              	.LLSDACSB2128:
+ 648 000c 1E       		.uleb128 .LEHB0-.LFB2128
+ 649 000d 04       		.uleb128 .LEHE0-.LEHB0
+ 650 000e 00       		.uleb128 0
+ 651 000f 00       		.uleb128 0
+ 652 0010 30       		.uleb128 .LEHB1-.LFB2128
+ 653 0011 04       		.uleb128 .LEHE1-.LEHB1
+ 654 0012 36       		.uleb128 .L9-.LFB2128
+ 655 0013 00       		.uleb128 0
+ 656 0014 3E       		.uleb128 .LEHB2-.LFB2128
+ 657 0015 04       		.uleb128 .LEHE2-.LEHB2
+ 658 0016 00       		.uleb128 0
+ 659 0017 00       		.uleb128 0
+ 660              	.LLSDACSE2128:
+ 661              		.section	.text._ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE
+ 662              		.fnend
+ 664              		.section	.text._ZN7DistGov4initER17I2C_HandleTypeDef,"ax",%progbits
+ 665              		.align	1
+ 666              		.global	_ZN7DistGov4initER17I2C_HandleTypeDef
+ 667              		.syntax unified
+ 668              		.thumb
+ 669              		.thumb_func
+ 671              	_ZN7DistGov4initER17I2C_HandleTypeDef:
+ 672              		.fnstart
+ 673              	.LVL38:
+ 674              	.LFB2129:
+  10:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c) {
+ 675              		.loc 1 10 45 is_stmt 1 view -0
+ 676              		.cfi_startproc
+ 677              		@ args = 0, pretend = 0, frame = 8
+ 678              		@ frame_needed = 0, uses_anonymous_args = 0
+  10:Application/distGovernor.cpp **** void DistGov::init(I2C_HandleTypeDef &hi2c) {
+ 679              		.loc 1 10 45 is_stmt 0 view .LVU159
+ 680 0000 00B5     		push	{lr}
+ 681              		.save {lr}
+ 682              		.cfi_def_cfa_offset 4
+ 683              		.cfi_offset 14, -4
+ 684              		.pad #12
+ 685 0002 83B0     		sub	sp, sp, #12
+ 686              		.cfi_def_cfa_offset 16
+ 687 0004 8446     		mov	ip, r0
+ 688 0006 8E46     		mov	lr, r1
+  12:Application/distGovernor.cpp ****     byteArr6 sensorAddrs = sensor_addresses;
+ 689              		.loc 1 12 5 is_stmt 1 view .LVU160
+  12:Application/distGovernor.cpp ****     byteArr6 sensorAddrs = sensor_addresses;
+ 690              		.loc 1 12 14 is_stmt 0 view .LVU161
+ 691 0008 074B     		ldr	r3, .L16
+ARM GAS  /tmp/ccq1G13O.s 			page 21
+
+
+ 692 000a 93E80300 		ldm	r3, {r0, r1}
+ 693              	.LVL39:
+  12:Application/distGovernor.cpp ****     byteArr6 sensorAddrs = sensor_addresses;
+ 694              		.loc 1 12 14 view .LVU162
+ 695 000e 0090     		str	r0, [sp]
+ 696 0010 ADF80410 		strh	r1, [sp, #4]	@ movhi
+  13:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+ 697              		.loc 1 13 5 is_stmt 1 view .LVU163
+  13:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+ 698              		.loc 1 13 9 is_stmt 0 view .LVU164
+ 699 0014 02AB     		add	r3, sp, #8
+ 700 0016 13E90C00 		ldmdb	r3, {r2, r3}
+ 701 001a 7146     		mov	r1, lr
+ 702 001c 6046     		mov	r0, ip
+ 703 001e FFF7FEFF 		bl	_ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE
+ 704              	.LVL40:
+  14:Application/distGovernor.cpp **** }
+ 705              		.loc 1 14 1 view .LVU165
+ 706 0022 03B0     		add	sp, sp, #12
+ 707              		.cfi_def_cfa_offset 4
+ 708              		@ sp needed
+ 709 0024 5DF804FB 		ldr	pc, [sp], #4
+ 710              	.L17:
+ 711              		.align	2
+ 712              	.L16:
+ 713 0028 00000000 		.word	.LANCHOR0
+ 714              		.cfi_endproc
+ 715              	.LFE2129:
+ 716              		.fnend
+ 718              		.section	.text._ZN7DistGov13readDistancesEv,"ax",%progbits
+ 719              		.align	1
+ 720              		.global	_ZN7DistGov13readDistancesEv
+ 721              		.syntax unified
+ 722              		.thumb
+ 723              		.thumb_func
+ 725              	_ZN7DistGov13readDistancesEv:
+ 726              		.fnstart
+ 727              	.LVL41:
+ 728              	.LFB2130:
+  16:Application/distGovernor.cpp **** fArr6 DistGov::readDistances() {
+ 729              		.loc 1 16 32 is_stmt 1 view -0
+ 730              		.cfi_startproc
+ 731              		@ args = 0, pretend = 0, frame = 0
+ 732              		@ frame_needed = 0, uses_anonymous_args = 0
+  16:Application/distGovernor.cpp **** fArr6 DistGov::readDistances() {
+ 733              		.loc 1 16 32 is_stmt 0 view .LVU167
+ 734 0000 70B5     		push	{r4, r5, r6, lr}
+ 735              		.save {r4, r5, r6, lr}
+ 736              		.cfi_def_cfa_offset 16
+ 737              		.cfi_offset 4, -16
+ 738              		.cfi_offset 5, -12
+ 739              		.cfi_offset 6, -8
+ 740              		.cfi_offset 14, -4
+ 741 0002 0546     		mov	r5, r0
+ 742 0004 0E46     		mov	r6, r1
+  17:Application/distGovernor.cpp ****     fArr6 output;
+ 743              		.loc 1 17 5 is_stmt 1 view .LVU168
+ARM GAS  /tmp/ccq1G13O.s 			page 22
+
+
+  18:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 744              		.loc 1 18 5 view .LVU169
+ 745              	.LVL42:
+ 746              	.LBB236:
+  18:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 747              		.loc 1 18 14 is_stmt 0 view .LVU170
+ 748 0006 0024     		movs	r4, #0
+  18:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 749              		.loc 1 18 5 view .LVU171
+ 750 0008 08E0     		b	.L19
+ 751              	.LVL43:
+ 752              	.L20:
+  19:Application/distGovernor.cpp ****         output[i] = sensors[i]->readDistance();
+ 753              		.loc 1 19 9 is_stmt 1 view .LVU172
+ 754              	.LBB237:
+ 755              	.LBI237:
+ 756              		.loc 3 200 7 view .LVU173
+ 757              		.loc 3 200 7 is_stmt 0 view .LVU174
+ 758              	.LBE237:
+  19:Application/distGovernor.cpp ****         output[i] = sensors[i]->readDistance();
+ 759              		.loc 1 19 45 discriminator 1 view .LVU175
+ 760 000a 56F82400 		ldr	r0, [r6, r4, lsl #2]
+ 761 000e FFF7FEFF 		bl	_ZN14distanceInterf12readDistanceEv
+ 762              	.LVL44:
+ 763              	.LBB238:
+ 764              	.LBI238:
+ 765              		.loc 3 200 7 is_stmt 1 view .LVU176
+ 766              		.loc 3 200 7 is_stmt 0 view .LVU177
+ 767              	.LBE238:
+  19:Application/distGovernor.cpp ****         output[i] = sensors[i]->readDistance();
+ 768              		.loc 1 19 19 discriminator 3 view .LVU178
+ 769 0012 05EB8403 		add	r3, r5, r4, lsl #2
+ 770 0016 83ED000A 		vstr.32	s0, [r3]
+  18:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 771              		.loc 1 18 5 is_stmt 1 discriminator 3 view .LVU179
+ 772 001a 0134     		adds	r4, r4, #1
+ 773              	.LVL45:
+ 774              	.L19:
+  18:Application/distGovernor.cpp ****     for (int i = 0; i < NO_CYLS; i++) {
+ 775              		.loc 1 18 23 discriminator 1 view .LVU180
+ 776 001c 052C     		cmp	r4, #5
+ 777 001e F4DD     		ble	.L20
+ 778              	.LBE236:
+  21:Application/distGovernor.cpp ****     return output;
+ 779              		.loc 1 21 5 view .LVU181
+  22:Application/distGovernor.cpp **** }
+ 780              		.loc 1 22 1 is_stmt 0 view .LVU182
+ 781 0020 2846     		mov	r0, r5
+ 782 0022 70BD     		pop	{r4, r5, r6, pc}
+  22:Application/distGovernor.cpp **** }
+ 783              		.loc 1 22 1 view .LVU183
+ 784              		.cfi_endproc
+ 785              	.LFE2130:
+ 786              		.fnend
+ 788              		.section	.text._ZN7DistGov10e_fuse_runEhh,"ax",%progbits
+ 789              		.align	1
+ 790              		.global	_ZN7DistGov10e_fuse_runEhh
+ARM GAS  /tmp/ccq1G13O.s 			page 23
+
+
+ 791              		.syntax unified
+ 792              		.thumb
+ 793              		.thumb_func
+ 795              	_ZN7DistGov10e_fuse_runEhh:
+ 796              		.fnstart
+ 797              	.LVL46:
+ 798              	.LFB2131:
+  24:Application/distGovernor.cpp **** void DistGov::e_fuse_run(uint8_t sensor, uint8_t new_address) {
+ 799              		.loc 1 24 63 is_stmt 1 view -0
+ 800              		.cfi_startproc
+ 801              		@ args = 0, pretend = 0, frame = 0
+ 802              		@ frame_needed = 0, uses_anonymous_args = 0
+  24:Application/distGovernor.cpp **** void DistGov::e_fuse_run(uint8_t sensor, uint8_t new_address) {
+ 803              		.loc 1 24 63 is_stmt 0 view .LVU185
+ 804 0000 08B5     		push	{r3, lr}
+ 805              		.save {r3, lr}
+ 806              		.cfi_def_cfa_offset 8
+ 807              		.cfi_offset 3, -8
+ 808              		.cfi_offset 14, -4
+ 809 0002 0B46     		mov	r3, r1
+  25:Application/distGovernor.cpp ****     sensors[sensor]->e_fuse_run(new_address);
+ 810              		.loc 1 25 5 is_stmt 1 view .LVU186
+ 811              	.LVL47:
+ 812              	.LBB239:
+ 813              	.LBI239:
+ 814              		.loc 3 200 7 view .LVU187
+ 815              		.loc 3 200 7 is_stmt 0 view .LVU188
+ 816              	.LBE239:
+  25:Application/distGovernor.cpp ****     sensors[sensor]->e_fuse_run(new_address);
+ 817              		.loc 1 25 32 discriminator 1 view .LVU189
+ 818 0004 1146     		mov	r1, r2
+ 819              	.LVL48:
+  25:Application/distGovernor.cpp ****     sensors[sensor]->e_fuse_run(new_address);
+ 820              		.loc 1 25 32 discriminator 1 view .LVU190
+ 821 0006 50F82300 		ldr	r0, [r0, r3, lsl #2]
+ 822              	.LVL49:
+  25:Application/distGovernor.cpp ****     sensors[sensor]->e_fuse_run(new_address);
+ 823              		.loc 1 25 32 discriminator 1 view .LVU191
+ 824 000a FFF7FEFF 		bl	_ZN14distanceInterf10e_fuse_runEh
+ 825              	.LVL50:
+  26:Application/distGovernor.cpp **** }
+ 826              		.loc 1 26 1 view .LVU192
+ 827 000e 08BD     		pop	{r3, pc}
+ 828              		.cfi_endproc
+ 829              	.LFE2131:
+ 830              		.fnend
+ 832              		.section	.text._ZN7DistGovC2ER17I2C_HandleTypeDef,"ax",%progbits
+ 833              		.align	1
+ 834              		.global	_ZN7DistGovC2ER17I2C_HandleTypeDef
+ 835              		.syntax unified
+ 836              		.thumb
+ 837              		.thumb_func
+ 839              	_ZN7DistGovC2ER17I2C_HandleTypeDef:
+ 840              		.fnstart
+ 841              	.LVL51:
+ 842              	.LFB2133:
+  28:Application/distGovernor.cpp **** DistGov::DistGov(I2C_HandleTypeDef &hi2c) {
+ARM GAS  /tmp/ccq1G13O.s 			page 24
+
+
+ 843              		.loc 1 28 1 is_stmt 1 view -0
+ 844              		.cfi_startproc
+ 845              		@ args = 0, pretend = 0, frame = 0
+ 846              		@ frame_needed = 0, uses_anonymous_args = 0
+  28:Application/distGovernor.cpp **** DistGov::DistGov(I2C_HandleTypeDef &hi2c) {
+ 847              		.loc 1 28 1 is_stmt 0 view .LVU194
+ 848 0000 10B5     		push	{r4, lr}
+ 849              		.save {r4, lr}
+ 850              		.cfi_def_cfa_offset 8
+ 851              		.cfi_offset 4, -8
+ 852              		.cfi_offset 14, -4
+ 853 0002 0446     		mov	r4, r0
+ 854              	.LBB240:
+  29:Application/distGovernor.cpp ****     init(hi2c);
+ 855              		.loc 1 29 5 is_stmt 1 view .LVU195
+  29:Application/distGovernor.cpp ****     init(hi2c);
+ 856              		.loc 1 29 9 is_stmt 0 view .LVU196
+ 857 0004 FFF7FEFF 		bl	_ZN7DistGov4initER17I2C_HandleTypeDef
+ 858              	.LVL52:
+  29:Application/distGovernor.cpp ****     init(hi2c);
+ 859              		.loc 1 29 9 view .LVU197
+ 860              	.LBE240:
+  30:Application/distGovernor.cpp **** }
+ 861              		.loc 1 30 1 view .LVU198
+ 862 0008 2046     		mov	r0, r4
+ 863 000a 10BD     		pop	{r4, pc}
+  30:Application/distGovernor.cpp **** }
+ 864              		.loc 1 30 1 view .LVU199
+ 865              		.cfi_endproc
+ 866              	.LFE2133:
+ 867              		.fnend
+ 869              		.global	_ZN7DistGovC1ER17I2C_HandleTypeDef
+ 870              		.thumb_set _ZN7DistGovC1ER17I2C_HandleTypeDef,_ZN7DistGovC2ER17I2C_HandleTypeDef
+ 871              		.section	.text._ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE,"ax",%progbits
+ 872              		.align	1
+ 873              		.global	_ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE
+ 874              		.syntax unified
+ 875              		.thumb
+ 876              		.thumb_func
+ 878              	_ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE:
+ 879              		.fnstart
+ 880              	.LVL53:
+ 881              	.LFB2136:
+  32:Application/distGovernor.cpp **** DistGov::DistGov(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+ 882              		.loc 1 32 1 is_stmt 1 view -0
+ 883              		.cfi_startproc
+ 884              		@ args = 0, pretend = 0, frame = 8
+ 885              		@ frame_needed = 0, uses_anonymous_args = 0
+  32:Application/distGovernor.cpp **** DistGov::DistGov(I2C_HandleTypeDef &hi2c, byteArr6 sensorAddrs) {
+ 886              		.loc 1 32 1 is_stmt 0 view .LVU201
+ 887 0000 10B5     		push	{r4, lr}
+ 888              		.save {r4, lr}
+ 889              		.cfi_def_cfa_offset 8
+ 890              		.cfi_offset 4, -8
+ 891              		.cfi_offset 14, -4
+ 892              		.pad #8
+ 893 0002 82B0     		sub	sp, sp, #8
+ARM GAS  /tmp/ccq1G13O.s 			page 25
+
+
+ 894              		.cfi_def_cfa_offset 16
+ 895 0004 0446     		mov	r4, r0
+ 896 0006 EC46     		mov	ip, sp
+ 897 0008 8CE80C00 		stm	ip, {r2, r3}
+ 898              	.LBB241:
+  33:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+ 899              		.loc 1 33 5 is_stmt 1 view .LVU202
+  33:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+ 900              		.loc 1 33 9 is_stmt 0 view .LVU203
+ 901 000c 9CE80C00 		ldm	ip, {r2, r3}
+ 902 0010 FFF7FEFF 		bl	_ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE
+ 903              	.LVL54:
+  33:Application/distGovernor.cpp ****     init(hi2c, sensorAddrs);
+ 904              		.loc 1 33 9 view .LVU204
+ 905              	.LBE241:
+ 906              		.loc 1 34 1 view .LVU205
+ 907 0014 2046     		mov	r0, r4
+ 908 0016 02B0     		add	sp, sp, #8
+ 909              		.cfi_def_cfa_offset 8
+ 910              		@ sp needed
+ 911 0018 10BD     		pop	{r4, pc}
+ 912              		.loc 1 34 1 view .LVU206
+ 913              		.cfi_endproc
+ 914              	.LFE2136:
+ 915              		.fnend
+ 917              		.global	_ZN7DistGovC1ER17I2C_HandleTypeDefSt5arrayIhLj6EE
+ 918              		.thumb_set _ZN7DistGovC1ER17I2C_HandleTypeDefSt5arrayIhLj6EE,_ZN7DistGovC2ER17I2C_HandleTypeDefSt5
+ 919              		.section	.text._GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE,"ax",%progbits
+ 920              		.align	1
+ 921              		.syntax unified
+ 922              		.thumb
+ 923              		.thumb_func
+ 925              	_GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:
+ 926              		.fnstart
+ 927              	.LFB2661:
+ 928              		.loc 1 34 1 is_stmt 1 view -0
+ 929              		.cfi_startproc
+ 930              		@ args = 0, pretend = 0, frame = 0
+ 931              		@ frame_needed = 0, uses_anonymous_args = 0
+ 932 0000 08B5     		push	{r3, lr}
+ 933              		.cfi_def_cfa_offset 8
+ 934              		.cfi_offset 3, -8
+ 935              		.cfi_offset 14, -4
+ 936              		.loc 1 34 1 is_stmt 0 view .LVU208
+ 937 0002 FFF7FEFF 		bl	_Z41__static_initialization_and_destruction_0v
+ 938              	.LVL55:
+ 939 0006 08BD     		pop	{r3, pc}
+ 940              		.cfi_endproc
+ 941              	.LFE2661:
+ 942              		.cantunwind
+ 943              		.fnend
+ 945              		.section	.init_array,"aw",%init_array
+ 946              		.align	2
+ 947 0000 00000000 		.word	_GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE(target1)
+ 948              		.section	.bss._ZL19ROTATION_COMPONENTS,"aw",%nobits
+ 949              		.align	2
+ 952              	_ZL19ROTATION_COMPONENTS:
+ARM GAS  /tmp/ccq1G13O.s 			page 26
+
+
+ 953 0000 00000000 		.space	27
+ 953      00000000 
+ 953      00000000 
+ 953      00000000 
+ 953      00000000 
+ 954              		.section	.bss._ZL10ROTATION_Z,"aw",%nobits
+ 955              		.align	2
+ 958              	_ZL10ROTATION_Z:
+ 959 0000 00000000 		.space	9
+ 959      00000000 
+ 959      00
+ 960              		.section	.bss._ZL10ROTATION_Y,"aw",%nobits
+ 961              		.align	2
+ 964              	_ZL10ROTATION_Y:
+ 965 0000 00000000 		.space	9
+ 965      00000000 
+ 965      00
+ 966              		.section	.bss._ZL10ROTATION_X,"aw",%nobits
+ 967              		.align	2
+ 970              	_ZL10ROTATION_X:
+ 971 0000 00000000 		.space	9
+ 971      00000000 
+ 971      00
+ 972              		.section	.rodata
+ 973              		.align	2
+ 974              		.set	.LANCHOR0,. + 0
+ 975              	.LC0:
+ 976 0000 80203040 		.ascii	"\200 0@P`"
+ 976      5060
+ 977              		.text
+ 978              	.Letext0:
+ 979              		.file 4 "/usr/arm-none-eabi/include/c++/13.2.0/type_traits"
+ 980              		.file 5 "/usr/arm-none-eabi/include/c++/13.2.0/debug/debug.h"
+ 981              		.file 6 "/usr/arm-none-eabi/include/c++/13.2.0/cstdint"
+ 982              		.file 7 "/usr/arm-none-eabi/include/c++/13.2.0/cwchar"
+ 983              		.file 8 "/usr/arm-none-eabi/include/c++/13.2.0/bits/exception_ptr.h"
+ 984              		.file 9 "/usr/arm-none-eabi/include/c++/13.2.0/arm-none-eabi/thumb/v7e-m+fp/hard/bits/c++config.h"
+ 985              		.file 10 "/usr/arm-none-eabi/include/c++/13.2.0/clocale"
+ 986              		.file 11 "/usr/arm-none-eabi/include/c++/13.2.0/cstdlib"
+ 987              		.file 12 "/usr/arm-none-eabi/include/c++/13.2.0/cstdio"
+ 988              		.file 13 "/usr/arm-none-eabi/include/c++/13.2.0/cstddef"
+ 989              		.file 14 "/usr/arm-none-eabi/include/c++/13.2.0/cwctype"
+ 990              		.file 15 "/usr/arm-none-eabi/include/c++/13.2.0/bits/charconv.h"
+ 991              		.file 16 "/usr/arm-none-eabi/include/c++/13.2.0/bits/predefined_ops.h"
+ 992              		.file 17 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 993              		.file 18 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 994              		.file 19 "/usr/arm-none-eabi/include/stdint.h"
+ 995              		.file 20 "/usr/lib/gcc/arm-none-eabi/13.2.0/include/stddef.h"
+ 996              		.file 21 "/usr/arm-none-eabi/include/sys/_types.h"
+ 997              		.file 22 "/usr/arm-none-eabi/include/sys/reent.h"
+ 998              		.file 23 "/usr/arm-none-eabi/include/sys/lock.h"
+ 999              		.file 24 "/usr/lib/gcc/arm-none-eabi/13.2.0/include/stdarg.h"
+ 1000              		.file 25 "/usr/arm-none-eabi/include/wchar.h"
+ 1001              		.file 26 "/usr/arm-none-eabi/include/locale.h"
+ 1002              		.file 27 "/usr/arm-none-eabi/include/stdlib.h"
+ 1003              		.file 28 "/usr/arm-none-eabi/include/stdio.h"
+ 1004              		.file 29 "/usr/arm-none-eabi/include/wctype.h"
+ARM GAS  /tmp/ccq1G13O.s 			page 27
+
+
+ 1005              		.file 30 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h"
+ 1006              		.file 31 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 1007              		.file 32 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 1008              		.file 33 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h"
+ 1009              		.file 34 "Intermediate/include/i2cInterf.h"
+ 1010              		.file 35 "Intermediate/include/distanceInterf.h"
+ 1011              		.file 36 "Core/Inc/pins.h"
+ 1012              		.file 37 "Application/Include/distGovernor.h"
+ 1013              		.file 38 "/usr/arm-none-eabi/include/c++/13.2.0/new"
+ 1014              		.file 39 "/usr/arm-none-eabi/include/c++/13.2.0/bits/memory_resource.h"
+ 1015              		.file 40 "/usr/arm-none-eabi/include/c++/13.2.0/system_error"
+ 1016              		.file 41 "<built-in>"
+ARM GAS  /tmp/ccq1G13O.s 			page 28
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 distGovernor.cpp
+     /tmp/ccq1G13O.s:21     .text._Z41__static_initialization_and_destruction_0v:00000000 $t
+     /tmp/ccq1G13O.s:26     .text._Z41__static_initialization_and_destruction_0v:00000000 _Z41__static_initialization_and_destruction_0v
+     /tmp/ccq1G13O.s:528    .text._Z41__static_initialization_and_destruction_0v:00000084 $d
+     /tmp/ccq1G13O.s:970    .bss._ZL10ROTATION_X:00000000 _ZL10ROTATION_X
+     /tmp/ccq1G13O.s:964    .bss._ZL10ROTATION_Y:00000000 _ZL10ROTATION_Y
+     /tmp/ccq1G13O.s:958    .bss._ZL10ROTATION_Z:00000000 _ZL10ROTATION_Z
+     /tmp/ccq1G13O.s:952    .bss._ZL19ROTATION_COMPONENTS:00000000 _ZL19ROTATION_COMPONENTS
+.ARM.exidx.text._Z41__static_initialization_and_destruction_0v:00000000 $d
+     /tmp/ccq1G13O.s:538    .text._ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $t
+     /tmp/ccq1G13O.s:544    .text._ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 _ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE
+.ARM.extab.text._ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $d
+.ARM.exidx.text._ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $d
+     /tmp/ccq1G13O.s:665    .text._ZN7DistGov4initER17I2C_HandleTypeDef:00000000 $t
+     /tmp/ccq1G13O.s:671    .text._ZN7DistGov4initER17I2C_HandleTypeDef:00000000 _ZN7DistGov4initER17I2C_HandleTypeDef
+     /tmp/ccq1G13O.s:713    .text._ZN7DistGov4initER17I2C_HandleTypeDef:00000028 $d
+.ARM.exidx.text._ZN7DistGov4initER17I2C_HandleTypeDef:00000000 $d
+     /tmp/ccq1G13O.s:719    .text._ZN7DistGov13readDistancesEv:00000000 $t
+     /tmp/ccq1G13O.s:725    .text._ZN7DistGov13readDistancesEv:00000000 _ZN7DistGov13readDistancesEv
+.ARM.exidx.text._ZN7DistGov13readDistancesEv:00000000 $d
+     /tmp/ccq1G13O.s:789    .text._ZN7DistGov10e_fuse_runEhh:00000000 $t
+     /tmp/ccq1G13O.s:795    .text._ZN7DistGov10e_fuse_runEhh:00000000 _ZN7DistGov10e_fuse_runEhh
+.ARM.extab.text._ZN7DistGov10e_fuse_runEhh:00000000 $d
+.ARM.exidx.text._ZN7DistGov10e_fuse_runEhh:00000000 $d
+     /tmp/ccq1G13O.s:833    .text._ZN7DistGovC2ER17I2C_HandleTypeDef:00000000 $t
+     /tmp/ccq1G13O.s:839    .text._ZN7DistGovC2ER17I2C_HandleTypeDef:00000000 _ZN7DistGovC2ER17I2C_HandleTypeDef
+.ARM.exidx.text._ZN7DistGovC2ER17I2C_HandleTypeDef:00000000 $d
+     /tmp/ccq1G13O.s:839    .text._ZN7DistGovC2ER17I2C_HandleTypeDef:00000000 _ZN7DistGovC1ER17I2C_HandleTypeDef
+     /tmp/ccq1G13O.s:872    .text._ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $t
+     /tmp/ccq1G13O.s:878    .text._ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 _ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE
+.ARM.exidx.text._ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $d
+     /tmp/ccq1G13O.s:878    .text._ZN7DistGovC2ER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 _ZN7DistGovC1ER17I2C_HandleTypeDefSt5arrayIhLj6EE
+     /tmp/ccq1G13O.s:920    .text._GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $t
+     /tmp/ccq1G13O.s:925    .text._GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 _GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE
+.ARM.exidx.text._GLOBAL__sub_I__ZN7DistGov4initER17I2C_HandleTypeDefSt5arrayIhLj6EE:00000000 $d
+     /tmp/ccq1G13O.s:946    .init_array:00000000 $d
+     /tmp/ccq1G13O.s:949    .bss._ZL19ROTATION_COMPONENTS:00000000 $d
+     /tmp/ccq1G13O.s:955    .bss._ZL10ROTATION_Z:00000000 $d
+     /tmp/ccq1G13O.s:961    .bss._ZL10ROTATION_Y:00000000 $d
+     /tmp/ccq1G13O.s:967    .bss._ZL10ROTATION_X:00000000 $d
+     /tmp/ccq1G13O.s:973    .rodata:00000000 $d
+
+UNDEFINED SYMBOLS
+_Znwj
+_ZN14distanceInterfC1ER17I2C_HandleTypeDefh
+_ZdlPvj
+__cxa_end_cleanup
+__gxx_personality_v0
+__aeabi_unwind_cpp_pr0
+_ZN14distanceInterf12readDistanceEv
+_ZN14distanceInterf10e_fuse_runEh
+__aeabi_unwind_cpp_pr1

@@ -1,0 +1,1 @@
+This folder contains wrappers to interface between STM32 HALs (C) and application code (C++).

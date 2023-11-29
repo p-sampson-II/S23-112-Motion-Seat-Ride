@@ -1,0 +1,2003 @@
+ARM GAS  /tmp/ccpPuDCh.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"controller.cpp"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Application/controller.cpp"
+  20              		.section	.text._Z41__static_initialization_and_destruction_0v,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	_Z41__static_initialization_and_destruction_0v:
+  27              		.fnstart
+  28              	.LFB2540:
+   1:Application/controller.cpp **** /*
+   2:Application/controller.cpp **** Authors: Paul Sampson and Kelvin Hoang
+   3:Application/controller.cpp **** 
+   4:Application/controller.cpp **** Date: Fall 2023
+   5:Application/controller.cpp **** 
+   6:Application/controller.cpp **** Description: Implementation of a single-dimension PID controller with optional dynamic integral ter
+   7:Application/controller.cpp ****              This integral term can be turned on and off based on an error threshold ratio (error/d
+   8:Application/controller.cpp **** 
+   9:Application/controller.cpp **** Formulae used:
+  10:Application/controller.cpp **** 
+  11:Application/controller.cpp ****     Error = Desired - Actual
+  12:Application/controller.cpp **** 
+  13:Application/controller.cpp ****     Error Ratio = Error / Desired
+  14:Application/controller.cpp **** 
+  15:Application/controller.cpp ****     Error Sum = Sigma_{Initial Sample}^{Present Sample} (Error)
+  16:Application/controller.cpp **** 
+  17:Application/controller.cpp ****     Error Slope = (Error[k] - Error[k - 1]) / Sample Period
+  18:Application/controller.cpp **** 
+  19:Application/controller.cpp ****     Control Variable = Kp * Error + Ki * Error Sum + Kd * Error Slope
+  20:Application/controller.cpp **** */
+  21:Application/controller.cpp **** 
+  22:Application/controller.cpp **** #include <array>
+  23:Application/controller.cpp **** #include "controller.h"
+  24:Application/controller.cpp **** 
+  25:Application/controller.cpp **** // Implementation of a single instance of the control system.
+  26:Application/controller.cpp **** class CtrlImpl {
+  27:Application/controller.cpp **** public:
+  28:Application/controller.cpp ****     CtrlImpl();
+  29:Application/controller.cpp ****     CtrlImpl(float const & kp,float const & ki, float const & kd, float const & samplePer);
+  30:Application/controller.cpp ****     ~CtrlImpl();
+ARM GAS  /tmp/ccpPuDCh.s 			page 2
+
+
+  31:Application/controller.cpp **** 
+  32:Application/controller.cpp ****     float calcSample(float const & desired, float const & actual);
+  33:Application/controller.cpp **** private:
+  34:Application/controller.cpp ****     float kp,ki,kd;
+  35:Application/controller.cpp ****     float errorSum;
+  36:Application/controller.cpp ****     float errorOld;
+  37:Application/controller.cpp ****     float samplePer;
+  38:Application/controller.cpp **** 
+  39:Application/controller.cpp ****     bool calculateIntegral;
+  40:Application/controller.cpp ****     float integralErrorThreshold;
+  41:Application/controller.cpp **** };
+  42:Application/controller.cpp **** 
+  43:Application/controller.cpp **** Controller::Controller() {
+  44:Application/controller.cpp ****     init(K_P,K_I,K_D,SAMPLE_PER);
+  45:Application/controller.cpp **** }
+  46:Application/controller.cpp **** 
+  47:Application/controller.cpp **** Controller::Controller(float const & kp,float const & ki, float const & kd, float const & samplePer
+  48:Application/controller.cpp ****     init(kp,ki,kd,samplePer);
+  49:Application/controller.cpp **** }
+  50:Application/controller.cpp **** 
+  51:Application/controller.cpp **** void Controller::init(float const & kp,float const & ki, float const & kd, float const & samplePer)
+  52:Application/controller.cpp ****     for (int i = 0; i < 6; i++){
+  53:Application/controller.cpp ****         // Instantiate each cylinder postion controller`1
+  54:Application/controller.cpp ****         impl[i] = new CtrlImpl(kp, ki, kd, samplePer);
+  55:Application/controller.cpp ****     }
+  56:Application/controller.cpp **** }
+  57:Application/controller.cpp **** 
+  58:Application/controller.cpp **** Controller::~Controller() {
+  59:Application/controller.cpp ****     for (int i = 0; i < 6; i++){
+  60:Application/controller.cpp ****         delete impl[i];
+  61:Application/controller.cpp ****     }
+  62:Application/controller.cpp **** }
+  63:Application/controller.cpp **** 
+  64:Application/controller.cpp **** /**
+  65:Application/controller.cpp ****  * @brief Calculate the next sample of all controllers.
+  66:Application/controller.cpp ****  * 
+  67:Application/controller.cpp ****  * @param desired Array of the desired position for each controller
+  68:Application/controller.cpp ****  * @param actual Array of the actual position of each controller, from sensor data
+  69:Application/controller.cpp ****  * @return fArr6 The voltage to set each solenoid - Will likely be digital (HIGH, LOW)
+  70:Application/controller.cpp ****  */
+  71:Application/controller.cpp **** fArr6 Controller::step(fArr6 desired, fArr6 actual) {
+  72:Application/controller.cpp ****     fArr6 output;
+  73:Application/controller.cpp ****     for (int i = 0; i < 6; i++) {
+  74:Application/controller.cpp ****         output[i] = (impl[i]->calcSample(desired[i],actual[i]))/norm;
+  75:Application/controller.cpp ****     }
+  76:Application/controller.cpp ****     return output;
+  77:Application/controller.cpp **** }
+  78:Application/controller.cpp **** 
+  79:Application/controller.cpp **** CtrlImpl::CtrlImpl(float const & kp,float const & ki, float const & kd, float const & samplePer) : 
+  80:Application/controller.cpp ****     kp(kp), ki(ki), kd(kd), errorSum(0), errorOld(0), samplePer(samplePer) {}
+  81:Application/controller.cpp **** 
+  82:Application/controller.cpp **** CtrlImpl::CtrlImpl() : 
+  83:Application/controller.cpp ****     kp(K_P), ki(K_I), kd(K_D), errorSum(0), errorOld(0), samplePer(SAMPLE_PER) {}
+  84:Application/controller.cpp **** 
+  85:Application/controller.cpp **** CtrlImpl::~CtrlImpl() {}
+  86:Application/controller.cpp **** 
+  87:Application/controller.cpp **** /** @brief Calculate the value of the control variable based on the state of a system.
+ARM GAS  /tmp/ccpPuDCh.s 			page 3
+
+
+  88:Application/controller.cpp **** *
+  89:Application/controller.cpp **** *   @param desired The desired input value for the controller to achieve
+  90:Application/controller.cpp **** *   @param actual The actual value of the input variable
+  91:Application/controller.cpp **** *
+  92:Application/controller.cpp **** *   @returns The value to set the variable being controlled (Likely voltage).
+  93:Application/controller.cpp **** */
+  94:Application/controller.cpp **** float CtrlImpl::calcSample(float const & desired, float const & actual) {
+  95:Application/controller.cpp **** 
+  96:Application/controller.cpp ****     float error = desired - actual; // e[k]
+  97:Application/controller.cpp ****     float errRatio = error/desired; // Used to decide whether to use integral control
+  98:Application/controller.cpp ****     float errorSlope = (error-errorOld)/samplePer; // Delta(e(kT))/Delta(kT)
+  99:Application/controller.cpp **** 
+ 100:Application/controller.cpp ****     float output = kp*error + ki*errorSum + kd*errorSlope; // h(k)
+ 101:Application/controller.cpp **** 
+ 102:Application/controller.cpp ****     // Calculate these variables for the succeeding sample:
+ 103:Application/controller.cpp **** 
+ 104:Application/controller.cpp ****     if(ki > 0 && errRatio < integralErrorThreshold) {
+ 105:Application/controller.cpp ****         errorSum += error; // sum_{k_1}^{k}(error)
+ 106:Application/controller.cpp ****     }
+ 107:Application/controller.cpp **** 
+ 108:Application/controller.cpp ****     else {
+ 109:Application/controller.cpp ****         errorSum = 0;
+ 110:Application/controller.cpp ****     }
+ 111:Application/controller.cpp ****     
+ 112:Application/controller.cpp ****     errorOld = error; 
+ 113:Application/controller.cpp **** 
+ 114:Application/controller.cpp ****     return output;
+ 115:Application/controller.cpp **** }
+  29              		.loc 1 115 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 30B5     		push	{r4, r5, lr}
+  34              		.cfi_def_cfa_offset 12
+  35              		.cfi_offset 4, -12
+  36              		.cfi_offset 5, -8
+  37              		.cfi_offset 14, -4
+  38              	.LVL0:
+  39              	.LBB129:
+  40              	.LBI129:
+  41              		.file 2 "Application/Include/matrixdefs.h"
+   1:Application/Include/matrixdefs.h **** 
+   2:Application/Include/matrixdefs.h **** #ifndef MATRIX_DEFS_H
+   3:Application/Include/matrixdefs.h **** #define MATRIX_DEFS_H
+   4:Application/Include/matrixdefs.h **** #include <cstdint>
+   5:Application/Include/matrixdefs.h **** #include <array>
+   6:Application/Include/matrixdefs.h **** #include <tuple>
+   7:Application/Include/matrixdefs.h **** #include <iostream>
+   8:Application/Include/matrixdefs.h **** 
+   9:Application/Include/matrixdefs.h **** #define NO_CYLS 6 // One output per cylinder representing linear position
+  10:Application/Include/matrixdefs.h **** #define NO_DOF 3 // Pitch, Roll, and Yaw; calculated from transformation matrix
+  11:Application/Include/matrixdefs.h **** 
+  12:Application/Include/matrixdefs.h **** // Describes a trig operation to be performed. ZERO and ONE simply indicate that the function shoul
+  13:Application/Include/matrixdefs.h **** // 0 or 1.
+  14:Application/Include/matrixdefs.h **** typedef enum trigEnum { NEGSIN=-3, NEGCOS=-2, NEGONE=-1 ,ZERO=0, ONE=1, COS=2, SIN=3 } trigEnum;
+  15:Application/Include/matrixdefs.h **** 
+  16:Application/Include/matrixdefs.h **** // Implements a union of int and trigEnum, allowing the implicit conversion seen in the rotation fu
+ARM GAS  /tmp/ccpPuDCh.s 			page 4
+
+
+  17:Application/Include/matrixdefs.h **** // This is done to make checking the function matricies at a glance a LOT easier.
+  18:Application/Include/matrixdefs.h **** typedef struct trigOp {
+  19:Application/Include/matrixdefs.h ****     union {
+  20:Application/Include/matrixdefs.h ****     int8_t value;
+  21:Application/Include/matrixdefs.h ****     trigEnum enumeration;
+  22:Application/Include/matrixdefs.h ****     };
+  23:Application/Include/matrixdefs.h **** 
+  24:Application/Include/matrixdefs.h ****   operator int() const{
+  25:Application/Include/matrixdefs.h ****     return value;
+  26:Application/Include/matrixdefs.h ****   }
+  27:Application/Include/matrixdefs.h **** 
+  28:Application/Include/matrixdefs.h ****   operator trigEnum() const{
+  29:Application/Include/matrixdefs.h ****     return enumeration;
+  30:Application/Include/matrixdefs.h ****   }
+  31:Application/Include/matrixdefs.h **** 
+  32:Application/Include/matrixdefs.h ****   trigOp& operator=(int i){
+  33:Application/Include/matrixdefs.h ****     this->set(i);
+  34:Application/Include/matrixdefs.h ****     return *this;
+  35:Application/Include/matrixdefs.h ****   }
+  36:Application/Include/matrixdefs.h **** 
+  37:Application/Include/matrixdefs.h ****   trigOp& operator=(trigEnum e){
+  38:Application/Include/matrixdefs.h ****     this->set(e);
+  39:Application/Include/matrixdefs.h ****     return *this;
+  40:Application/Include/matrixdefs.h ****   }
+  41:Application/Include/matrixdefs.h **** 
+  42:Application/Include/matrixdefs.h ****   void set(int i){
+  43:Application/Include/matrixdefs.h ****     value = i;
+  44:Application/Include/matrixdefs.h ****   }
+  45:Application/Include/matrixdefs.h ****   void set(trigEnum e){
+  46:Application/Include/matrixdefs.h ****     enumeration = e;
+  47:Application/Include/matrixdefs.h ****   }
+  48:Application/Include/matrixdefs.h **** 
+  49:Application/Include/matrixdefs.h ****   trigOp(int i){
+  42              		.loc 2 49 3 view .LVU1
+  43              	.LBB130:
+  44              	.LBB131:
+  45              	.LBI131:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  46              		.loc 2 42 8 view .LVU2
+  47              	.LBB132:
+  43:Application/Include/matrixdefs.h ****   }
+  48              		.loc 2 43 5 view .LVU3
+  43:Application/Include/matrixdefs.h ****   }
+  49              		.loc 2 43 11 is_stmt 0 view .LVU4
+  50 0002 204A     		ldr	r2, .L3
+  51 0004 0125     		movs	r5, #1
+  52 0006 1570     		strb	r5, [r2]
+  53              	.LVL1:
+  43:Application/Include/matrixdefs.h ****   }
+  54              		.loc 2 43 11 view .LVU5
+  55              	.LBE132:
+  56              	.LBE131:
+  57              	.LBE130:
+  58              	.LBE129:
+  59              	.LBB133:
+  60              	.LBI133:
+  61              		.loc 2 49 3 is_stmt 1 view .LVU6
+ARM GAS  /tmp/ccpPuDCh.s 			page 5
+
+
+  62              	.LBB134:
+  63              	.LBB135:
+  64              	.LBI135:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  65              		.loc 2 42 8 view .LVU7
+  66              	.LBB136:
+  43:Application/Include/matrixdefs.h ****   }
+  67              		.loc 2 43 5 view .LVU8
+  43:Application/Include/matrixdefs.h ****   }
+  68              		.loc 2 43 11 is_stmt 0 view .LVU9
+  69 0008 0021     		movs	r1, #0
+  70 000a 5170     		strb	r1, [r2, #1]
+  71              	.LVL2:
+  43:Application/Include/matrixdefs.h ****   }
+  72              		.loc 2 43 11 view .LVU10
+  73              	.LBE136:
+  74              	.LBE135:
+  75              	.LBE134:
+  76              	.LBE133:
+  77              	.LBB137:
+  78              	.LBI137:
+  79              		.loc 2 49 3 is_stmt 1 view .LVU11
+  80              	.LBB138:
+  81              	.LBB139:
+  82              	.LBI139:
+  42:Application/Include/matrixdefs.h ****     value = i;
+  83              		.loc 2 42 8 view .LVU12
+  84              	.LBB140:
+  43:Application/Include/matrixdefs.h ****   }
+  85              		.loc 2 43 5 view .LVU13
+  43:Application/Include/matrixdefs.h ****   }
+  86              		.loc 2 43 11 is_stmt 0 view .LVU14
+  87 000c 9170     		strb	r1, [r2, #2]
+  88              	.LVL3:
+  43:Application/Include/matrixdefs.h ****   }
+  89              		.loc 2 43 11 view .LVU15
+  90              	.LBE140:
+  91              	.LBE139:
+  92              	.LBE138:
+  93              	.LBE137:
+  94              	.LBB141:
+  95              	.LBI141:
+  96              		.loc 2 49 3 is_stmt 1 view .LVU16
+  97              	.LBB142:
+  98              	.LBB143:
+  99              	.LBI143:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 100              		.loc 2 42 8 view .LVU17
+ 101              	.LBB144:
+  43:Application/Include/matrixdefs.h ****   }
+ 102              		.loc 2 43 5 view .LVU18
+  43:Application/Include/matrixdefs.h ****   }
+ 103              		.loc 2 43 11 is_stmt 0 view .LVU19
+ 104 000e D170     		strb	r1, [r2, #3]
+ 105              	.LVL4:
+  43:Application/Include/matrixdefs.h ****   }
+ 106              		.loc 2 43 11 view .LVU20
+ARM GAS  /tmp/ccpPuDCh.s 			page 6
+
+
+ 107              	.LBE144:
+ 108              	.LBE143:
+ 109              	.LBE142:
+ 110              	.LBE141:
+ 111              	.LBB145:
+ 112              	.LBI145:
+ 113              		.loc 2 49 3 is_stmt 1 view .LVU21
+ 114              	.LBB146:
+ 115              	.LBB147:
+ 116              	.LBI147:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 117              		.loc 2 42 8 view .LVU22
+ 118              	.LBB148:
+  43:Application/Include/matrixdefs.h ****   }
+ 119              		.loc 2 43 5 view .LVU23
+  43:Application/Include/matrixdefs.h ****   }
+ 120              		.loc 2 43 11 is_stmt 0 view .LVU24
+ 121 0010 0220     		movs	r0, #2
+ 122 0012 1071     		strb	r0, [r2, #4]
+ 123              	.LVL5:
+  43:Application/Include/matrixdefs.h ****   }
+ 124              		.loc 2 43 11 view .LVU25
+ 125              	.LBE148:
+ 126              	.LBE147:
+ 127              	.LBE146:
+ 128              	.LBE145:
+ 129              	.LBB149:
+ 130              	.LBI149:
+ 131              		.loc 2 49 3 is_stmt 1 view .LVU26
+ 132              	.LBB150:
+ 133              	.LBB151:
+ 134              	.LBI151:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 135              		.loc 2 42 8 view .LVU27
+ 136              	.LBB152:
+  43:Application/Include/matrixdefs.h ****   }
+ 137              		.loc 2 43 5 view .LVU28
+  43:Application/Include/matrixdefs.h ****   }
+ 138              		.loc 2 43 11 is_stmt 0 view .LVU29
+ 139 0014 4FF0FD0E 		mov	lr, #253
+ 140 0018 82F805E0 		strb	lr, [r2, #5]
+ 141              	.LVL6:
+  43:Application/Include/matrixdefs.h ****   }
+ 142              		.loc 2 43 11 view .LVU30
+ 143              	.LBE152:
+ 144              	.LBE151:
+ 145              	.LBE150:
+ 146              	.LBE149:
+ 147              	.LBB153:
+ 148              	.LBI153:
+ 149              		.loc 2 49 3 is_stmt 1 view .LVU31
+ 150              	.LBB154:
+ 151              	.LBB155:
+ 152              	.LBI155:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 153              		.loc 2 42 8 view .LVU32
+ 154              	.LBB156:
+ARM GAS  /tmp/ccpPuDCh.s 			page 7
+
+
+  43:Application/Include/matrixdefs.h ****   }
+ 155              		.loc 2 43 5 view .LVU33
+  43:Application/Include/matrixdefs.h ****   }
+ 156              		.loc 2 43 11 is_stmt 0 view .LVU34
+ 157 001c 9171     		strb	r1, [r2, #6]
+ 158              	.LVL7:
+  43:Application/Include/matrixdefs.h ****   }
+ 159              		.loc 2 43 11 view .LVU35
+ 160              	.LBE156:
+ 161              	.LBE155:
+ 162              	.LBE154:
+ 163              	.LBE153:
+ 164              	.LBB157:
+ 165              	.LBI157:
+ 166              		.loc 2 49 3 is_stmt 1 view .LVU36
+ 167              	.LBB158:
+ 168              	.LBB159:
+ 169              	.LBI159:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 170              		.loc 2 42 8 view .LVU37
+ 171              	.LBB160:
+  43:Application/Include/matrixdefs.h ****   }
+ 172              		.loc 2 43 5 view .LVU38
+  43:Application/Include/matrixdefs.h ****   }
+ 173              		.loc 2 43 11 is_stmt 0 view .LVU39
+ 174 001e 4FF0030C 		mov	ip, #3
+ 175 0022 82F807C0 		strb	ip, [r2, #7]
+ 176              	.LVL8:
+  43:Application/Include/matrixdefs.h ****   }
+ 177              		.loc 2 43 11 view .LVU40
+ 178              	.LBE160:
+ 179              	.LBE159:
+ 180              	.LBE158:
+ 181              	.LBE157:
+ 182              	.LBB161:
+ 183              	.LBI161:
+ 184              		.loc 2 49 3 is_stmt 1 view .LVU41
+ 185              	.LBB162:
+ 186              	.LBB163:
+ 187              	.LBI163:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 188              		.loc 2 42 8 view .LVU42
+ 189              	.LBB164:
+  43:Application/Include/matrixdefs.h ****   }
+ 190              		.loc 2 43 5 view .LVU43
+  43:Application/Include/matrixdefs.h ****   }
+ 191              		.loc 2 43 11 is_stmt 0 view .LVU44
+ 192 0026 1072     		strb	r0, [r2, #8]
+ 193              	.LVL9:
+  43:Application/Include/matrixdefs.h ****   }
+ 194              		.loc 2 43 11 view .LVU45
+ 195              	.LBE164:
+ 196              	.LBE163:
+ 197              	.LBE162:
+ 198              	.LBE161:
+ 199              	.LBB165:
+ 200              	.LBI165:
+ARM GAS  /tmp/ccpPuDCh.s 			page 8
+
+
+ 201              		.loc 2 49 3 is_stmt 1 view .LVU46
+ 202              	.LBB166:
+ 203              	.LBB167:
+ 204              	.LBI167:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 205              		.loc 2 42 8 view .LVU47
+ 206              	.LBB168:
+  43:Application/Include/matrixdefs.h ****   }
+ 207              		.loc 2 43 5 view .LVU48
+  43:Application/Include/matrixdefs.h ****   }
+ 208              		.loc 2 43 11 is_stmt 0 view .LVU49
+ 209 0028 174C     		ldr	r4, .L3+4
+ 210 002a 2070     		strb	r0, [r4]
+ 211              	.LVL10:
+  43:Application/Include/matrixdefs.h ****   }
+ 212              		.loc 2 43 11 view .LVU50
+ 213              	.LBE168:
+ 214              	.LBE167:
+ 215              	.LBE166:
+ 216              	.LBE165:
+ 217              	.LBB169:
+ 218              	.LBI169:
+ 219              		.loc 2 49 3 is_stmt 1 view .LVU51
+ 220              	.LBB170:
+ 221              	.LBB171:
+ 222              	.LBI171:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 223              		.loc 2 42 8 view .LVU52
+ 224              	.LBB172:
+  43:Application/Include/matrixdefs.h ****   }
+ 225              		.loc 2 43 5 view .LVU53
+  43:Application/Include/matrixdefs.h ****   }
+ 226              		.loc 2 43 11 is_stmt 0 view .LVU54
+ 227 002c 6170     		strb	r1, [r4, #1]
+ 228              	.LVL11:
+  43:Application/Include/matrixdefs.h ****   }
+ 229              		.loc 2 43 11 view .LVU55
+ 230              	.LBE172:
+ 231              	.LBE171:
+ 232              	.LBE170:
+ 233              	.LBE169:
+ 234              	.LBB173:
+ 235              	.LBI173:
+ 236              		.loc 2 49 3 is_stmt 1 view .LVU56
+ 237              	.LBB174:
+ 238              	.LBB175:
+ 239              	.LBI175:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 240              		.loc 2 42 8 view .LVU57
+ 241              	.LBB176:
+  43:Application/Include/matrixdefs.h ****   }
+ 242              		.loc 2 43 5 view .LVU58
+  43:Application/Include/matrixdefs.h ****   }
+ 243              		.loc 2 43 11 is_stmt 0 view .LVU59
+ 244 002e 84F802C0 		strb	ip, [r4, #2]
+ 245              	.LVL12:
+  43:Application/Include/matrixdefs.h ****   }
+ARM GAS  /tmp/ccpPuDCh.s 			page 9
+
+
+ 246              		.loc 2 43 11 view .LVU60
+ 247              	.LBE176:
+ 248              	.LBE175:
+ 249              	.LBE174:
+ 250              	.LBE173:
+ 251              	.LBB177:
+ 252              	.LBI177:
+ 253              		.loc 2 49 3 is_stmt 1 view .LVU61
+ 254              	.LBB178:
+ 255              	.LBB179:
+ 256              	.LBI179:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 257              		.loc 2 42 8 view .LVU62
+ 258              	.LBB180:
+  43:Application/Include/matrixdefs.h ****   }
+ 259              		.loc 2 43 5 view .LVU63
+  43:Application/Include/matrixdefs.h ****   }
+ 260              		.loc 2 43 11 is_stmt 0 view .LVU64
+ 261 0032 E170     		strb	r1, [r4, #3]
+ 262              	.LVL13:
+  43:Application/Include/matrixdefs.h ****   }
+ 263              		.loc 2 43 11 view .LVU65
+ 264              	.LBE180:
+ 265              	.LBE179:
+ 266              	.LBE178:
+ 267              	.LBE177:
+ 268              	.LBB181:
+ 269              	.LBI181:
+ 270              		.loc 2 49 3 is_stmt 1 view .LVU66
+ 271              	.LBB182:
+ 272              	.LBB183:
+ 273              	.LBI183:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 274              		.loc 2 42 8 view .LVU67
+ 275              	.LBB184:
+  43:Application/Include/matrixdefs.h ****   }
+ 276              		.loc 2 43 5 view .LVU68
+  43:Application/Include/matrixdefs.h ****   }
+ 277              		.loc 2 43 11 is_stmt 0 view .LVU69
+ 278 0034 2571     		strb	r5, [r4, #4]
+ 279              	.LVL14:
+  43:Application/Include/matrixdefs.h ****   }
+ 280              		.loc 2 43 11 view .LVU70
+ 281              	.LBE184:
+ 282              	.LBE183:
+ 283              	.LBE182:
+ 284              	.LBE181:
+ 285              	.LBB185:
+ 286              	.LBI185:
+ 287              		.loc 2 49 3 is_stmt 1 view .LVU71
+ 288              	.LBB186:
+ 289              	.LBB187:
+ 290              	.LBI187:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 291              		.loc 2 42 8 view .LVU72
+ 292              	.LBB188:
+  43:Application/Include/matrixdefs.h ****   }
+ARM GAS  /tmp/ccpPuDCh.s 			page 10
+
+
+ 293              		.loc 2 43 5 view .LVU73
+  43:Application/Include/matrixdefs.h ****   }
+ 294              		.loc 2 43 11 is_stmt 0 view .LVU74
+ 295 0036 6171     		strb	r1, [r4, #5]
+ 296              	.LVL15:
+  43:Application/Include/matrixdefs.h ****   }
+ 297              		.loc 2 43 11 view .LVU75
+ 298              	.LBE188:
+ 299              	.LBE187:
+ 300              	.LBE186:
+ 301              	.LBE185:
+ 302              	.LBB189:
+ 303              	.LBI189:
+ 304              		.loc 2 49 3 is_stmt 1 view .LVU76
+ 305              	.LBB190:
+ 306              	.LBB191:
+ 307              	.LBI191:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 308              		.loc 2 42 8 view .LVU77
+ 309              	.LBB192:
+  43:Application/Include/matrixdefs.h ****   }
+ 310              		.loc 2 43 5 view .LVU78
+  43:Application/Include/matrixdefs.h ****   }
+ 311              		.loc 2 43 11 is_stmt 0 view .LVU79
+ 312 0038 84F806E0 		strb	lr, [r4, #6]
+ 313              	.LVL16:
+  43:Application/Include/matrixdefs.h ****   }
+ 314              		.loc 2 43 11 view .LVU80
+ 315              	.LBE192:
+ 316              	.LBE191:
+ 317              	.LBE190:
+ 318              	.LBE189:
+ 319              	.LBB193:
+ 320              	.LBI193:
+ 321              		.loc 2 49 3 is_stmt 1 view .LVU81
+ 322              	.LBB194:
+ 323              	.LBB195:
+ 324              	.LBI195:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 325              		.loc 2 42 8 view .LVU82
+ 326              	.LBB196:
+  43:Application/Include/matrixdefs.h ****   }
+ 327              		.loc 2 43 5 view .LVU83
+  43:Application/Include/matrixdefs.h ****   }
+ 328              		.loc 2 43 11 is_stmt 0 view .LVU84
+ 329 003c E171     		strb	r1, [r4, #7]
+ 330              	.LVL17:
+  43:Application/Include/matrixdefs.h ****   }
+ 331              		.loc 2 43 11 view .LVU85
+ 332              	.LBE196:
+ 333              	.LBE195:
+ 334              	.LBE194:
+ 335              	.LBE193:
+ 336              	.LBB197:
+ 337              	.LBI197:
+ 338              		.loc 2 49 3 is_stmt 1 view .LVU86
+ 339              	.LBB198:
+ARM GAS  /tmp/ccpPuDCh.s 			page 11
+
+
+ 340              	.LBB199:
+ 341              	.LBI199:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 342              		.loc 2 42 8 view .LVU87
+ 343              	.LBB200:
+  43:Application/Include/matrixdefs.h ****   }
+ 344              		.loc 2 43 5 view .LVU88
+  43:Application/Include/matrixdefs.h ****   }
+ 345              		.loc 2 43 11 is_stmt 0 view .LVU89
+ 346 003e 2072     		strb	r0, [r4, #8]
+ 347              	.LVL18:
+  43:Application/Include/matrixdefs.h ****   }
+ 348              		.loc 2 43 11 view .LVU90
+ 349              	.LBE200:
+ 350              	.LBE199:
+ 351              	.LBE198:
+ 352              	.LBE197:
+ 353              	.LBB201:
+ 354              	.LBI201:
+ 355              		.loc 2 49 3 is_stmt 1 view .LVU91
+ 356              	.LBB202:
+ 357              	.LBB203:
+ 358              	.LBI203:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 359              		.loc 2 42 8 view .LVU92
+ 360              	.LBB204:
+  43:Application/Include/matrixdefs.h ****   }
+ 361              		.loc 2 43 5 view .LVU93
+  43:Application/Include/matrixdefs.h ****   }
+ 362              		.loc 2 43 11 is_stmt 0 view .LVU94
+ 363 0040 124B     		ldr	r3, .L3+8
+ 364 0042 1870     		strb	r0, [r3]
+ 365              	.LVL19:
+  43:Application/Include/matrixdefs.h ****   }
+ 366              		.loc 2 43 11 view .LVU95
+ 367              	.LBE204:
+ 368              	.LBE203:
+ 369              	.LBE202:
+ 370              	.LBE201:
+ 371              	.LBB205:
+ 372              	.LBI205:
+ 373              		.loc 2 49 3 is_stmt 1 view .LVU96
+ 374              	.LBB206:
+ 375              	.LBB207:
+ 376              	.LBI207:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 377              		.loc 2 42 8 view .LVU97
+ 378              	.LBB208:
+  43:Application/Include/matrixdefs.h ****   }
+ 379              		.loc 2 43 5 view .LVU98
+  43:Application/Include/matrixdefs.h ****   }
+ 380              		.loc 2 43 11 is_stmt 0 view .LVU99
+ 381 0044 83F801E0 		strb	lr, [r3, #1]
+ 382              	.LVL20:
+  43:Application/Include/matrixdefs.h ****   }
+ 383              		.loc 2 43 11 view .LVU100
+ 384              	.LBE208:
+ARM GAS  /tmp/ccpPuDCh.s 			page 12
+
+
+ 385              	.LBE207:
+ 386              	.LBE206:
+ 387              	.LBE205:
+ 388              	.LBB209:
+ 389              	.LBI209:
+ 390              		.loc 2 49 3 is_stmt 1 view .LVU101
+ 391              	.LBB210:
+ 392              	.LBB211:
+ 393              	.LBI211:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 394              		.loc 2 42 8 view .LVU102
+ 395              	.LBB212:
+  43:Application/Include/matrixdefs.h ****   }
+ 396              		.loc 2 43 5 view .LVU103
+  43:Application/Include/matrixdefs.h ****   }
+ 397              		.loc 2 43 11 is_stmt 0 view .LVU104
+ 398 0048 9970     		strb	r1, [r3, #2]
+ 399              	.LVL21:
+  43:Application/Include/matrixdefs.h ****   }
+ 400              		.loc 2 43 11 view .LVU105
+ 401              	.LBE212:
+ 402              	.LBE211:
+ 403              	.LBE210:
+ 404              	.LBE209:
+ 405              	.LBB213:
+ 406              	.LBI213:
+ 407              		.loc 2 49 3 is_stmt 1 view .LVU106
+ 408              	.LBB214:
+ 409              	.LBB215:
+ 410              	.LBI215:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 411              		.loc 2 42 8 view .LVU107
+ 412              	.LBB216:
+  43:Application/Include/matrixdefs.h ****   }
+ 413              		.loc 2 43 5 view .LVU108
+  43:Application/Include/matrixdefs.h ****   }
+ 414              		.loc 2 43 11 is_stmt 0 view .LVU109
+ 415 004a 83F803C0 		strb	ip, [r3, #3]
+ 416              	.LVL22:
+  43:Application/Include/matrixdefs.h ****   }
+ 417              		.loc 2 43 11 view .LVU110
+ 418              	.LBE216:
+ 419              	.LBE215:
+ 420              	.LBE214:
+ 421              	.LBE213:
+ 422              	.LBB217:
+ 423              	.LBI217:
+ 424              		.loc 2 49 3 is_stmt 1 view .LVU111
+ 425              	.LBB218:
+ 426              	.LBB219:
+ 427              	.LBI219:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 428              		.loc 2 42 8 view .LVU112
+ 429              	.LBB220:
+  43:Application/Include/matrixdefs.h ****   }
+ 430              		.loc 2 43 5 view .LVU113
+  43:Application/Include/matrixdefs.h ****   }
+ARM GAS  /tmp/ccpPuDCh.s 			page 13
+
+
+ 431              		.loc 2 43 11 is_stmt 0 view .LVU114
+ 432 004e 1871     		strb	r0, [r3, #4]
+ 433              	.LVL23:
+  43:Application/Include/matrixdefs.h ****   }
+ 434              		.loc 2 43 11 view .LVU115
+ 435              	.LBE220:
+ 436              	.LBE219:
+ 437              	.LBE218:
+ 438              	.LBE217:
+ 439              	.LBB221:
+ 440              	.LBI221:
+ 441              		.loc 2 49 3 is_stmt 1 view .LVU116
+ 442              	.LBB222:
+ 443              	.LBB223:
+ 444              	.LBI223:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 445              		.loc 2 42 8 view .LVU117
+ 446              	.LBB224:
+  43:Application/Include/matrixdefs.h ****   }
+ 447              		.loc 2 43 5 view .LVU118
+  43:Application/Include/matrixdefs.h ****   }
+ 448              		.loc 2 43 11 is_stmt 0 view .LVU119
+ 449 0050 5971     		strb	r1, [r3, #5]
+ 450              	.LVL24:
+  43:Application/Include/matrixdefs.h ****   }
+ 451              		.loc 2 43 11 view .LVU120
+ 452              	.LBE224:
+ 453              	.LBE223:
+ 454              	.LBE222:
+ 455              	.LBE221:
+ 456              	.LBB225:
+ 457              	.LBI225:
+ 458              		.loc 2 49 3 is_stmt 1 view .LVU121
+ 459              	.LBB226:
+ 460              	.LBB227:
+ 461              	.LBI227:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 462              		.loc 2 42 8 view .LVU122
+ 463              	.LBB228:
+  43:Application/Include/matrixdefs.h ****   }
+ 464              		.loc 2 43 5 view .LVU123
+  43:Application/Include/matrixdefs.h ****   }
+ 465              		.loc 2 43 11 is_stmt 0 view .LVU124
+ 466 0052 9971     		strb	r1, [r3, #6]
+ 467              	.LVL25:
+  43:Application/Include/matrixdefs.h ****   }
+ 468              		.loc 2 43 11 view .LVU125
+ 469              	.LBE228:
+ 470              	.LBE227:
+ 471              	.LBE226:
+ 472              	.LBE225:
+ 473              	.LBB229:
+ 474              	.LBI229:
+ 475              		.loc 2 49 3 is_stmt 1 view .LVU126
+ 476              	.LBB230:
+ 477              	.LBB231:
+ 478              	.LBI231:
+ARM GAS  /tmp/ccpPuDCh.s 			page 14
+
+
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 479              		.loc 2 42 8 view .LVU127
+ 480              	.LBB232:
+  43:Application/Include/matrixdefs.h ****   }
+ 481              		.loc 2 43 5 view .LVU128
+  43:Application/Include/matrixdefs.h ****   }
+ 482              		.loc 2 43 11 is_stmt 0 view .LVU129
+ 483 0054 D971     		strb	r1, [r3, #7]
+ 484              	.LVL26:
+  43:Application/Include/matrixdefs.h ****   }
+ 485              		.loc 2 43 11 view .LVU130
+ 486              	.LBE232:
+ 487              	.LBE231:
+ 488              	.LBE230:
+ 489              	.LBE229:
+ 490              	.LBB233:
+ 491              	.LBI233:
+ 492              		.loc 2 49 3 is_stmt 1 view .LVU131
+ 493              	.LBB234:
+ 494              	.LBB235:
+ 495              	.LBI235:
+  42:Application/Include/matrixdefs.h ****     value = i;
+ 496              		.loc 2 42 8 view .LVU132
+ 497              	.LBB236:
+  43:Application/Include/matrixdefs.h ****   }
+ 498              		.loc 2 43 5 view .LVU133
+  43:Application/Include/matrixdefs.h ****   }
+ 499              		.loc 2 43 11 is_stmt 0 view .LVU134
+ 500 0056 1D72     		strb	r5, [r3, #8]
+ 501              	.LVL27:
+  43:Application/Include/matrixdefs.h ****   }
+ 502              		.loc 2 43 11 view .LVU135
+ 503              	.LBE236:
+ 504              	.LBE235:
+ 505              	.LBE234:
+ 506              	.LBE233:
+  50:Application/Include/matrixdefs.h ****     this->set(i);
+  51:Application/Include/matrixdefs.h ****   }
+  52:Application/Include/matrixdefs.h **** } trigOp;
+  53:Application/Include/matrixdefs.h **** 
+  54:Application/Include/matrixdefs.h **** // Aliases for commonly used array dimensions
+  55:Application/Include/matrixdefs.h **** using fArr6 = std::array<float, NO_CYLS>;
+  56:Application/Include/matrixdefs.h **** using fArr3 = std::array<float, NO_DOF>;
+  57:Application/Include/matrixdefs.h **** 
+  58:Application/Include/matrixdefs.h **** // Matricies in 3D cartesian space have 3*3 = 9 elements.
+  59:Application/Include/matrixdefs.h **** using mtx3D = std::array<float, NO_DOF*NO_DOF>;
+  60:Application/Include/matrixdefs.h **** 
+  61:Application/Include/matrixdefs.h **** //using ctrlArr = std::array<Controller, NO_CYLS>;
+  62:Application/Include/matrixdefs.h **** using trigOpArr = std::array<trigOp, 9>;
+  63:Application/Include/matrixdefs.h **** 
+  64:Application/Include/matrixdefs.h **** // Represents the set of vectors which describe ...
+  65:Application/Include/matrixdefs.h **** const float MATRIX_b_DATA[NO_CYLS*NO_DOF] = 
+  66:Application/Include/matrixdefs.h ****                                 {-1.75, 12.63, 0,
+  67:Application/Include/matrixdefs.h ****                                   1.75, 12.63, 0,
+  68:Application/Include/matrixdefs.h ****                                   11.81, -4.8, 0,
+  69:Application/Include/matrixdefs.h ****                                   10.06,-7.83, 0,
+  70:Application/Include/matrixdefs.h ****                                  -10.06,-7.83, 0,
+ARM GAS  /tmp/ccpPuDCh.s 			page 15
+
+
+  71:Application/Include/matrixdefs.h ****                                  -11.81, -4.8, 0 };
+  72:Application/Include/matrixdefs.h **** 
+  73:Application/Include/matrixdefs.h **** // Represents the set of vectors which describe ....
+  74:Application/Include/matrixdefs.h **** const float MATRIX_p_DATA[NO_CYLS*NO_DOF] = 
+  75:Application/Include/matrixdefs.h ****                                 {-8.1,   6.69, 0,
+  76:Application/Include/matrixdefs.h ****                                   8.1,   6.69, 0,
+  77:Application/Include/matrixdefs.h ****                                   9.84,  3.67, 0,
+  78:Application/Include/matrixdefs.h ****                                   1.74,-10.35, 0,
+  79:Application/Include/matrixdefs.h ****                                  -1.74,-10.35, 0,
+  80:Application/Include/matrixdefs.h ****                                  -9.84,  3.67, 0 };
+  81:Application/Include/matrixdefs.h **** 
+  82:Application/Include/matrixdefs.h **** // Represents the cartesian translation of the center of the seat plate
+  83:Application/Include/matrixdefs.h **** const float VECTOR_T_DATA[3] = { 0, 0, 23 };
+  84:Application/Include/matrixdefs.h **** 
+  85:Application/Include/matrixdefs.h **** // Rotation function matricies. Tells Stewart what operations to perform
+  86:Application/Include/matrixdefs.h **** // on each angle parameter to calculate the rotation matrix.
+  87:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_X = { 1, 0, 0, 0, COS, -SIN, 0, SIN, COS };
+  88:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_Y = { COS, 0, SIN, 0, 1, 0, -SIN, 0, COS };
+  89:Application/Include/matrixdefs.h **** const trigOpArr ROTATION_Z = { COS, -SIN, 0, SIN, COS, 0, 0, 0, 1 };
+  90:Application/Include/matrixdefs.h **** 
+  91:Application/Include/matrixdefs.h **** // This is never used; nevertheless, it is included for future use.
+  92:Application/Include/matrixdefs.h **** const std::array<trigOpArr,3> ROTATION_COMPONENTS = {ROTATION_X, ROTATION_Y, ROTATION_Z};
+ 507              		.loc 2 92 88 view .LVU136
+ 508 0058 0D4D     		ldr	r5, .L3+12
+ 509 005a AC46     		mov	ip, r5
+ 510 005c 07CA     		ldm	r2, {r0, r1, r2}
+ 511 005e ACE80300 		stmia	ip!, {r0, r1}
+ 512 0062 8CF80020 		strb	r2, [ip]
+ 513 0066 03CC     		ldmia	r4!, {r0, r1}
+ 514 0068 C5F80900 		str	r0, [r5, #9]	@ unaligned
+ 515 006c C5F80D10 		str	r1, [r5, #13]	@ unaligned
+ 516 0070 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 517 0072 6A74     		strb	r2, [r5, #17]
+ 518 0074 03CB     		ldmia	r3!, {r0, r1}
+ 519 0076 C5F81200 		str	r0, [r5, #18]	@ unaligned
+ 520 007a C5F81610 		str	r1, [r5, #22]	@ unaligned
+ 521 007e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 522 0080 AB76     		strb	r3, [r5, #26]
+ 523              		.loc 1 115 1 view .LVU137
+ 524 0082 30BD     		pop	{r4, r5, pc}
+ 525              	.L4:
+ 526              		.align	2
+ 527              	.L3:
+ 528 0084 00000000 		.word	_ZL10ROTATION_X
+ 529 0088 00000000 		.word	_ZL10ROTATION_Y
+ 530 008c 00000000 		.word	_ZL10ROTATION_Z
+ 531 0090 00000000 		.word	_ZL19ROTATION_COMPONENTS
+ 532              		.cfi_endproc
+ 533              	.LFE2540:
+ 534              		.cantunwind
+ 535              		.fnend
+ 537              		.section	.text._ZN8CtrlImplC2ERKfS1_S1_S1_,"ax",%progbits
+ 538              		.align	1
+ 539              		.global	_ZN8CtrlImplC2ERKfS1_S1_S1_
+ 540              		.syntax unified
+ 541              		.thumb
+ 542              		.thumb_func
+ARM GAS  /tmp/ccpPuDCh.s 			page 16
+
+
+ 544              	_ZN8CtrlImplC2ERKfS1_S1_S1_:
+ 545              		.fnstart
+ 546              	.LVL28:
+ 547              	.LFB2010:
+  79:Application/controller.cpp ****     kp(kp), ki(ki), kd(kd), errorSum(0), errorOld(0), samplePer(samplePer) {}
+ 548              		.loc 1 79 1 is_stmt 1 view -0
+ 549              		.cfi_startproc
+ 550              		@ args = 4, pretend = 0, frame = 0
+ 551              		@ frame_needed = 0, uses_anonymous_args = 0
+ 552              		@ link register save eliminated.
+ 553              	.LBB237:
+  80:Application/controller.cpp **** 
+ 554              		.loc 1 80 8 is_stmt 0 view .LVU139
+ 555 0000 0968     		ldr	r1, [r1]	@ float
+ 556              	.LVL29:
+  80:Application/controller.cpp **** 
+ 557              		.loc 1 80 5 view .LVU140
+ 558 0002 0160     		str	r1, [r0]	@ float
+  80:Application/controller.cpp **** 
+ 559              		.loc 1 80 16 view .LVU141
+ 560 0004 1268     		ldr	r2, [r2]	@ float
+ 561              	.LVL30:
+  80:Application/controller.cpp **** 
+ 562              		.loc 1 80 13 view .LVU142
+ 563 0006 4260     		str	r2, [r0, #4]	@ float
+  80:Application/controller.cpp **** 
+ 564              		.loc 1 80 24 view .LVU143
+ 565 0008 1B68     		ldr	r3, [r3]	@ float
+ 566              	.LVL31:
+  80:Application/controller.cpp **** 
+ 567              		.loc 1 80 21 view .LVU144
+ 568 000a 8360     		str	r3, [r0, #8]	@ float
+  80:Application/controller.cpp **** 
+ 569              		.loc 1 80 29 view .LVU145
+ 570 000c 0023     		movs	r3, #0
+ 571 000e C360     		str	r3, [r0, #12]	@ float
+  80:Application/controller.cpp **** 
+ 572              		.loc 1 80 42 view .LVU146
+ 573 0010 0361     		str	r3, [r0, #16]	@ float
+  80:Application/controller.cpp **** 
+ 574              		.loc 1 80 65 view .LVU147
+ 575 0012 009B     		ldr	r3, [sp]
+ 576 0014 1B68     		ldr	r3, [r3]	@ float
+  80:Application/controller.cpp **** 
+ 577              		.loc 1 80 55 view .LVU148
+ 578 0016 4361     		str	r3, [r0, #20]	@ float
+ 579              	.LBE237:
+  80:Application/controller.cpp **** 
+ 580              		.loc 1 80 77 view .LVU149
+ 581 0018 7047     		bx	lr
+ 582              		.cfi_endproc
+ 583              	.LFE2010:
+ 584              		.cantunwind
+ 585              		.fnend
+ 587              		.global	_ZN8CtrlImplC1ERKfS1_S1_S1_
+ 588              		.thumb_set _ZN8CtrlImplC1ERKfS1_S1_S1_,_ZN8CtrlImplC2ERKfS1_S1_S1_
+ 589              		.section	.text._ZN10Controller4initERKfS1_S1_S1_,"ax",%progbits
+ARM GAS  /tmp/ccpPuDCh.s 			page 17
+
+
+ 590              		.align	1
+ 591              		.global	_ZN10Controller4initERKfS1_S1_S1_
+ 592              		.syntax unified
+ 593              		.thumb
+ 594              		.thumb_func
+ 596              	_ZN10Controller4initERKfS1_S1_S1_:
+ 597              		.fnstart
+ 598              	.LVL32:
+ 599              	.LFB2004:
+  51:Application/controller.cpp ****     for (int i = 0; i < 6; i++){
+ 600              		.loc 1 51 101 is_stmt 1 view -0
+ 601              		.cfi_startproc
+ 602              		@ args = 4, pretend = 0, frame = 0
+ 603              		@ frame_needed = 0, uses_anonymous_args = 0
+  51:Application/controller.cpp ****     for (int i = 0; i < 6; i++){
+ 604              		.loc 1 51 101 is_stmt 0 view .LVU151
+ 605 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 606              		.save {r4, r5, r6, r7, r8, r9, r10, lr}
+ 607              		.cfi_def_cfa_offset 32
+ 608              		.cfi_offset 4, -32
+ 609              		.cfi_offset 5, -28
+ 610              		.cfi_offset 6, -24
+ 611              		.cfi_offset 7, -20
+ 612              		.cfi_offset 8, -16
+ 613              		.cfi_offset 9, -12
+ 614              		.cfi_offset 10, -8
+ 615              		.cfi_offset 14, -4
+ 616              		.pad #8
+ 617 0004 82B0     		sub	sp, sp, #8
+ 618              		.cfi_def_cfa_offset 40
+ 619 0006 8146     		mov	r9, r0
+ 620 0008 8846     		mov	r8, r1
+ 621 000a 1746     		mov	r7, r2
+ 622 000c 1E46     		mov	r6, r3
+ 623 000e DDF828A0 		ldr	r10, [sp, #40]
+  52:Application/controller.cpp ****         // Instantiate each cylinder postion controller`1
+ 624              		.loc 1 52 5 is_stmt 1 view .LVU152
+ 625              	.LVL33:
+ 626              	.LBB238:
+  52:Application/controller.cpp ****         // Instantiate each cylinder postion controller`1
+ 627              		.loc 1 52 14 is_stmt 0 view .LVU153
+ 628 0012 0024     		movs	r4, #0
+  52:Application/controller.cpp ****         // Instantiate each cylinder postion controller`1
+ 629              		.loc 1 52 5 view .LVU154
+ 630 0014 0DE0     		b	.L7
+ 631              	.LVL34:
+ 632              	.L8:
+  54:Application/controller.cpp ****     }
+ 633              		.loc 1 54 9 is_stmt 1 view .LVU155
+  54:Application/controller.cpp ****     }
+ 634              		.loc 1 54 53 is_stmt 0 view .LVU156
+ 635 0016 2020     		movs	r0, #32
+ 636 0018 FFF7FEFF 		bl	_Znwj
+ 637              	.LVL35:
+ 638 001c 0546     		mov	r5, r0
+  54:Application/controller.cpp ****     }
+ 639              		.loc 1 54 53 discriminator 1 view .LVU157
+ARM GAS  /tmp/ccpPuDCh.s 			page 18
+
+
+ 640 001e CDF800A0 		str	r10, [sp]
+ 641 0022 3346     		mov	r3, r6
+ 642 0024 3A46     		mov	r2, r7
+ 643 0026 4146     		mov	r1, r8
+ 644 0028 FFF7FEFF 		bl	_ZN8CtrlImplC1ERKfS1_S1_S1_
+ 645              	.LVL36:
+ 646              	.LBB239:
+ 647              	.LBI239:
+ 648              		.file 3 "/usr/arm-none-eabi/include/c++/13.2.0/array"
+   1:/usr/arm-none-eabi/include/c++/13.2.0/array **** // <array> -*- C++ -*-
+   2:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+   3:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Copyright (C) 2007-2023 Free Software Foundation, Inc.
+   4:/usr/arm-none-eabi/include/c++/13.2.0/array **** //
+   5:/usr/arm-none-eabi/include/c++/13.2.0/array **** // This file is part of the GNU ISO C++ Library.  This library is free
+   6:/usr/arm-none-eabi/include/c++/13.2.0/array **** // software; you can redistribute it and/or modify it under the
+   7:/usr/arm-none-eabi/include/c++/13.2.0/array **** // terms of the GNU General Public License as published by the
+   8:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Free Software Foundation; either version 3, or (at your option)
+   9:/usr/arm-none-eabi/include/c++/13.2.0/array **** // any later version.
+  10:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  11:/usr/arm-none-eabi/include/c++/13.2.0/array **** // This library is distributed in the hope that it will be useful,
+  12:/usr/arm-none-eabi/include/c++/13.2.0/array **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:/usr/arm-none-eabi/include/c++/13.2.0/array **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:/usr/arm-none-eabi/include/c++/13.2.0/array **** // GNU General Public License for more details.
+  15:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  16:/usr/arm-none-eabi/include/c++/13.2.0/array **** // Under Section 7 of GPL version 3, you are granted additional
+  17:/usr/arm-none-eabi/include/c++/13.2.0/array **** // permissions described in the GCC Runtime Library Exception, version
+  18:/usr/arm-none-eabi/include/c++/13.2.0/array **** // 3.1, as published by the Free Software Foundation.
+  19:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  20:/usr/arm-none-eabi/include/c++/13.2.0/array **** // You should have received a copy of the GNU General Public License and
+  21:/usr/arm-none-eabi/include/c++/13.2.0/array **** // a copy of the GCC Runtime Library Exception along with this program;
+  22:/usr/arm-none-eabi/include/c++/13.2.0/array **** // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  23:/usr/arm-none-eabi/include/c++/13.2.0/array **** // <http://www.gnu.org/licenses/>.
+  24:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  25:/usr/arm-none-eabi/include/c++/13.2.0/array **** /** @file include/array
+  26:/usr/arm-none-eabi/include/c++/13.2.0/array ****  *  This is a Standard C++ Library header.
+  27:/usr/arm-none-eabi/include/c++/13.2.0/array ****  */
+  28:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  29:/usr/arm-none-eabi/include/c++/13.2.0/array **** #ifndef _GLIBCXX_ARRAY
+  30:/usr/arm-none-eabi/include/c++/13.2.0/array **** #define _GLIBCXX_ARRAY 1
+  31:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  32:/usr/arm-none-eabi/include/c++/13.2.0/array **** #pragma GCC system_header
+  33:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  34:/usr/arm-none-eabi/include/c++/13.2.0/array **** #if __cplusplus < 201103L
+  35:/usr/arm-none-eabi/include/c++/13.2.0/array **** # include <bits/c++0x_warning.h>
+  36:/usr/arm-none-eabi/include/c++/13.2.0/array **** #else
+  37:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  38:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <compare>
+  39:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <initializer_list>
+  40:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  41:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <type_traits>
+  42:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/functexcept.h>
+  43:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/stl_algobase.h>
+  44:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/range_access.h> // std::begin, std::end etc.
+  45:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <bits/utility.h>      // std::index_sequence, std::tuple_size
+  46:/usr/arm-none-eabi/include/c++/13.2.0/array **** #include <debug/assertions.h>
+  47:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  48:/usr/arm-none-eabi/include/c++/13.2.0/array **** namespace std _GLIBCXX_VISIBILITY(default)
+ARM GAS  /tmp/ccpPuDCh.s 			page 19
+
+
+  49:/usr/arm-none-eabi/include/c++/13.2.0/array **** {
+  50:/usr/arm-none-eabi/include/c++/13.2.0/array **** _GLIBCXX_BEGIN_NAMESPACE_VERSION
+  51:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  52:/usr/arm-none-eabi/include/c++/13.2.0/array ****   template<typename _Tp, size_t _Nm>
+  53:/usr/arm-none-eabi/include/c++/13.2.0/array ****     struct __array_traits
+  54:/usr/arm-none-eabi/include/c++/13.2.0/array ****     {
+  55:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Type = _Tp[_Nm];
+  56:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Is_swappable = __is_swappable<_Tp>;
+  57:/usr/arm-none-eabi/include/c++/13.2.0/array ****       using _Is_nothrow_swappable = __is_nothrow_swappable<_Tp>;
+  58:/usr/arm-none-eabi/include/c++/13.2.0/array ****     };
+  59:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  60:/usr/arm-none-eabi/include/c++/13.2.0/array ****  template<typename _Tp>
+  61:/usr/arm-none-eabi/include/c++/13.2.0/array ****    struct __array_traits<_Tp, 0>
+  62:/usr/arm-none-eabi/include/c++/13.2.0/array ****    {
+  63:/usr/arm-none-eabi/include/c++/13.2.0/array ****      // Empty type used instead of _Tp[0] for std::array<_Tp, 0>.
+  64:/usr/arm-none-eabi/include/c++/13.2.0/array ****      struct _Type
+  65:/usr/arm-none-eabi/include/c++/13.2.0/array ****      {
+  66:/usr/arm-none-eabi/include/c++/13.2.0/array ****        // Indexing is undefined.
+  67:/usr/arm-none-eabi/include/c++/13.2.0/array ****        __attribute__((__always_inline__,__noreturn__))
+  68:/usr/arm-none-eabi/include/c++/13.2.0/array ****        _Tp& operator[](size_t) const noexcept { __builtin_trap(); }
+  69:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  70:/usr/arm-none-eabi/include/c++/13.2.0/array ****        // Conversion to a pointer produces a null pointer.
+  71:/usr/arm-none-eabi/include/c++/13.2.0/array ****        __attribute__((__always_inline__))
+  72:/usr/arm-none-eabi/include/c++/13.2.0/array ****        constexpr explicit operator _Tp*() const noexcept { return nullptr; }
+  73:/usr/arm-none-eabi/include/c++/13.2.0/array ****      };
+  74:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  75:/usr/arm-none-eabi/include/c++/13.2.0/array ****      using _Is_swappable = true_type;
+  76:/usr/arm-none-eabi/include/c++/13.2.0/array ****      using _Is_nothrow_swappable = true_type;
+  77:/usr/arm-none-eabi/include/c++/13.2.0/array ****    };
+  78:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+  79:/usr/arm-none-eabi/include/c++/13.2.0/array ****   /**
+  80:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @brief A standard container for storing a fixed size sequence of elements.
+  81:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  82:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @ingroup sequences
+  83:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  84:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  Meets the requirements of a <a href="tables.html#65">container</a>, a
+  85:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  <a href="tables.html#66">reversible container</a>, and a
+  86:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  <a href="tables.html#67">sequence</a>.
+  87:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  88:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  Sets support random access iterators.
+  89:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *
+  90:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @tparam  Tp  Type of element. Required to be a complete type.
+  91:/usr/arm-none-eabi/include/c++/13.2.0/array ****    *  @tparam  Nm  Number of elements.
+  92:/usr/arm-none-eabi/include/c++/13.2.0/array ****   */
+  93:/usr/arm-none-eabi/include/c++/13.2.0/array ****   template<typename _Tp, std::size_t _Nm>
+  94:/usr/arm-none-eabi/include/c++/13.2.0/array ****     struct array
+  95:/usr/arm-none-eabi/include/c++/13.2.0/array ****     {
+  96:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef _Tp 	    			      value_type;
+  97:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type*			      pointer;
+  98:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type*                       const_pointer;
+  99:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type&                   	      reference;
+ 100:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type&             	      const_reference;
+ 101:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef value_type*          		      iterator;
+ 102:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef const value_type*			      const_iterator;
+ 103:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::size_t                    	      size_type;
+ 104:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::ptrdiff_t                   	      difference_type;
+ 105:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::reverse_iterator<iterator>	      reverse_iterator;
+ARM GAS  /tmp/ccpPuDCh.s 			page 20
+
+
+ 106:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
+ 107:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 108:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Support for zero-sized arrays mandatory.
+ 109:/usr/arm-none-eabi/include/c++/13.2.0/array ****       typename __array_traits<_Tp, _Nm>::_Type        _M_elems;
+ 110:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 111:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // No explicit construct/copy/destroy for aggregate type.
+ 112:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 113:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // DR 776.
+ 114:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX20_CONSTEXPR void
+ 115:/usr/arm-none-eabi/include/c++/13.2.0/array ****       fill(const value_type& __u)
+ 116:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { std::fill_n(begin(), size(), __u); }
+ 117:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 118:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX20_CONSTEXPR void
+ 119:/usr/arm-none-eabi/include/c++/13.2.0/array ****       swap(array& __other)
+ 120:/usr/arm-none-eabi/include/c++/13.2.0/array ****       noexcept(__array_traits<_Tp, _Nm>::_Is_nothrow_swappable::value)
+ 121:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { std::swap_ranges(begin(), end(), __other.begin()); }
+ 122:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 123:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Iterators.
+ 124:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 125:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR iterator
+ 126:/usr/arm-none-eabi/include/c++/13.2.0/array ****       begin() noexcept
+ 127:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return iterator(data()); }
+ 128:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 129:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 130:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 131:/usr/arm-none-eabi/include/c++/13.2.0/array ****       begin() const noexcept
+ 132:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data()); }
+ 133:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 134:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 135:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR iterator
+ 136:/usr/arm-none-eabi/include/c++/13.2.0/array ****       end() noexcept
+ 137:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return iterator(data() + _Nm); }
+ 138:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 139:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 140:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 141:/usr/arm-none-eabi/include/c++/13.2.0/array ****       end() const noexcept
+ 142:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data() + _Nm); }
+ 143:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 144:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 145:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reverse_iterator
+ 146:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rbegin() noexcept
+ 147:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return reverse_iterator(end()); }
+ 148:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 149:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 150:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 151:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rbegin() const noexcept
+ 152:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(end()); }
+ 153:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 154:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__gnu__::__const__, __nodiscard__]]
+ 155:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reverse_iterator
+ 156:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rend() noexcept
+ 157:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return reverse_iterator(begin()); }
+ 158:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 159:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 160:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 161:/usr/arm-none-eabi/include/c++/13.2.0/array ****       rend() const noexcept
+ 162:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(begin()); }
+ARM GAS  /tmp/ccpPuDCh.s 			page 21
+
+
+ 163:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 164:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 165:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 166:/usr/arm-none-eabi/include/c++/13.2.0/array ****       cbegin() const noexcept
+ 167:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data()); }
+ 168:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 169:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 170:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_iterator
+ 171:/usr/arm-none-eabi/include/c++/13.2.0/array ****       cend() const noexcept
+ 172:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_iterator(data() + _Nm); }
+ 173:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 174:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 175:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 176:/usr/arm-none-eabi/include/c++/13.2.0/array ****       crbegin() const noexcept
+ 177:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(end()); }
+ 178:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 179:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 180:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR const_reverse_iterator
+ 181:/usr/arm-none-eabi/include/c++/13.2.0/array ****       crend() const noexcept
+ 182:/usr/arm-none-eabi/include/c++/13.2.0/array ****       { return const_reverse_iterator(begin()); }
+ 183:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 184:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Capacity.
+ 185:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 186:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr size_type
+ 187:/usr/arm-none-eabi/include/c++/13.2.0/array ****       size() const noexcept { return _Nm; }
+ 188:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 189:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 190:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr size_type
+ 191:/usr/arm-none-eabi/include/c++/13.2.0/array ****       max_size() const noexcept { return _Nm; }
+ 192:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 193:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__, __gnu__::__const__, __gnu__::__always_inline__]]
+ 194:/usr/arm-none-eabi/include/c++/13.2.0/array ****       constexpr bool
+ 195:/usr/arm-none-eabi/include/c++/13.2.0/array ****       empty() const noexcept { return size() == 0; }
+ 196:/usr/arm-none-eabi/include/c++/13.2.0/array **** 
+ 197:/usr/arm-none-eabi/include/c++/13.2.0/array ****       // Element access.
+ 198:/usr/arm-none-eabi/include/c++/13.2.0/array ****       [[__nodiscard__]]
+ 199:/usr/arm-none-eabi/include/c++/13.2.0/array ****       _GLIBCXX17_CONSTEXPR reference
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       operator[](size_type __n) noexcept
+ 649              		.loc 3 200 7 is_stmt 1 view .LVU158
+ 650              		.loc 3 200 7 is_stmt 0 view .LVU159
+ 651              	.LBE239:
+  54:Application/controller.cpp ****     }
+ 652              		.loc 1 54 17 discriminator 3 view .LVU160
+ 653 002c 49F82450 		str	r5, [r9, r4, lsl #2]
+  52:Application/controller.cpp ****         // Instantiate each cylinder postion controller`1
+ 654              		.loc 1 52 5 is_stmt 1 discriminator 3 view .LVU161
+ 655 0030 0134     		adds	r4, r4, #1
+ 656              	.LVL37:
+ 657              	.L7:
+  52:Application/controller.cpp ****         // Instantiate each cylinder postion controller`1
+ 658              		.loc 1 52 23 discriminator 1 view .LVU162
+ 659 0032 052C     		cmp	r4, #5
+ 660 0034 EFDD     		ble	.L8
+ 661              	.LBE238:
+  56:Application/controller.cpp **** 
+ 662              		.loc 1 56 1 is_stmt 0 view .LVU163
+ 663 0036 02B0     		add	sp, sp, #8
+ARM GAS  /tmp/ccpPuDCh.s 			page 22
+
+
+ 664              		.cfi_def_cfa_offset 32
+ 665              		@ sp needed
+ 666 0038 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+  56:Application/controller.cpp **** 
+ 667              		.loc 1 56 1 view .LVU164
+ 668              		.cfi_endproc
+ 669              	.LFE2004:
+ 670              		.fnend
+ 672              		.section	.text._ZN10ControllerC2Ev,"ax",%progbits
+ 673              		.align	1
+ 674              		.global	_ZN10ControllerC2Ev
+ 675              		.syntax unified
+ 676              		.thumb
+ 677              		.thumb_func
+ 679              	_ZN10ControllerC2Ev:
+ 680              		.fnstart
+ 681              	.LVL38:
+ 682              	.LFB1999:
+  43:Application/controller.cpp ****     init(K_P,K_I,K_D,SAMPLE_PER);
+ 683              		.loc 1 43 1 is_stmt 1 view -0
+ 684              		.cfi_startproc
+ 685              		@ args = 0, pretend = 0, frame = 16
+ 686              		@ frame_needed = 0, uses_anonymous_args = 0
+  43:Application/controller.cpp ****     init(K_P,K_I,K_D,SAMPLE_PER);
+ 687              		.loc 1 43 1 is_stmt 0 view .LVU166
+ 688 0000 10B5     		push	{r4, lr}
+ 689              		.save {r4, lr}
+ 690              		.cfi_def_cfa_offset 8
+ 691              		.cfi_offset 4, -8
+ 692              		.cfi_offset 14, -4
+ 693              		.pad #24
+ 694 0002 86B0     		sub	sp, sp, #24
+ 695              		.cfi_def_cfa_offset 32
+ 696 0004 0446     		mov	r4, r0
+ 697              	.LBB240:
+  44:Application/controller.cpp **** }
+ 698              		.loc 1 44 5 is_stmt 1 view .LVU167
+  44:Application/controller.cpp **** }
+ 699              		.loc 1 44 9 is_stmt 0 view .LVU168
+ 700 0006 094B     		ldr	r3, .L12
+ 701 0008 0293     		str	r3, [sp, #8]	@ float
+  44:Application/controller.cpp **** }
+ 702              		.loc 1 44 14 view .LVU169
+ 703 000a 094B     		ldr	r3, .L12+4
+ 704 000c 0393     		str	r3, [sp, #12]	@ float
+  44:Application/controller.cpp **** }
+ 705              		.loc 1 44 9 view .LVU170
+ 706 000e 0023     		movs	r3, #0
+ 707 0010 0493     		str	r3, [sp, #16]	@ float
+  44:Application/controller.cpp **** }
+ 708              		.loc 1 44 22 view .LVU171
+ 709 0012 084B     		ldr	r3, .L12+8
+ 710 0014 0593     		str	r3, [sp, #20]	@ float
+  44:Application/controller.cpp **** }
+ 711              		.loc 1 44 9 view .LVU172
+ 712 0016 05AB     		add	r3, sp, #20
+ 713 0018 0093     		str	r3, [sp]
+ARM GAS  /tmp/ccpPuDCh.s 			page 23
+
+
+ 714 001a 04AB     		add	r3, sp, #16
+ 715 001c 03AA     		add	r2, sp, #12
+ 716 001e 02A9     		add	r1, sp, #8
+ 717 0020 FFF7FEFF 		bl	_ZN10Controller4initERKfS1_S1_S1_
+ 718              	.LVL39:
+  44:Application/controller.cpp **** }
+ 719              		.loc 1 44 9 view .LVU173
+ 720              	.LBE240:
+  45:Application/controller.cpp **** 
+ 721              		.loc 1 45 1 view .LVU174
+ 722 0024 2046     		mov	r0, r4
+ 723 0026 06B0     		add	sp, sp, #24
+ 724              		.cfi_def_cfa_offset 8
+ 725              		@ sp needed
+ 726 0028 10BD     		pop	{r4, pc}
+ 727              	.LVL40:
+ 728              	.L13:
+  45:Application/controller.cpp **** 
+ 729              		.loc 1 45 1 view .LVU175
+ 730 002a 00BF     		.align	2
+ 731              	.L12:
+ 732 002c 0000E040 		.word	1088421888
+ 733 0030 CDCCCC3D 		.word	1036831949
+ 734 0034 CDCCCC3C 		.word	1020054733
+ 735              		.cfi_endproc
+ 736              	.LFE1999:
+ 737              		.fnend
+ 739              		.global	_ZN10ControllerC1Ev
+ 740              		.thumb_set _ZN10ControllerC1Ev,_ZN10ControllerC2Ev
+ 741              		.section	.text._ZN10ControllerC2ERKfS1_S1_S1_,"ax",%progbits
+ 742              		.align	1
+ 743              		.global	_ZN10ControllerC2ERKfS1_S1_S1_
+ 744              		.syntax unified
+ 745              		.thumb
+ 746              		.thumb_func
+ 748              	_ZN10ControllerC2ERKfS1_S1_S1_:
+ 749              		.fnstart
+ 750              	.LVL41:
+ 751              	.LFB2002:
+  47:Application/controller.cpp ****     init(kp,ki,kd,samplePer);
+ 752              		.loc 1 47 1 is_stmt 1 view -0
+ 753              		.cfi_startproc
+ 754              		@ args = 4, pretend = 0, frame = 0
+ 755              		@ frame_needed = 0, uses_anonymous_args = 0
+  47:Application/controller.cpp ****     init(kp,ki,kd,samplePer);
+ 756              		.loc 1 47 1 is_stmt 0 view .LVU177
+ 757 0000 30B5     		push	{r4, r5, lr}
+ 758              		.save {r4, r5, lr}
+ 759              		.cfi_def_cfa_offset 12
+ 760              		.cfi_offset 4, -12
+ 761              		.cfi_offset 5, -8
+ 762              		.cfi_offset 14, -4
+ 763              		.pad #12
+ 764 0002 83B0     		sub	sp, sp, #12
+ 765              		.cfi_def_cfa_offset 24
+ 766 0004 0446     		mov	r4, r0
+ 767              	.LBB241:
+ARM GAS  /tmp/ccpPuDCh.s 			page 24
+
+
+  48:Application/controller.cpp **** }
+ 768              		.loc 1 48 5 is_stmt 1 view .LVU178
+  48:Application/controller.cpp **** }
+ 769              		.loc 1 48 9 is_stmt 0 view .LVU179
+ 770 0006 069D     		ldr	r5, [sp, #24]
+ 771 0008 0095     		str	r5, [sp]
+ 772 000a FFF7FEFF 		bl	_ZN10Controller4initERKfS1_S1_S1_
+ 773              	.LVL42:
+  48:Application/controller.cpp **** }
+ 774              		.loc 1 48 9 view .LVU180
+ 775              	.LBE241:
+  49:Application/controller.cpp **** 
+ 776              		.loc 1 49 1 view .LVU181
+ 777 000e 2046     		mov	r0, r4
+ 778 0010 03B0     		add	sp, sp, #12
+ 779              		.cfi_def_cfa_offset 12
+ 780              		@ sp needed
+ 781 0012 30BD     		pop	{r4, r5, pc}
+  49:Application/controller.cpp **** 
+ 782              		.loc 1 49 1 view .LVU182
+ 783              		.cfi_endproc
+ 784              	.LFE2002:
+ 785              		.fnend
+ 787              		.global	_ZN10ControllerC1ERKfS1_S1_S1_
+ 788              		.thumb_set _ZN10ControllerC1ERKfS1_S1_S1_,_ZN10ControllerC2ERKfS1_S1_S1_
+ 789              		.section	.text._ZN8CtrlImplC2Ev,"ax",%progbits
+ 790              		.align	1
+ 791              		.global	_ZN8CtrlImplC2Ev
+ 792              		.syntax unified
+ 793              		.thumb
+ 794              		.thumb_func
+ 796              	_ZN8CtrlImplC2Ev:
+ 797              		.fnstart
+ 798              	.LVL43:
+ 799              	.LFB2013:
+  82:Application/controller.cpp ****     kp(K_P), ki(K_I), kd(K_D), errorSum(0), errorOld(0), samplePer(SAMPLE_PER) {}
+ 800              		.loc 1 82 1 is_stmt 1 view -0
+ 801              		.cfi_startproc
+ 802              		@ args = 0, pretend = 0, frame = 0
+ 803              		@ frame_needed = 0, uses_anonymous_args = 0
+ 804              		@ link register save eliminated.
+ 805              	.LBB242:
+  83:Application/controller.cpp **** 
+ 806              		.loc 1 83 5 is_stmt 0 view .LVU184
+ 807 0000 054A     		ldr	r2, .L17
+ 808 0002 0260     		str	r2, [r0]	@ float
+  83:Application/controller.cpp **** 
+ 809              		.loc 1 83 14 view .LVU185
+ 810 0004 054A     		ldr	r2, .L17+4
+ 811 0006 4260     		str	r2, [r0, #4]	@ float
+  83:Application/controller.cpp **** 
+ 812              		.loc 1 83 23 view .LVU186
+ 813 0008 0022     		movs	r2, #0
+ 814 000a 8260     		str	r2, [r0, #8]	@ float
+  83:Application/controller.cpp **** 
+ 815              		.loc 1 83 32 view .LVU187
+ 816 000c C260     		str	r2, [r0, #12]	@ float
+ARM GAS  /tmp/ccpPuDCh.s 			page 25
+
+
+  83:Application/controller.cpp **** 
+ 817              		.loc 1 83 45 view .LVU188
+ 818 000e 0261     		str	r2, [r0, #16]	@ float
+  83:Application/controller.cpp **** 
+ 819              		.loc 1 83 58 view .LVU189
+ 820 0010 034A     		ldr	r2, .L17+8
+ 821 0012 4261     		str	r2, [r0, #20]	@ float
+ 822              	.LBE242:
+  83:Application/controller.cpp **** 
+ 823              		.loc 1 83 81 view .LVU190
+ 824 0014 7047     		bx	lr
+ 825              	.L18:
+ 826 0016 00BF     		.align	2
+ 827              	.L17:
+ 828 0018 0000E040 		.word	1088421888
+ 829 001c CDCCCC3D 		.word	1036831949
+ 830 0020 CDCCCC3C 		.word	1020054733
+ 831              		.cfi_endproc
+ 832              	.LFE2013:
+ 833              		.cantunwind
+ 834              		.fnend
+ 836              		.global	_ZN8CtrlImplC1Ev
+ 837              		.thumb_set _ZN8CtrlImplC1Ev,_ZN8CtrlImplC2Ev
+ 838              		.section	.text._ZN8CtrlImplD2Ev,"ax",%progbits
+ 839              		.align	1
+ 840              		.global	_ZN8CtrlImplD2Ev
+ 841              		.syntax unified
+ 842              		.thumb
+ 843              		.thumb_func
+ 845              	_ZN8CtrlImplD2Ev:
+ 846              		.fnstart
+ 847              	.LVL44:
+ 848              	.LFB2016:
+  85:Application/controller.cpp **** 
+ 849              		.loc 1 85 1 is_stmt 1 view -0
+ 850              		.cfi_startproc
+ 851              		@ args = 0, pretend = 0, frame = 0
+ 852              		@ frame_needed = 0, uses_anonymous_args = 0
+ 853              		@ link register save eliminated.
+  85:Application/controller.cpp **** 
+ 854              		.loc 1 85 24 is_stmt 0 view .LVU192
+ 855 0000 7047     		bx	lr
+ 856              		.cfi_endproc
+ 857              	.LFE2016:
+ 858              		.cantunwind
+ 859              		.fnend
+ 861              		.global	_ZN8CtrlImplD1Ev
+ 862              		.thumb_set _ZN8CtrlImplD1Ev,_ZN8CtrlImplD2Ev
+ 863              		.section	.text._ZN10ControllerD2Ev,"ax",%progbits
+ 864              		.align	1
+ 865              		.global	_ZN10ControllerD2Ev
+ 866              		.syntax unified
+ 867              		.thumb
+ 868              		.thumb_func
+ 870              	_ZN10ControllerD2Ev:
+ 871              		.fnstart
+ 872              	.LVL45:
+ARM GAS  /tmp/ccpPuDCh.s 			page 26
+
+
+ 873              	.LFB2006:
+  58:Application/controller.cpp ****     for (int i = 0; i < 6; i++){
+ 874              		.loc 1 58 1 is_stmt 1 view -0
+ 875              		.cfi_startproc
+ 876              		@ args = 0, pretend = 0, frame = 0
+ 877              		@ frame_needed = 0, uses_anonymous_args = 0
+  58:Application/controller.cpp ****     for (int i = 0; i < 6; i++){
+ 878              		.loc 1 58 1 is_stmt 0 view .LVU194
+ 879 0000 38B5     		push	{r3, r4, r5, lr}
+ 880              		.cfi_def_cfa_offset 16
+ 881              		.cfi_offset 3, -16
+ 882              		.cfi_offset 4, -12
+ 883              		.cfi_offset 5, -8
+ 884              		.cfi_offset 14, -4
+ 885 0002 0546     		mov	r5, r0
+  59:Application/controller.cpp ****         delete impl[i];
+ 886              		.loc 1 59 5 is_stmt 1 view .LVU195
+ 887              	.LVL46:
+ 888              	.LBB243:
+  59:Application/controller.cpp ****         delete impl[i];
+ 889              		.loc 1 59 14 is_stmt 0 view .LVU196
+ 890 0004 0024     		movs	r4, #0
+  59:Application/controller.cpp ****         delete impl[i];
+ 891              		.loc 1 59 5 view .LVU197
+ 892 0006 00E0     		b	.L21
+ 893              	.LVL47:
+ 894              	.L22:
+  59:Application/controller.cpp ****         delete impl[i];
+ 895              		.loc 1 59 5 is_stmt 1 discriminator 2 view .LVU198
+ 896 0008 0134     		adds	r4, r4, #1
+ 897              	.LVL48:
+ 898              	.L21:
+  59:Application/controller.cpp ****         delete impl[i];
+ 899              		.loc 1 59 23 discriminator 1 view .LVU199
+ 900 000a 052C     		cmp	r4, #5
+ 901 000c 07DC     		bgt	.L25
+  60:Application/controller.cpp ****     }
+ 902              		.loc 1 60 9 view .LVU200
+ 903              	.LVL49:
+ 904              	.LBB244:
+ 905              	.LBI244:
+ 906              		.loc 3 200 7 view .LVU201
+ 907              		.loc 3 200 7 is_stmt 0 view .LVU202
+ 908              	.LBE244:
+  60:Application/controller.cpp ****     }
+ 909              		.loc 1 60 9 discriminator 1 view .LVU203
+ 910 000e 55F82400 		ldr	r0, [r5, r4, lsl #2]
+ 911 0012 0028     		cmp	r0, #0
+ 912 0014 F8D0     		beq	.L22
+  60:Application/controller.cpp ****     }
+ 913              		.loc 1 60 22 discriminator 1 view .LVU204
+ 914 0016 2021     		movs	r1, #32
+ 915 0018 FFF7FEFF 		bl	_ZdlPvj
+ 916              	.LVL50:
+ 917 001c F4E7     		b	.L22
+ 918              	.L25:
+  60:Application/controller.cpp ****     }
+ARM GAS  /tmp/ccpPuDCh.s 			page 27
+
+
+ 919              		.loc 1 60 22 discriminator 1 view .LVU205
+ 920              	.LBE243:
+  62:Application/controller.cpp **** 
+ 921              		.loc 1 62 1 view .LVU206
+ 922 001e 2846     		mov	r0, r5
+ 923 0020 38BD     		pop	{r3, r4, r5, pc}
+  62:Application/controller.cpp **** 
+ 924              		.loc 1 62 1 view .LVU207
+ 925              		.cfi_endproc
+ 926              	.LFE2006:
+ 927              		.cantunwind
+ 928              		.fnend
+ 930              		.global	_ZN10ControllerD1Ev
+ 931              		.thumb_set _ZN10ControllerD1Ev,_ZN10ControllerD2Ev
+ 932              		.section	.text._ZN8CtrlImpl10calcSampleERKfS1_,"ax",%progbits
+ 933              		.align	1
+ 934              		.global	_ZN8CtrlImpl10calcSampleERKfS1_
+ 935              		.syntax unified
+ 936              		.thumb
+ 937              		.thumb_func
+ 939              	_ZN8CtrlImpl10calcSampleERKfS1_:
+ 940              		.fnstart
+ 941              	.LVL51:
+ 942              	.LFB2018:
+  94:Application/controller.cpp **** 
+ 943              		.loc 1 94 73 is_stmt 1 view -0
+ 944              		.cfi_startproc
+ 945              		@ args = 0, pretend = 0, frame = 0
+ 946              		@ frame_needed = 0, uses_anonymous_args = 0
+ 947              		@ link register save eliminated.
+  96:Application/controller.cpp ****     float errRatio = error/desired; // Used to decide whether to use integral control
+ 948              		.loc 1 96 5 view .LVU209
+  96:Application/controller.cpp ****     float errRatio = error/desired; // Used to decide whether to use integral control
+ 949              		.loc 1 96 19 is_stmt 0 view .LVU210
+ 950 0000 91ED007A 		vldr.32	s14, [r1]
+  96:Application/controller.cpp ****     float errRatio = error/desired; // Used to decide whether to use integral control
+ 951              		.loc 1 96 29 view .LVU211
+ 952 0004 D2ED007A 		vldr.32	s15, [r2]
+  96:Application/controller.cpp ****     float errRatio = error/desired; // Used to decide whether to use integral control
+ 953              		.loc 1 96 11 view .LVU212
+ 954 0008 77EE677A 		vsub.f32	s15, s14, s15
+ 955              	.LVL52:
+  97:Application/controller.cpp ****     float errorSlope = (error-errorOld)/samplePer; // Delta(e(kT))/Delta(kT)
+ 956              		.loc 1 97 5 is_stmt 1 view .LVU213
+  97:Application/controller.cpp ****     float errorSlope = (error-errorOld)/samplePer; // Delta(e(kT))/Delta(kT)
+ 957              		.loc 1 97 11 is_stmt 0 view .LVU214
+ 958 000c 87EE875A 		vdiv.f32	s10, s15, s14
+ 959              	.LVL53:
+  98:Application/controller.cpp **** 
+ 960              		.loc 1 98 5 is_stmt 1 view .LVU215
+  98:Application/controller.cpp **** 
+ 961              		.loc 1 98 31 is_stmt 0 view .LVU216
+ 962 0010 90ED047A 		vldr.32	s14, [r0, #16]
+  98:Application/controller.cpp **** 
+ 963              		.loc 1 98 30 view .LVU217
+ 964 0014 37EEC77A 		vsub.f32	s14, s15, s14
+  98:Application/controller.cpp **** 
+ARM GAS  /tmp/ccpPuDCh.s 			page 28
+
+
+ 965              		.loc 1 98 41 view .LVU218
+ 966 0018 D0ED056A 		vldr.32	s13, [r0, #20]
+  98:Application/controller.cpp **** 
+ 967              		.loc 1 98 11 view .LVU219
+ 968 001c C7EE265A 		vdiv.f32	s11, s14, s13
+ 969              	.LVL54:
+ 100:Application/controller.cpp **** 
+ 970              		.loc 1 100 5 is_stmt 1 view .LVU220
+ 100:Application/controller.cpp **** 
+ 971              		.loc 1 100 20 is_stmt 0 view .LVU221
+ 972 0020 90ED000A 		vldr.32	s0, [r0]
+ 100:Application/controller.cpp **** 
+ 973              		.loc 1 100 22 view .LVU222
+ 974 0024 20EE270A 		vmul.f32	s0, s0, s15
+ 100:Application/controller.cpp **** 
+ 975              		.loc 1 100 31 view .LVU223
+ 976 0028 D0ED016A 		vldr.32	s13, [r0, #4]
+ 100:Application/controller.cpp **** 
+ 977              		.loc 1 100 34 view .LVU224
+ 978 002c 90ED036A 		vldr.32	s12, [r0, #12]
+ 100:Application/controller.cpp **** 
+ 979              		.loc 1 100 33 view .LVU225
+ 980 0030 26EE867A 		vmul.f32	s14, s13, s12
+ 100:Application/controller.cpp **** 
+ 981              		.loc 1 100 29 view .LVU226
+ 982 0034 30EE070A 		vadd.f32	s0, s0, s14
+ 100:Application/controller.cpp **** 
+ 983              		.loc 1 100 45 view .LVU227
+ 984 0038 90ED027A 		vldr.32	s14, [r0, #8]
+ 100:Application/controller.cpp **** 
+ 985              		.loc 1 100 47 view .LVU228
+ 986 003c 27EE257A 		vmul.f32	s14, s14, s11
+ 100:Application/controller.cpp **** 
+ 987              		.loc 1 100 11 view .LVU229
+ 988 0040 30EE070A 		vadd.f32	s0, s0, s14
+ 989              	.LVL55:
+ 104:Application/controller.cpp ****         errorSum += error; // sum_{k_1}^{k}(error)
+ 990              		.loc 1 104 5 is_stmt 1 view .LVU230
+ 991 0044 F5EEC06A 		vcmpe.f32	s13, #0
+ 992 0048 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 993 004c 0BDD     		ble	.L27
+ 104:Application/controller.cpp ****         errorSum += error; // sum_{k_1}^{k}(error)
+ 994              		.loc 1 104 29 is_stmt 0 discriminator 1 view .LVU231
+ 995 004e 90ED077A 		vldr.32	s14, [r0, #28]
+ 104:Application/controller.cpp ****         errorSum += error; // sum_{k_1}^{k}(error)
+ 996              		.loc 1 104 15 discriminator 1 view .LVU232
+ 997 0052 B4EEC57A 		vcmpe.f32	s14, s10
+ 998 0056 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 999 005a 04DD     		ble	.L27
+ 105:Application/controller.cpp ****     }
+ 1000              		.loc 1 105 9 is_stmt 1 view .LVU233
+ 105:Application/controller.cpp ****     }
+ 1001              		.loc 1 105 18 is_stmt 0 view .LVU234
+ 1002 005c 36EE276A 		vadd.f32	s12, s12, s15
+ 1003 0060 80ED036A 		vstr.32	s12, [r0, #12]
+ 1004 0064 01E0     		b	.L30
+ 1005              	.L27:
+ARM GAS  /tmp/ccpPuDCh.s 			page 29
+
+
+ 109:Application/controller.cpp ****     }
+ 1006              		.loc 1 109 9 is_stmt 1 view .LVU235
+ 109:Application/controller.cpp ****     }
+ 1007              		.loc 1 109 18 is_stmt 0 view .LVU236
+ 1008 0066 0023     		movs	r3, #0
+ 1009 0068 C360     		str	r3, [r0, #12]	@ float
+ 1010              	.L30:
+ 112:Application/controller.cpp **** 
+ 1011              		.loc 1 112 5 is_stmt 1 view .LVU237
+ 112:Application/controller.cpp **** 
+ 1012              		.loc 1 112 14 is_stmt 0 view .LVU238
+ 1013 006a C0ED047A 		vstr.32	s15, [r0, #16]
+ 114:Application/controller.cpp **** }
+ 1014              		.loc 1 114 5 is_stmt 1 view .LVU239
+ 1015              		.loc 1 115 1 is_stmt 0 view .LVU240
+ 1016 006e 7047     		bx	lr
+ 1017              		.cfi_endproc
+ 1018              	.LFE2018:
+ 1019              		.cantunwind
+ 1020              		.fnend
+ 1022              		.section	.text._ZN10Controller4stepESt5arrayIfLj6EES1_,"ax",%progbits
+ 1023              		.align	1
+ 1024              		.global	_ZN10Controller4stepESt5arrayIfLj6EES1_
+ 1025              		.syntax unified
+ 1026              		.thumb
+ 1027              		.thumb_func
+ 1029              	_ZN10Controller4stepESt5arrayIfLj6EES1_:
+ 1030              		.fnstart
+ 1031              	.LVL56:
+ 1032              	.LFB2008:
+  71:Application/controller.cpp ****     fArr6 output;
+ 1033              		.loc 1 71 53 is_stmt 1 view -0
+ 1034              		.cfi_startproc
+ 1035              		@ args = 48, pretend = 8, frame = 0
+ 1036              		@ frame_needed = 0, uses_anonymous_args = 0
+  71:Application/controller.cpp ****     fArr6 output;
+ 1037              		.loc 1 71 53 is_stmt 0 view .LVU242
+ 1038 0000 82B0     		sub	sp, sp, #8
+ 1039              		.cfi_def_cfa_offset 8
+ 1040 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1041              		.cfi_def_cfa_offset 32
+ 1042              		.cfi_offset 3, -32
+ 1043              		.cfi_offset 4, -28
+ 1044              		.cfi_offset 5, -24
+ 1045              		.cfi_offset 6, -20
+ 1046              		.cfi_offset 7, -16
+ 1047              		.cfi_offset 14, -12
+ 1048 0004 0646     		mov	r6, r0
+ 1049 0006 0F46     		mov	r7, r1
+ 1050 0008 06A9     		add	r1, sp, #24
+ 1051              	.LVL57:
+  71:Application/controller.cpp ****     fArr6 output;
+ 1052              		.loc 1 71 53 view .LVU243
+ 1053 000a 81E80C00 		stm	r1, {r2, r3}
+  72:Application/controller.cpp ****     for (int i = 0; i < 6; i++) {
+ 1054              		.loc 1 72 5 is_stmt 1 view .LVU244
+  73:Application/controller.cpp ****         output[i] = (impl[i]->calcSample(desired[i],actual[i]))/norm;
+ARM GAS  /tmp/ccpPuDCh.s 			page 30
+
+
+ 1055              		.loc 1 73 5 view .LVU245
+ 1056              	.LVL58:
+ 1057              	.LBB245:
+  73:Application/controller.cpp ****         output[i] = (impl[i]->calcSample(desired[i],actual[i]))/norm;
+ 1058              		.loc 1 73 14 is_stmt 0 view .LVU246
+ 1059 000e 0024     		movs	r4, #0
+  73:Application/controller.cpp ****         output[i] = (impl[i]->calcSample(desired[i],actual[i]))/norm;
+ 1060              		.loc 1 73 5 view .LVU247
+ 1061 0010 12E0     		b	.L34
+ 1062              	.LVL59:
+ 1063              	.L35:
+  74:Application/controller.cpp ****     }
+ 1064              		.loc 1 74 9 is_stmt 1 view .LVU248
+ 1065              	.LBB246:
+ 1066              	.LBI246:
+ 1067              		.loc 3 200 7 view .LVU249
+ 1068              		.loc 3 200 7 is_stmt 0 view .LVU250
+ 1069              	.LBE246:
+ 1070              	.LBB247:
+ 1071              	.LBI247:
+ 1072              		.loc 3 200 7 is_stmt 1 view .LVU251
+ 1073              	.LBB248:
+ 201:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 202:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	__glibcxx_requires_subscript(__n);
+ 203:/usr/arm-none-eabi/include/c++/13.2.0/array **** 	return _M_elems[__n];
+ 1074              		.loc 3 203 21 is_stmt 0 view .LVU252
+ 1075 0012 A500     		lsls	r5, r4, #2
+ 1076              	.LVL60:
+ 1077              		.loc 3 203 21 view .LVU253
+ 1078              	.LBE248:
+ 1079              	.LBE247:
+ 1080              	.LBB249:
+ 1081              	.LBI249:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 1082              		.loc 3 200 7 is_stmt 1 view .LVU254
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 1083              		.loc 3 200 7 is_stmt 0 view .LVU255
+ 1084              	.LBE249:
+  74:Application/controller.cpp ****     }
+ 1085              		.loc 1 74 41 discriminator 3 view .LVU256
+ 1086 0014 0CAB     		add	r3, sp, #48
+ 1087 0016 03EB8402 		add	r2, r3, r4, lsl #2
+ 1088 001a 06AB     		add	r3, sp, #24
+ 1089 001c 03EB8401 		add	r1, r3, r4, lsl #2
+ 1090 0020 57F82400 		ldr	r0, [r7, r4, lsl #2]
+ 1091 0024 FFF7FEFF 		bl	_ZN8CtrlImpl10calcSampleERKfS1_
+ 1092              	.LVL61:
+  74:Application/controller.cpp ****     }
+ 1093              		.loc 1 74 64 discriminator 4 view .LVU257
+ 1094 0028 9FED077A 		vldr.32	s14, .L37
+ 1095 002c C0EE077A 		vdiv.f32	s15, s0, s14
+ 1096              	.LVL62:
+ 1097              	.LBB250:
+ 1098              	.LBI250:
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ 1099              		.loc 3 200 7 is_stmt 1 view .LVU258
+ 200:/usr/arm-none-eabi/include/c++/13.2.0/array ****       {
+ARM GAS  /tmp/ccpPuDCh.s 			page 31
+
+
+ 1100              		.loc 3 200 7 is_stmt 0 view .LVU259
+ 1101              	.LBE250:
+  74:Application/controller.cpp ****     }
+ 1102              		.loc 1 74 19 discriminator 5 view .LVU260
+ 1103 0030 3544     		add	r5, r5, r6
+ 1104 0032 C5ED007A 		vstr.32	s15, [r5]
+  73:Application/controller.cpp ****         output[i] = (impl[i]->calcSample(desired[i],actual[i]))/norm;
+ 1105              		.loc 1 73 5 is_stmt 1 discriminator 3 view .LVU261
+ 1106 0036 0134     		adds	r4, r4, #1
+ 1107              	.LVL63:
+ 1108              	.L34:
+  73:Application/controller.cpp ****         output[i] = (impl[i]->calcSample(desired[i],actual[i]))/norm;
+ 1109              		.loc 1 73 23 discriminator 1 view .LVU262
+ 1110 0038 052C     		cmp	r4, #5
+ 1111 003a EADD     		ble	.L35
+ 1112              	.LBE245:
+  76:Application/controller.cpp **** }
+ 1113              		.loc 1 76 5 view .LVU263
+  77:Application/controller.cpp **** 
+ 1114              		.loc 1 77 1 is_stmt 0 view .LVU264
+ 1115 003c 3046     		mov	r0, r6
+ 1116 003e BDE8F840 		pop	{r3, r4, r5, r6, r7, lr}
+ 1117              		.cfi_restore 14
+ 1118              		.cfi_restore 7
+ 1119              		.cfi_restore 6
+ 1120              		.cfi_restore 5
+ 1121              		.cfi_restore 4
+ 1122              		.cfi_restore 3
+ 1123              		.cfi_def_cfa_offset 8
+ 1124              	.LVL64:
+  77:Application/controller.cpp **** 
+ 1125              		.loc 1 77 1 view .LVU265
+ 1126 0042 02B0     		add	sp, sp, #8
+ 1127              		.cfi_def_cfa_offset 0
+ 1128 0044 7047     		bx	lr
+ 1129              	.L38:
+ 1130 0046 00BF     		.align	2
+ 1131              	.L37:
+ 1132 0048 00007F43 		.word	1132396544
+ 1133              		.cfi_endproc
+ 1134              	.LFE2008:
+ 1135              		.cantunwind
+ 1136              		.fnend
+ 1138              		.section	.text._GLOBAL__sub_I__ZN10ControllerC2Ev,"ax",%progbits
+ 1139              		.align	1
+ 1140              		.syntax unified
+ 1141              		.thumb
+ 1142              		.thumb_func
+ 1144              	_GLOBAL__sub_I__ZN10ControllerC2Ev:
+ 1145              		.fnstart
+ 1146              	.LFB2541:
+ 1147              		.loc 1 115 1 is_stmt 1 view -0
+ 1148              		.cfi_startproc
+ 1149              		@ args = 0, pretend = 0, frame = 0
+ 1150              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1151 0000 08B5     		push	{r3, lr}
+ 1152              		.cfi_def_cfa_offset 8
+ARM GAS  /tmp/ccpPuDCh.s 			page 32
+
+
+ 1153              		.cfi_offset 3, -8
+ 1154              		.cfi_offset 14, -4
+ 1155              		.loc 1 115 1 is_stmt 0 view .LVU267
+ 1156 0002 FFF7FEFF 		bl	_Z41__static_initialization_and_destruction_0v
+ 1157              	.LVL65:
+ 1158 0006 08BD     		pop	{r3, pc}
+ 1159              		.cfi_endproc
+ 1160              	.LFE2541:
+ 1161              		.cantunwind
+ 1162              		.fnend
+ 1164              		.section	.init_array,"aw",%init_array
+ 1165              		.align	2
+ 1166 0000 00000000 		.word	_GLOBAL__sub_I__ZN10ControllerC2Ev(target1)
+ 1167              		.section	.bss._ZL19ROTATION_COMPONENTS,"aw",%nobits
+ 1168              		.align	2
+ 1171              	_ZL19ROTATION_COMPONENTS:
+ 1172 0000 00000000 		.space	27
+ 1172      00000000 
+ 1172      00000000 
+ 1172      00000000 
+ 1172      00000000 
+ 1173              		.section	.bss._ZL10ROTATION_Z,"aw",%nobits
+ 1174              		.align	2
+ 1177              	_ZL10ROTATION_Z:
+ 1178 0000 00000000 		.space	9
+ 1178      00000000 
+ 1178      00
+ 1179              		.section	.bss._ZL10ROTATION_Y,"aw",%nobits
+ 1180              		.align	2
+ 1183              	_ZL10ROTATION_Y:
+ 1184 0000 00000000 		.space	9
+ 1184      00000000 
+ 1184      00
+ 1185              		.section	.bss._ZL10ROTATION_X,"aw",%nobits
+ 1186              		.align	2
+ 1189              	_ZL10ROTATION_X:
+ 1190 0000 00000000 		.space	9
+ 1190      00000000 
+ 1190      00
+ 1191              		.text
+ 1192              	.Letext0:
+ 1193              		.file 4 "/usr/arm-none-eabi/include/c++/13.2.0/type_traits"
+ 1194              		.file 5 "/usr/arm-none-eabi/include/c++/13.2.0/debug/debug.h"
+ 1195              		.file 6 "/usr/arm-none-eabi/include/c++/13.2.0/cstdint"
+ 1196              		.file 7 "/usr/arm-none-eabi/include/c++/13.2.0/cwchar"
+ 1197              		.file 8 "/usr/arm-none-eabi/include/c++/13.2.0/bits/exception_ptr.h"
+ 1198              		.file 9 "/usr/arm-none-eabi/include/c++/13.2.0/arm-none-eabi/thumb/v7e-m+fp/hard/bits/c++config.h"
+ 1199              		.file 10 "/usr/arm-none-eabi/include/c++/13.2.0/clocale"
+ 1200              		.file 11 "/usr/arm-none-eabi/include/c++/13.2.0/cstdlib"
+ 1201              		.file 12 "/usr/arm-none-eabi/include/c++/13.2.0/cstdio"
+ 1202              		.file 13 "/usr/arm-none-eabi/include/c++/13.2.0/cstddef"
+ 1203              		.file 14 "/usr/arm-none-eabi/include/c++/13.2.0/cwctype"
+ 1204              		.file 15 "/usr/arm-none-eabi/include/c++/13.2.0/bits/charconv.h"
+ 1205              		.file 16 "/usr/arm-none-eabi/include/c++/13.2.0/bits/predefined_ops.h"
+ 1206              		.file 17 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1207              		.file 18 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1208              		.file 19 "/usr/arm-none-eabi/include/stdint.h"
+ARM GAS  /tmp/ccpPuDCh.s 			page 33
+
+
+ 1209              		.file 20 "/usr/lib/gcc/arm-none-eabi/13.2.0/include/stddef.h"
+ 1210              		.file 21 "/usr/arm-none-eabi/include/sys/_types.h"
+ 1211              		.file 22 "/usr/arm-none-eabi/include/sys/reent.h"
+ 1212              		.file 23 "/usr/arm-none-eabi/include/sys/lock.h"
+ 1213              		.file 24 "/usr/lib/gcc/arm-none-eabi/13.2.0/include/stdarg.h"
+ 1214              		.file 25 "/usr/arm-none-eabi/include/wchar.h"
+ 1215              		.file 26 "/usr/arm-none-eabi/include/locale.h"
+ 1216              		.file 27 "/usr/arm-none-eabi/include/stdlib.h"
+ 1217              		.file 28 "/usr/arm-none-eabi/include/stdio.h"
+ 1218              		.file 29 "/usr/arm-none-eabi/include/wctype.h"
+ 1219              		.file 30 "Application/Include/controller.h"
+ 1220              		.file 31 "/usr/arm-none-eabi/include/c++/13.2.0/new"
+ 1221              		.file 32 "/usr/arm-none-eabi/include/c++/13.2.0/bits/memory_resource.h"
+ 1222              		.file 33 "/usr/arm-none-eabi/include/c++/13.2.0/system_error"
+ 1223              		.file 34 "<built-in>"
+ARM GAS  /tmp/ccpPuDCh.s 			page 34
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 controller.cpp
+     /tmp/ccpPuDCh.s:21     .text._Z41__static_initialization_and_destruction_0v:00000000 $t
+     /tmp/ccpPuDCh.s:26     .text._Z41__static_initialization_and_destruction_0v:00000000 _Z41__static_initialization_and_destruction_0v
+     /tmp/ccpPuDCh.s:528    .text._Z41__static_initialization_and_destruction_0v:00000084 $d
+     /tmp/ccpPuDCh.s:1189   .bss._ZL10ROTATION_X:00000000 _ZL10ROTATION_X
+     /tmp/ccpPuDCh.s:1183   .bss._ZL10ROTATION_Y:00000000 _ZL10ROTATION_Y
+     /tmp/ccpPuDCh.s:1177   .bss._ZL10ROTATION_Z:00000000 _ZL10ROTATION_Z
+     /tmp/ccpPuDCh.s:1171   .bss._ZL19ROTATION_COMPONENTS:00000000 _ZL19ROTATION_COMPONENTS
+.ARM.exidx.text._Z41__static_initialization_and_destruction_0v:00000000 $d
+     /tmp/ccpPuDCh.s:538    .text._ZN8CtrlImplC2ERKfS1_S1_S1_:00000000 $t
+     /tmp/ccpPuDCh.s:544    .text._ZN8CtrlImplC2ERKfS1_S1_S1_:00000000 _ZN8CtrlImplC2ERKfS1_S1_S1_
+.ARM.exidx.text._ZN8CtrlImplC2ERKfS1_S1_S1_:00000000 $d
+     /tmp/ccpPuDCh.s:544    .text._ZN8CtrlImplC2ERKfS1_S1_S1_:00000000 _ZN8CtrlImplC1ERKfS1_S1_S1_
+     /tmp/ccpPuDCh.s:590    .text._ZN10Controller4initERKfS1_S1_S1_:00000000 $t
+     /tmp/ccpPuDCh.s:596    .text._ZN10Controller4initERKfS1_S1_S1_:00000000 _ZN10Controller4initERKfS1_S1_S1_
+.ARM.exidx.text._ZN10Controller4initERKfS1_S1_S1_:00000000 $d
+     /tmp/ccpPuDCh.s:673    .text._ZN10ControllerC2Ev:00000000 $t
+     /tmp/ccpPuDCh.s:679    .text._ZN10ControllerC2Ev:00000000 _ZN10ControllerC2Ev
+     /tmp/ccpPuDCh.s:732    .text._ZN10ControllerC2Ev:0000002c $d
+.ARM.exidx.text._ZN10ControllerC2Ev:00000000 $d
+     /tmp/ccpPuDCh.s:679    .text._ZN10ControllerC2Ev:00000000 _ZN10ControllerC1Ev
+     /tmp/ccpPuDCh.s:742    .text._ZN10ControllerC2ERKfS1_S1_S1_:00000000 $t
+     /tmp/ccpPuDCh.s:748    .text._ZN10ControllerC2ERKfS1_S1_S1_:00000000 _ZN10ControllerC2ERKfS1_S1_S1_
+.ARM.exidx.text._ZN10ControllerC2ERKfS1_S1_S1_:00000000 $d
+     /tmp/ccpPuDCh.s:748    .text._ZN10ControllerC2ERKfS1_S1_S1_:00000000 _ZN10ControllerC1ERKfS1_S1_S1_
+     /tmp/ccpPuDCh.s:790    .text._ZN8CtrlImplC2Ev:00000000 $t
+     /tmp/ccpPuDCh.s:796    .text._ZN8CtrlImplC2Ev:00000000 _ZN8CtrlImplC2Ev
+     /tmp/ccpPuDCh.s:828    .text._ZN8CtrlImplC2Ev:00000018 $d
+ .ARM.exidx.text._ZN8CtrlImplC2Ev:00000000 $d
+     /tmp/ccpPuDCh.s:796    .text._ZN8CtrlImplC2Ev:00000000 _ZN8CtrlImplC1Ev
+     /tmp/ccpPuDCh.s:839    .text._ZN8CtrlImplD2Ev:00000000 $t
+     /tmp/ccpPuDCh.s:845    .text._ZN8CtrlImplD2Ev:00000000 _ZN8CtrlImplD2Ev
+ .ARM.exidx.text._ZN8CtrlImplD2Ev:00000000 $d
+     /tmp/ccpPuDCh.s:845    .text._ZN8CtrlImplD2Ev:00000000 _ZN8CtrlImplD1Ev
+     /tmp/ccpPuDCh.s:864    .text._ZN10ControllerD2Ev:00000000 $t
+     /tmp/ccpPuDCh.s:870    .text._ZN10ControllerD2Ev:00000000 _ZN10ControllerD2Ev
+.ARM.exidx.text._ZN10ControllerD2Ev:00000000 $d
+     /tmp/ccpPuDCh.s:870    .text._ZN10ControllerD2Ev:00000000 _ZN10ControllerD1Ev
+     /tmp/ccpPuDCh.s:933    .text._ZN8CtrlImpl10calcSampleERKfS1_:00000000 $t
+     /tmp/ccpPuDCh.s:939    .text._ZN8CtrlImpl10calcSampleERKfS1_:00000000 _ZN8CtrlImpl10calcSampleERKfS1_
+.ARM.exidx.text._ZN8CtrlImpl10calcSampleERKfS1_:00000000 $d
+     /tmp/ccpPuDCh.s:1023   .text._ZN10Controller4stepESt5arrayIfLj6EES1_:00000000 $t
+     /tmp/ccpPuDCh.s:1029   .text._ZN10Controller4stepESt5arrayIfLj6EES1_:00000000 _ZN10Controller4stepESt5arrayIfLj6EES1_
+     /tmp/ccpPuDCh.s:1132   .text._ZN10Controller4stepESt5arrayIfLj6EES1_:00000048 $d
+.ARM.exidx.text._ZN10Controller4stepESt5arrayIfLj6EES1_:00000000 $d
+     /tmp/ccpPuDCh.s:1139   .text._GLOBAL__sub_I__ZN10ControllerC2Ev:00000000 $t
+     /tmp/ccpPuDCh.s:1144   .text._GLOBAL__sub_I__ZN10ControllerC2Ev:00000000 _GLOBAL__sub_I__ZN10ControllerC2Ev
+.ARM.exidx.text._GLOBAL__sub_I__ZN10ControllerC2Ev:00000000 $d
+     /tmp/ccpPuDCh.s:1165   .init_array:00000000 $d
+     /tmp/ccpPuDCh.s:1168   .bss._ZL19ROTATION_COMPONENTS:00000000 $d
+     /tmp/ccpPuDCh.s:1174   .bss._ZL10ROTATION_Z:00000000 $d
+     /tmp/ccpPuDCh.s:1180   .bss._ZL10ROTATION_Y:00000000 $d
+     /tmp/ccpPuDCh.s:1186   .bss._ZL10ROTATION_X:00000000 $d
+
+UNDEFINED SYMBOLS
+_Znwj
+ARM GAS  /tmp/ccpPuDCh.s 			page 35
+
+
+__aeabi_unwind_cpp_pr0
+_ZdlPvj
